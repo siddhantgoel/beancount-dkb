@@ -47,7 +47,7 @@ class ECImporter(importer.ImporterProtocol):
         entries = []
 
         with change_locale(locale.LC_NUMERIC, self.numeric_locale):
-            with open(file_.name, self.file_encoding) as fd:
+            with open(file_.name, encoding=self.file_encoding) as fd:
                 lines = [line for index, line in enumerate(fd)
                          if index >= 6]
 
