@@ -10,6 +10,21 @@ from beancount.ingest import importer
 from ._helpers import change_locale
 
 
+HEADER = (
+    'Buchungstag',
+    'Wertstellung',
+    'Buchungstext',
+    'Auftraggeber / Begünstigter',
+    'Verwendungszweck',
+    'Kontonummer',
+    'BLZ',
+    'Betrag (EUR)',
+    'Gläubiger-ID',
+    'Mandatsreferenz',
+    'Kundenreferenz',
+)
+
+
 class ECImporter(importer.ImporterProtocol):
     def __init__(self, iban, account, currency='EUR', ignore_tagessaldo=True,
                  numeric_locale='de_DE.UTF-8', file_encoding='ISO-8859-1'):
