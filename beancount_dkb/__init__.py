@@ -1,1 +1,1 @@
-from .ec import DKBECImporter  # NOQA
+from .ec import ECImporter  # NOQA
