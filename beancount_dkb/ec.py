@@ -10,7 +10,7 @@ from beancount.ingest import importer
 from ._common import change_locale, InvalidFormatError
 
 
-HEADER = (
+FIELDS = (
     'Buchungstag',
     'Wertstellung',
     'Buchungstext',
@@ -27,7 +27,7 @@ HEADER = (
 
 class ECImporter(importer.ImporterProtocol):
     def __init__(self, iban, account, currency='EUR', ignore_tagessaldo=True,
-                 numeric_locale='de_DE.UTF-8', file_encoding='ISO-8859-1'):
+                 numeric_locale='de_DE.UTF-8', file_encoding='utf-8'):
         self.iban = iban
         self.account = account
         self.currency = currency
