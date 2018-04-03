@@ -42,7 +42,8 @@ class CreditImporterTestCase(TestCase):
 
                 "Von:";"01.01.2018";
                 "Bis:";"31.01.2018";
-                "Kontostand vom 31.01.2017:";"5.000,01 EUR";
+                "Saldo:";"5.000,01 EUR";
+                "Datum:";"15.02.2018";
 
                 {header};
             ''', dict(card_number=self.card_number, header=HEADER)))
@@ -59,7 +60,8 @@ class CreditImporterTestCase(TestCase):
 
                 "Von:";"01.01.2018";
                 "Bis:";"31.01.2018";
-                "Kontostand vom 31.01.2017:";"5.000,01 EUR";
+                "Saldo:";"5.000,01 EUR";
+                "Datum:";"15.02.2018";
 
                 {header};
             ''', dict(card_number=self.card_number, header=HEADER)))
@@ -78,7 +80,8 @@ class CreditImporterTestCase(TestCase):
 
                 "Von:";"01.01.2018";
                 "Bis:";"31.01.2018";
-                "Kontostand vom 31.01.2017:";"5.000,01 EUR";
+                "Saldo:";"5.000,01 EUR";
+                "Datum:";"15.02.2018";
 
                 {header};
             ''', dict(card_number=self.card_number, header=HEADER)))
@@ -93,7 +96,8 @@ class CreditImporterTestCase(TestCase):
 
                 "Von:";"01.01.2018";
                 "Bis:";"31.01.2018";
-                "Kontostand vom 31.01.2017:";"5.000,01 EUR";
+                "Saldo:";"5.000,01 EUR";
+                "Datum:";"15.02.2018";
 
                 {header};
                 "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
@@ -122,7 +126,8 @@ class CreditImporterTestCase(TestCase):
 
                 "Von:";"01.01.2018";
                 "Bis:";"31.01.2018";
-                "Kontostand vom 31.01.2017:";"5.000,01 EUR";
+                "Saldo:";"5.000,01 EUR";
+                "Datum:";"15.02.2018";
 
                 {header};
                 "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";

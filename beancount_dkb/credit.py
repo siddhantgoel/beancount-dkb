@@ -62,7 +62,9 @@ class CreditImporter(importer.ImporterProtocol):
                 raise InvalidFormatError()
 
         def _read_meta(fd):
-            lines = [fd.readline().strip() for _ in range(3)]
+            expected_keys = set(['Von:', 'Bis:', 'Saldo:', 'Datum:'])
+
+            lines = [fd.readline().strip() for _ in range(len(expected_keys))]
 
             reader = csv.reader(lines, delimiter=';',
                                 quoting=csv.QUOTE_MINIMAL, quotechar='"')
@@ -76,8 +78,15 @@ class CreditImporter(importer.ImporterProtocol):
                 elif key.startswith('Bis'):
                     self._date_to = datetime.strptime(
                         value, '%d.%m.%Y').date()
-                elif key.startswith('Kontostand vom'):
+                elif key.startswith('Saldo'):
                     self._balance = locale.atof(value.rstrip(' EUR'), Decimal)
+                elif key.startswith('Datum'):
+                    pass
+
+                expected_keys.remove(key)
+
+            if expected_keys:
+                raise ValueError()
 
         with change_locale(locale.LC_NUMERIC, self.numeric_locale):
             with open(file_.name, encoding=self.file_encoding) as fd:
