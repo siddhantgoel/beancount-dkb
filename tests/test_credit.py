@@ -3,7 +3,7 @@ from tempfile import gettempdir
 from textwrap import dedent
 from unittest import TestCase
 import datetime
-import os.path
+import os
 
 from beancount_dkb import CreditImporter
 from beancount_dkb.credit import FIELDS
