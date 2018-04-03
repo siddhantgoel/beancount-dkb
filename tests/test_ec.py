@@ -3,7 +3,6 @@ from unittest import TestCase
 import datetime
 import os.path
 
-from beancount.ingest.cache import _FileMemo
 from beancount_dkb import ECImporter
 
 
@@ -17,32 +16,32 @@ class ECImporterTestCase(TestCase):
 
         importer = ECImporter(iban, 'Assets:DKB:EC')
 
-        self.assertTrue(
-            importer.identify(_FileMemo(path_for_data_file('empty.csv'))))
+        with open(path_for_data_file('empty.csv')) as fd:
+            self.assertTrue(importer.identify(fd))
 
     def test_identify_invalid_iban(self):
         iban = 'DE00000000000000000000'
 
         importer = ECImporter(iban, 'Assets:DKB:EC')
 
-        self.assertFalse(
-            importer.identify(_FileMemo(path_for_data_file('empty.csv'))))
+        with open(path_for_data_file('empty.csv')) as fd:
+            self.assertFalse(importer.identify(fd))
 
     def test_extract_no_transactions(self):
         iban = 'DE99999999999999999999'
 
         importer = ECImporter(iban, 'Assets:DKB:EC')
 
-        self.assertFalse(
-            importer.extract(_FileMemo(path_for_data_file('empty.csv'))))
+        with open(path_for_data_file('empty.csv')) as fd:
+            self.assertFalse(importer.extract(fd))
 
     def test_extract_transactions(self):
         iban = 'DE99999999999999999999'
 
         importer = ECImporter(iban, 'Assets:DKB:EC')
 
-        transactions = importer.extract(
-            _FileMemo(path_for_data_file('non_empty.csv')))
+        with open(path_for_data_file('non_empty.csv')) as fd:
+            transactions = importer.extract(fd)
 
         self.assertEqual(len(transactions), 1)
         self.assertEqual(transactions[0].date, datetime.date(2018, 1, 16))
