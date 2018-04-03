@@ -95,10 +95,7 @@ class ECImporter(importer.ImporterProtocol):
                 _read_empty_line(fd)
 
                 # Data entries
-                lines = [line for index, line in enumerate(fd)
-                         if index >= 6]
-
-                reader = csv.DictReader(lines, delimiter=';',
+                reader = csv.DictReader(fd, delimiter=';',
                                         quoting=csv.QUOTE_MINIMAL,
                                         quotechar='"')
 
