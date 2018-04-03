@@ -21,10 +21,15 @@ Usage
 -----
 
 .. code-block:: python
+
     from beancount_dkb import ECImporter
 
     CONFIG = [
-        ECImporter(IBAN, 'Assets:DKB:EC')
+        ECImporter(
+            IBAN_NUMBER, 'Assets:DKB:EC', currency='EUR',
+            ignore_tagessaldo=True, numeric_locale='de_DE.UTF-8',
+            file_encoding='utf-8'
+        )
     ]
 
 .. _Beancount: http://furius.ca/beancount/
