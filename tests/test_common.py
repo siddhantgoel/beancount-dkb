@@ -2,7 +2,7 @@ from functools import partial
 import locale
 from unittest import TestCase
 
-from beancount_dkb._helpers import change_locale
+from beancount_dkb._common import change_locale
 
 
 class HelpersTestCase(TestCase):
