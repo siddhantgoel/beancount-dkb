@@ -5,7 +5,7 @@ from unittest import TestCase
 from beancount_dkb._common import change_locale
 
 
-class HelpersTestCase(TestCase):
+class CommonTestCase(TestCase):
     def test_change_locale(self):
         locale.setlocale(locale.LC_NUMERIC, 'en_US.UTF-8')
 
