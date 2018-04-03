@@ -22,11 +22,17 @@ Usage
 
 .. code-block:: python
 
-    from beancount_dkb import ECImporter
+    from beancount_dkb import ECImporter, CreditImporter
 
     CONFIG = [
         ECImporter(
             IBAN_NUMBER, 'Assets:DKB:EC', currency='EUR',
+            ignore_tagessaldo=True, numeric_locale='de_DE.UTF-8',
+            file_encoding='utf-8'
+        ),
+
+        CreditImporter(
+            CARD_NUMBER, 'Assets:DKB:Credit', currency='EUR',
             ignore_tagessaldo=True, numeric_locale='de_DE.UTF-8',
             file_encoding='utf-8'
         )
