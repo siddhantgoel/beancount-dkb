@@ -74,10 +74,10 @@ class ECImporter(importer.ImporterProtocol):
             for line in reader:
                 key, value, _ = line
 
-                if key == 'Von':
+                if key.startswith('Von'):
                     self._date_from = datetime.strptime(
                         value, '%d.%m.%Y').date()
-                elif key == 'Bis':
+                elif key.startswith('Bis'):
                     self._date_to = datetime.strptime(
                         value, '%d.%m.%Y').date()
                 elif key.startswith('Kontostand vom'):
