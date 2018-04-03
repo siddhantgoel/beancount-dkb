@@ -16,6 +16,10 @@ def path_for_temp_file(name):
     return os.path.join(gettempdir(), name)
 
 
+def _format(string, kwargs):
+    return dedent(string).format(**kwargs).lstrip().encode('utf-8')
+
+
 class ECImporterTestCase(TestCase):
     def setUp(self):
         super(ECImporterTestCase, self).setUp()
@@ -33,15 +37,15 @@ class ECImporterTestCase(TestCase):
         importer = ECImporter(self.iban, 'Assets:DKB:EC')
 
         with open(self.filename, 'wb') as fd:
-            fd.write(dedent(f'''
-                "Kontonummer:";"{self.iban} / Girokonto";
+            fd.write(_format('''
+                "Kontonummer:";"{iban} / Girokonto";
 
                 "Von:";"01.01.2018";
                 "Bis:";"31.01.2018";
                 "Kontostand vom 31.01.2017:";"5.000,01 EUR";
 
-                {HEADER};
-            ''').lstrip().encode('utf-8'))
+                {header};
+            ''', dict(iban=self.iban, header=HEADER)))
 
         with open(self.filename) as fd:
             self.assertTrue(importer.identify(fd))
@@ -50,15 +54,15 @@ class ECImporterTestCase(TestCase):
         other_iban = 'DE00000000000000000000'
 
         with open(self.filename, 'wb') as fd:
-            fd.write(dedent(f'''
-                "Kontonummer:";"{self.iban} / Girokonto";
+            fd.write(_format('''
+                "Kontonummer:";"{iban} / Girokonto";
 
                 "Von:";"01.01.2018";
                 "Bis:";"31.01.2018";
                 "Kontostand vom 31.01.2017:";"5.000,01 EUR";
 
-                {HEADER};
-            ''').lstrip().encode('utf-8'))
+                {header};
+            ''', dict(iban=self.iban, header=HEADER)))
 
         importer = ECImporter(other_iban, 'Assets:DKB:EC')
 
@@ -69,31 +73,31 @@ class ECImporterTestCase(TestCase):
         importer = ECImporter(self.iban, 'Assets:DKB:EC')
 
         with open(self.filename, 'wb') as fd:
-            fd.write(dedent(f'''
-                "Kontonummer:";"{self.iban} / Girokonto";
+            fd.write(_format('''
+                "Kontonummer:";"{iban} / Girokonto";
 
                 "Von:";"01.01.2018";
                 "Bis:";"31.01.2018";
                 "Kontostand vom 31.01.2017:";"5.000,01 EUR";
 
-                {HEADER};
-            ''').lstrip().encode('utf-8'))
+                {header};
+            ''', dict(iban=self.iban, header=HEADER)))
 
         with open(self.filename) as fd:
             self.assertFalse(importer.extract(fd))
 
     def test_extract_transactions(self):
         with open(self.filename, 'wb') as fd:
-            fd.write(dedent(f'''
-                "Kontonummer:";"{self.iban} / Girokonto";
+            fd.write(_format('''
+                "Kontonummer:";"{iban} / Girokonto";
 
                 "Von:";"01.01.2018";
                 "Bis:";"31.01.2018";
                 "Kontostand vom 31.01.2017:";"5.000,01 EUR";
 
-                {HEADER};
+                {header};
                 "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
-            ''').lstrip().encode('utf-8'))  # NOQA
+            ''', dict(iban=self.iban, header=HEADER)))  # NOQA
 
         importer = ECImporter(self.iban, 'Assets:DKB:EC',
                               file_encoding='utf-8')
