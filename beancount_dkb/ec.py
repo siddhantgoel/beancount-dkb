@@ -7,7 +7,7 @@ from beancount.core import data
 from beancount.core.number import Decimal
 from beancount.ingest import importer
 
-from ._helpers import change_locale
+from ._common import change_locale, InvalidFormatError
 
 
 HEADER = (
@@ -35,19 +35,66 @@ class ECImporter(importer.ImporterProtocol):
         self.numeric_locale = numeric_locale
         self.file_encoding = file_encoding
 
+        self._expected_header = \
+            '"Kontonummer:";"{} / Girokonto";'.format(self.iban)
+        self._date_from = None
+        self._date_to = None
+        self._balance = None
+
     def file_account(self, _):
         return self.account
 
     def identify(self, file_):
-        header = '"Kontonummer:";"{} / Girokonto";'.format(self.iban)
-
-        return file_.head().startswith(header)
+        return file_.head().startswith(self._expected_header)
 
     def extract(self, file_):
         entries = []
 
+        def _read_header(fd):
+            line = fd.readline().strip()
+
+            if line != self._expected_header:
+                raise InvalidFormatError()
+
+        def _read_empty_line(fd):
+            line = fd.readline().strip()
+
+            if line:
+                raise InvalidFormatError()
+
+        def _read_meta(fd):
+            lines = [fd.readline().strip() for _ in range(3)]
+
+            reader = csv.reader(lines, delimiter=';',
+                                quoting=csv.QUOTE_MINIMAL, quotechar='"')
+
+            for line in reader:
+                key, value, _ = line
+
+                if key == 'Von':
+                    self._date_from = datetime.strptime(
+                        value, '%d.%m.%Y').date()
+                elif key == 'Bis':
+                    self._date_to = datetime.strptime(
+                        value, '%d.%m.%Y').date()
+                elif key.startswith('Kontostand vom'):
+                    self._balance = locale.atof(value.rstrip(' EUR'), Decimal)
+
         with change_locale(locale.LC_NUMERIC, self.numeric_locale):
             with open(file_.name, encoding=self.file_encoding) as fd:
+                # Header
+                _read_header(fd)
+
+                # Empty line
+                _read_empty_line(fd)
+
+                # Meta
+                _read_meta(fd)
+
+                # Another empty line
+                _read_empty_line(fd)
+
+                # Data entries
                 lines = [line for index, line in enumerate(fd)
                          if index >= 6]
 
