@@ -38,5 +38,15 @@ Usage
         )
     ]
 
+FAQ
+---
+
+.. code-block:: bash
+
+    ERROR:root:Importer beancount_dkb.ec.ECImporter.identify() raised an unexpected error: 'utf-8' codec can't decode byte 0xf6 in position 17: invalid start byte
+
+Change the :code:`file_encoding` parameter. It seems like the CSV exports are
+:code:`ISO-8859-1` encoded, but :code:`utf-8` seems like a useful default.
+
 .. _Beancount: http://furius.ca/beancount/
 .. _DKB: https://www.dkb.de/
