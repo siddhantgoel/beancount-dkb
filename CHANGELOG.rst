@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+v0.3.0
+------
+
+- Emit :code:`balance` directive for :code:`Tagessaldo` entries in
+  :code:`ECImporter`
+- Remove unused :code:`ignore_tagessaldo` parameter from :code:`CreditImporter`
+
 v0.2.1
 ------
 
