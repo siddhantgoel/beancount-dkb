@@ -31,7 +31,6 @@ class ECImporter(importer.ImporterProtocol):
         self.iban = iban
         self.account = account
         self.currency = currency
-        self.ignore_tagessaldo = ignore_tagessaldo
         self.numeric_locale = numeric_locale
         self.file_encoding = file_encoding
 
@@ -105,30 +104,31 @@ class ECImporter(importer.ImporterProtocol):
                 for index, line in enumerate(reader):
                     meta = data.new_metadata(file_.name, index)
 
-                    if self.ignore_tagessaldo and \
-                            line['Verwendungszweck'] == 'Tagessaldo':
-                        continue
-
                     amount = Amount(locale.atof(line['Betrag (EUR)'], Decimal),
                                     self.currency)
-
                     date = datetime.strptime(
                         line['Buchungstag'], '%d.%m.%Y').date()
 
-                    description = '{} {}'.format(
-                        line['Buchungstext'],
-                        line['Auftraggeber / Begünstigter']
-                    )
+                    if line['Verwendungszweck'] == 'Tagessaldo':
+                        entries.append(
+                            data.Balance(meta, date, self.account, amount,
+                                         None, None)
+                        )
+                    else:
+                        description = '{} {}'.format(
+                            line['Buchungstext'],
+                            line['Auftraggeber / Begünstigter']
+                        )
 
-                    postings = [
-                        data.Posting(self.account, amount, None, None, None,
-                                     None)
-                    ]
+                        postings = [
+                            data.Posting(self.account, amount, None, None,
+                                         None, None)
+                        ]
 
-                    entries.append(
-                        data.Transaction(meta, date, self.FLAG, None,
-                                         description, data.EMPTY_SET,
-                                         data.EMPTY_SET, postings)
-                    )
+                        entries.append(
+                            data.Transaction(meta, date, self.FLAG, None,
+                                             description, data.EMPTY_SET,
+                                             data.EMPTY_SET, postings)
+                        )
 
             return entries
