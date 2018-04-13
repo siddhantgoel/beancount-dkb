@@ -22,12 +22,10 @@ FIELDS = (
 
 class CreditImporter(importer.ImporterProtocol):
     def __init__(self, card_number, account, currency='EUR',
-                 ignore_tagessaldo=True, numeric_locale='de_DE.UTF-8',
-                 file_encoding='utf-8'):
+                 numeric_locale='de_DE.UTF-8', file_encoding='utf-8'):
         self.card_number = card_number
         self.account = account
         self.currency = currency
-        self.ignore_tagessaldo = ignore_tagessaldo
         self.numeric_locale = numeric_locale
         self.file_encoding = file_encoding
 
