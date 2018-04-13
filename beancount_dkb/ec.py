@@ -26,7 +26,7 @@ FIELDS = (
 
 
 class ECImporter(importer.ImporterProtocol):
-    def __init__(self, iban, account, currency='EUR', ignore_tagessaldo=True,
+    def __init__(self, iban, account, currency='EUR',
                  numeric_locale='de_DE.UTF-8', file_encoding='utf-8'):
         self.iban = iban
         self.account = account
