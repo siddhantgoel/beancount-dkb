@@ -1,7 +1,7 @@
 Beancount DKB Importer
 ======================
 
-.. image:: https://badge.fury.io/py/beancount-dkb.svg
+.. image:: https://img.shields.io/pypi/v/beancount-dkb.svg
     :target: https://pypi.python.org/pypi/beancount-dkb
 
 .. image:: https://travis-ci.org/siddhantgoel/beancount-dkb.svg?branch=master
