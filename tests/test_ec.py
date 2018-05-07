@@ -5,6 +5,8 @@ from unittest import TestCase
 import datetime
 import os
 
+from beancount.core.data import Amount, Balance
+
 from beancount_dkb import ECImporter
 from beancount_dkb.ec import FIELDS
 
@@ -152,17 +154,16 @@ class ECImporterTestCase(TestCase):
                 "Kontostand vom 31.01.2017:";"5.000,01 EUR";
 
                 {header};
-                "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
                 "20.01.2018";"";"";"";"Tagessaldo";"";"";"2.500,01";
             ''', dict(iban=self.iban, header=HEADER)))  # NOQA
         importer = ECImporter(self.iban, 'Assets:DKB:EC',
                               file_encoding='utf-8')
 
-        self.assertFalse(importer._date_from)
-        self.assertFalse(importer._date_to)
-        self.assertFalse(importer._balance)
-
         with open(self.filename) as fd:
             transactions = importer.extract(fd)
 
-        self.assertTrue(transactions)
+        self.assertEqual(len(transactions), 1)
+        self.assertTrue(isinstance(transactions[0], Balance))
+        self.assertEqual(transactions[0].date, datetime.date(2018, 1, 20))
+        self.assertEqual(transactions[0].amount,
+                         Amount(Decimal('2500.01'), currency='EUR'))
