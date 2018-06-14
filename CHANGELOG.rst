@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+v0.3.1
+------
+
+- Support updated header format in :code:`CreditImporter`
+
 v0.3.0
 ------
 
