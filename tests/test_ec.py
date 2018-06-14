@@ -52,6 +52,23 @@ class ECImporterTestCase(TestCase):
         with open(self.filename) as fd:
             self.assertTrue(importer.identify(fd))
 
+    def test_identify_with_nonstandard_account_name(self):
+        importer = ECImporter(self.iban, 'Assets:DKB:EC')
+
+        with open(self.filename, 'wb') as fd:
+            fd.write(_format('''
+                "Kontonummer:";"{iban} / My Custom Named Account";
+
+                "Von:";"01.01.2018";
+                "Bis:";"31.01.2018";
+                "Kontostand vom 31.01.2017:";"5.000,01 EUR";
+
+                {header};
+            ''', dict(iban=self.iban, header=HEADER)))
+
+        with open(self.filename) as fd:
+            self.assertTrue(importer.identify(fd))
+
     def test_identify_invalid_iban(self):
         other_iban = 'DE00000000000000000000'
 
