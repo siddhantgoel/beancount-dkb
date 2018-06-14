@@ -33,6 +33,40 @@ class CreditImporterTestCase(TestCase):
 
         super(CreditImporterTestCase, self).tearDown()
 
+    def test_multiple_headers(self):
+        importer = CreditImporter(self.card_number, 'Assets:DKB:Credit')
+
+        common = '''
+            "Von:";"01.01.2018";
+            "Bis:";"31.01.2018";
+            "Saldo:";"5.000,01 EUR";
+            "Datum:";"15.02.2018";
+        '''
+
+        # previous header format
+        with open(self.filename, 'wb') as fd:
+            fd.write(_format('''
+                "Kreditkarte:";"{card_number} Kreditkarte";
+
+                {common}
+
+            ''', dict(card_number=self.card_number, common=common)))
+
+        with open(self.filename) as fd:
+            self.assertTrue(importer.identify(fd))
+
+        # latest header format
+        with open(self.filename, 'wb') as fd:
+            fd.write(_format('''
+                "Kreditkarte:";"{card_number}";
+
+                {common}
+
+            ''', dict(card_number=self.card_number, common=common)))
+
+        with open(self.filename) as fd:
+            self.assertTrue(importer.identify(fd))
+
     def test_identify_correct(self):
         importer = CreditImporter(self.card_number, 'Assets:DKB:Credit')
 

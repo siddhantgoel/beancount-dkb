@@ -29,8 +29,11 @@ class CreditImporter(importer.ImporterProtocol):
         self.numeric_locale = numeric_locale
         self.file_encoding = file_encoding
 
-        self._expected_header = \
-            '"Kreditkarte:";"{} Kreditkarte";'.format(self.card_number)
+        self._expected_headers = (
+            '"Kreditkarte:";"{} Kreditkarte";'.format(self.card_number),
+            '"Kreditkarte:";"{}";'.format(self.card_number),
+        )
+
         self._date_from = None
         self._date_to = None
         self._balance = None
@@ -38,11 +41,18 @@ class CreditImporter(importer.ImporterProtocol):
     def file_account(self, _):
         return self.account
 
+    def is_valid_header(self, line):
+        for header in self._expected_headers:
+            if line.startswith(header):
+                return True
+
+        return False
+
     def identify(self, file_):
         with open(file_.name, encoding=self.file_encoding) as fd:
             line = fd.readline().strip()
 
-        return line.startswith(self._expected_header)
+        return self.is_valid_header(line)
 
     def extract(self, file_):
         entries = []
@@ -50,7 +60,7 @@ class CreditImporter(importer.ImporterProtocol):
         def _read_header(fd):
             line = fd.readline().strip()
 
-            if line != self._expected_header:
+            if not self.is_valid_header(line):
                 raise InvalidFormatError()
 
         def _read_empty_line(fd):
