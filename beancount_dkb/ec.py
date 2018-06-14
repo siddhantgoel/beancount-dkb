@@ -1,6 +1,7 @@
 import csv
 from datetime import datetime
 import locale
+import re
 
 from beancount.core.amount import Amount
 from beancount.core import data
@@ -28,14 +29,14 @@ FIELDS = (
 class ECImporter(importer.ImporterProtocol):
     def __init__(self, iban, account, currency='EUR',
                  numeric_locale='de_DE.UTF-8', file_encoding='utf-8'):
-        self.iban = iban
         self.account = account
         self.currency = currency
         self.numeric_locale = numeric_locale
         self.file_encoding = file_encoding
 
-        self._expected_header = \
-            '"Kontonummer:";"{} / Girokonto";'.format(self.iban)
+        self._expected_header_regex = re.compile(r"^\"Kontonummer:\";\"" +
+                re.escape(re.sub(r"\s+", "", iban, flags=re.UNICODE)) + "\s",
+                re.IGNORECASE)
         self._date_from = None
         self._date_to = None
         self._balance = None
@@ -47,7 +48,7 @@ class ECImporter(importer.ImporterProtocol):
         with open(file_.name, encoding=self.file_encoding) as fd:
             line = fd.readline().strip()
 
-        return line.startswith(self._expected_header)
+        return self._expected_header_regex.match(line)
 
     def extract(self, file_):
         entries = []
@@ -55,7 +56,7 @@ class ECImporter(importer.ImporterProtocol):
         def _read_header(fd):
             line = fd.readline().strip()
 
-            if line != self._expected_header:
+            if not self._expected_header_regex.match(line):
                 raise InvalidFormatError()
 
         def _read_empty_line(fd):
