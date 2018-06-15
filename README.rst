@@ -4,7 +4,7 @@ Beancount DKB Importer
 .. image:: https://img.shields.io/pypi/v/beancount-dkb.svg
     :target: https://pypi.python.org/pypi/beancount-dkb
 
-.. image:: https://travis-ci.org/siddhantgoel/beancount-dkb.svg?branch=master
+.. image:: https://travis-ci.org/siddhantgoel/beancount-dkb.svg?branch=stable
     :target: https://travis-ci.org/siddhantgoel/beancount-dkb
 
 :code:`beancount-dkb` provides an Importer for converting CSV exports of
