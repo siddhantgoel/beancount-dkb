@@ -34,9 +34,11 @@ class ECImporter(importer.ImporterProtocol):
         self.numeric_locale = numeric_locale
         self.file_encoding = file_encoding
 
-        self._expected_header_regex = re.compile(r"^\"Kontonummer:\";\"" +
-                re.escape(re.sub(r"\s+", "", iban, flags=re.UNICODE)) + "\s",
-                re.IGNORECASE)
+        self._expected_header_regex = re.compile(
+            r"^\"Kontonummer:\";\"" +
+            re.escape(re.sub(r"\s+", "", iban, flags=re.UNICODE)) + "\s",
+            re.IGNORECASE
+        )
         self._date_from = None
         self._date_to = None
         self._balance = None
