@@ -17,6 +17,10 @@ Installation
 
     $ pip install beancount-dkb
 
+In case you prefer installing from the Github repository, please note that
+:code:`master` is the development branch so :code:`stable` is what you should be
+installing from.
+
 Usage
 -----
 
