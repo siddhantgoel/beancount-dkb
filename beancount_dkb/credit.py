@@ -42,11 +42,8 @@ class CreditImporter(importer.ImporterProtocol):
         return self.account
 
     def is_valid_header(self, line):
-        for header in self._expected_headers:
-            if line.startswith(header):
-                return True
-
-        return False
+        return any(line.startswith(header)
+                   for header in self._expected_headers)
 
     def identify(self, file_):
         with open(file_.name, encoding=self.file_encoding) as fd:
