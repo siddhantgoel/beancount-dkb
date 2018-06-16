@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+v0.4.0
+------
+
+- Ignore user-assigned account names in :code:`ECImporter` (thanks `@niels`_)
+
 v0.3.1
 ------
 
@@ -27,3 +32,6 @@ v0.1.0
 ------
 
 - Added ECImporter to import CSV exports of EC accounts
+
+
+.. _@niels: https://github.com/niels
