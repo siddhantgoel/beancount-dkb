@@ -120,7 +120,7 @@ class ECImporter(importer.ImporterProtocol):
                     else:
                         description = '{} {}'.format(
                             line['Buchungstext'],
-                            line['Auftraggeber / Begünstigter']
+                            line['Verwendungszweck']
                         )
 
                         postings = [
@@ -129,9 +129,12 @@ class ECImporter(importer.ImporterProtocol):
                         ]
 
                         entries.append(
-                            data.Transaction(meta, date, self.FLAG, None,
-                                             description, data.EMPTY_SET,
-                                             data.EMPTY_SET, postings)
+                            data.Transaction(
+                                meta, date, self.FLAG,
+                                line['Auftraggeber / Begünstigter'],
+                                description, data.EMPTY_SET, data.EMPTY_SET,
+                                postings
+                            )
                         )
 
             return entries

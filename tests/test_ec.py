@@ -161,6 +161,9 @@ class ECImporterTestCase(TestCase):
 
         self.assertEqual(len(transactions), 1)
         self.assertEqual(transactions[0].date, datetime.date(2018, 1, 16))
+        self.assertEqual(transactions[0].payee, 'REWE Filialen Voll')
+        self.assertEqual(transactions[0].narration,
+                         'Lastschrift REWE SAGT DANKE.')
 
         self.assertEqual(len(transactions[0].postings), 1)
         self.assertEqual(transactions[0].postings[0].account, 'Assets:DKB:EC')
