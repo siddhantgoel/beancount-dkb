@@ -87,7 +87,8 @@ class ECImporter(importer.ImporterProtocol):
                     self._date_to = datetime.strptime(
                         value, '%d.%m.%Y').date()
                 elif key.startswith('Kontostand vom'):
-                    self._balance = locale.atof(value.rstrip(' EUR'), Decimal)
+                    self._balance = Amount(locale.atof(value.rstrip(' EUR'),
+                                           Decimal), self.currency)
 
         with change_locale(locale.LC_NUMERIC, self.numeric_locale):
             with open(file_.name, encoding=self.file_encoding) as fd:
@@ -140,5 +141,12 @@ class ECImporter(importer.ImporterProtocol):
                                 postings
                             )
                         )
+
+                # Closing Balance
+                meta = data.new_metadata(file_.name, -1)
+                entries.append(
+                    data.Balance(meta, self._date_to, self.account,
+                                 self._balance, None, None)
+                )
 
             return entries
