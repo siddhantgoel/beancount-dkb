@@ -46,6 +46,11 @@ class ECImporter(importer.ImporterProtocol):
     def file_account(self, _):
         return self.account
 
+    def file_name(self, file_):
+        self.extract(file_)
+        return self._date_from.strftime("%Y-%m-%d") + ' - ' + \
+            self._date_to.strftime("%Y-%m-%d")
+
     def identify(self, file_):
         with open(file_.name, encoding=self.file_encoding) as fd:
             line = fd.readline().strip()
