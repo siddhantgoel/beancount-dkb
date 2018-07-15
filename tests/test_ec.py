@@ -45,7 +45,7 @@ class ECImporterTestCase(TestCase):
 
                 "Von:";"01.01.2018";
                 "Bis:";"31.01.2018";
-                "Kontostand vom 31.01.2017:";"5.000,01 EUR";
+                "Kontostand vom 31.01.2018:";"5.000,01 EUR";
 
                 {header};
             ''', dict(iban=self.iban, header=HEADER)))
@@ -62,7 +62,7 @@ class ECImporterTestCase(TestCase):
 
                 "Von:";"01.01.2018";
                 "Bis:";"31.01.2018";
-                "Kontostand vom 31.01.2017:";"5.000,01 EUR";
+                "Kontostand vom 31.01.2018:";"5.000,01 EUR";
 
                 {header};
             ''', dict(iban=self.iban, header=HEADER)))
@@ -79,7 +79,7 @@ class ECImporterTestCase(TestCase):
 
                 "Von:";"01.01.2018";
                 "Bis:";"31.01.2018";
-                "Kontostand vom 31.01.2017:";"5.000,01 EUR";
+                "Kontostand vom 31.01.2018:";"5.000,01 EUR";
 
                 {header};
             ''', dict(iban=self.iban, header=HEADER)))
@@ -96,7 +96,7 @@ class ECImporterTestCase(TestCase):
 
                 "Von:";"01.01.2018";
                 "Bis:";"31.01.2018";
-                "Kontostand vom 31.01.2017:";"5.000,01 EUR";
+                "Kontostand vom 31.01.2018:";"5.000,01 EUR";
 
                 {header};
             ''', dict(iban=self.iban, header=HEADER)))
@@ -113,7 +113,7 @@ class ECImporterTestCase(TestCase):
 
                 "Von:";"01.01.2018";
                 "Bis:";"31.01.2018";
-                "Kontostand vom 31.01.2017:";"5.000,01 EUR";
+                "Kontostand vom 31.01.2018:";"5.000,01 EUR";
 
                 {header};
             ''', dict(iban=self.iban, header=HEADER)))
@@ -132,7 +132,7 @@ class ECImporterTestCase(TestCase):
 
                 "Von:";"01.01.2018";
                 "Bis:";"31.01.2018";
-                "Kontostand vom 31.01.2017:";"5.000,01 EUR";
+                "Kontostand vom 31.01.2018:";"5.000,01 EUR";
 
                 {header};
             ''', dict(iban=self.iban, header=HEADER)))
@@ -147,7 +147,7 @@ class ECImporterTestCase(TestCase):
 
                 "Von:";"01.01.2018";
                 "Bis:";"31.01.2018";
-                "Kontostand vom 31.01.2017:";"5.000,01 EUR";
+                "Kontostand vom 31.01.2018:";"5.000,01 EUR";
 
                 {header};
                 "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
@@ -178,7 +178,7 @@ class ECImporterTestCase(TestCase):
 
                 "Von:";"01.01.2018";
                 "Bis:";"31.01.2018";
-                "Kontostand vom 31.01.2017:";"5.000,01 EUR";
+                "Kontostand vom 31.01.2018:";"5.000,01 EUR";
 
                 {header};
                 "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
@@ -206,7 +206,7 @@ class ECImporterTestCase(TestCase):
 
                 "Von:";"01.01.2018";
                 "Bis:";"31.01.2018";
-                "Kontostand vom 31.01.2017:";"5.000,01 EUR";
+                "Kontostand vom 31.01.2018:";"5.000,01 EUR";
 
                 {header};
                 "20.01.2018";"";"";"";"Tagessaldo";"";"";"2.500,01";
@@ -230,7 +230,7 @@ class ECImporterTestCase(TestCase):
 
                 "Von:";"01.01.2018";
                 "Bis:";"31.01.2018";
-                "Kontostand vom 31.01.2017:";"5.000,01 EUR";
+                "Kontostand vom 31.01.2018:";"5.000,01 EUR";
 
                 {header};
                 "20.01.2018";"";"";"";"Tagessaldo";"";"";"2.500,01";
