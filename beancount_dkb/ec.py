@@ -46,6 +46,10 @@ class ECImporter(importer.ImporterProtocol):
     def file_account(self, _):
         return self.account
 
+    def file_date(self, file_):
+        self.extract(file_)
+        return self._date_to
+
     def identify(self, file_):
         with open(file_.name, encoding=self.file_encoding) as fd:
             line = fd.readline().strip()
