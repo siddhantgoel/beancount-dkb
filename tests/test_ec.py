@@ -138,7 +138,13 @@ class ECImporterTestCase(TestCase):
             ''', dict(iban=self.iban, header=HEADER)))
 
         with open(self.filename) as fd:
-            self.assertFalse(importer.extract(fd))
+            transactions = importer.extract(fd)
+
+        self.assertEqual(len(transactions), 1)
+        self.assertTrue(isinstance(transactions[0], Balance))
+        self.assertEqual(transactions[0].date, datetime.date(2018, 1, 31))
+        self.assertEqual(transactions[0].amount,
+                         Amount(Decimal('5000.01'), currency='EUR'))
 
     def test_extract_transactions(self):
         with open(self.filename, 'wb') as fd:
@@ -159,7 +165,7 @@ class ECImporterTestCase(TestCase):
         with open(self.filename) as fd:
             transactions = importer.extract(fd)
 
-        self.assertEqual(len(transactions), 1)
+        self.assertEqual(len(transactions), 2)
         self.assertEqual(transactions[0].date, datetime.date(2018, 1, 16))
         self.assertEqual(transactions[0].payee, 'REWE Filialen Voll')
         self.assertEqual(transactions[0].narration,
@@ -197,7 +203,8 @@ class ECImporterTestCase(TestCase):
         self.assertTrue(transactions)
         self.assertEqual(importer._date_from, datetime.date(2018, 1, 1))
         self.assertEqual(importer._date_to, datetime.date(2018, 1, 31))
-        self.assertEqual(importer._balance, Decimal('5000.01'))
+        self.assertEqual(importer._balance,
+                         Amount(Decimal('5000.01'), currency='EUR'))
 
     def test_tagessaldo_emits_balance_directive(self):
         with open(self.filename, 'wb') as fd:
@@ -217,7 +224,7 @@ class ECImporterTestCase(TestCase):
         with open(self.filename) as fd:
             transactions = importer.extract(fd)
 
-        self.assertEqual(len(transactions), 1)
+        self.assertEqual(len(transactions), 2)
         self.assertTrue(isinstance(transactions[0], Balance))
         self.assertEqual(transactions[0].date, datetime.date(2018, 1, 20))
         self.assertEqual(transactions[0].amount,
@@ -241,3 +248,27 @@ class ECImporterTestCase(TestCase):
         with open(self.filename) as fd:
             self.assertEqual(importer.file_date(fd),
                              datetime.date(2018, 1, 31))
+
+    def test_emits_closing_balance_directive(self):
+        with open(self.filename, 'wb') as fd:
+            fd.write(_format('''
+                "Kontonummer:";"{iban} / Girokonto";
+
+                "Von:";"01.01.2018";
+                "Bis:";"31.01.2018";
+                "Kontostand vom 31.01.2017:";"5.000,01 EUR";
+
+                {header};
+                "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
+            ''', dict(iban=self.iban, header=HEADER)))  # NOQA
+        importer = ECImporter(self.iban, 'Assets:DKB:EC',
+                              file_encoding='utf-8')
+
+        with open(self.filename) as fd:
+            transactions = importer.extract(fd)
+
+        self.assertEqual(len(transactions), 2)
+        self.assertTrue(isinstance(transactions[1], Balance))
+        self.assertEqual(transactions[1].date, datetime.date(2018, 1, 31))
+        self.assertEqual(transactions[1].amount,
+                         Amount(Decimal('5000.01'), currency='EUR'))
