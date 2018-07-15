@@ -222,3 +222,22 @@ class ECImporterTestCase(TestCase):
         self.assertEqual(transactions[0].date, datetime.date(2018, 1, 20))
         self.assertEqual(transactions[0].amount,
                          Amount(Decimal('2500.01'), currency='EUR'))
+
+    def test_file_date(self):
+        with open(self.filename, 'wb') as fd:
+            fd.write(_format('''
+                "Kontonummer:";"{iban} / Girokonto";
+
+                "Von:";"01.01.2018";
+                "Bis:";"31.01.2018";
+                "Kontostand vom 31.01.2017:";"5.000,01 EUR";
+
+                {header};
+                "20.01.2018";"";"";"";"Tagessaldo";"";"";"2.500,01";
+            ''', dict(iban=self.iban, header=HEADER)))  # NOQA
+        importer = ECImporter(self.iban, 'Assets:DKB:EC',
+                              file_encoding='utf-8')
+
+        with open(self.filename) as fd:
+            self.assertEqual(importer.file_date(fd),
+                             datetime.date(2018, 1, 31))
