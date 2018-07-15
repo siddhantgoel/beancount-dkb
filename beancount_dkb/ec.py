@@ -143,7 +143,7 @@ class ECImporter(importer.ImporterProtocol):
                         )
 
                 # Closing Balance
-                meta = data.new_metadata(file_.name, 0)
+                meta = data.new_metadata(file_.name, -1)
                 entries.append(
                     data.Balance(meta, self._date_to, self.account,
                                  self._balance, None, None)
