@@ -62,7 +62,7 @@ setup(
     description='Beancount Importer for DKB CSV exports',
     long_description=long_description,
     author='Siddhant Goel',
-    author_email='siddhantgoel@gmail.com',
+    author_email='me@sgoel.org',
     license='MIT',
     url='https://github.com/siddhantgoel/beancount-dkb',
     packages=['beancount_dkb'],
