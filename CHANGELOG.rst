@@ -1,6 +1,16 @@
 CHANGELOG
 =========
 
+v0.5.0
+------
+
+- Differentiate between "Auftraggeber/Begünstigter" and "Verwendungszweck"
+  (thanks `@niels`_)
+- Implement :code:`file_date` returning the closing date of the statement
+  (thanks `@niels`_)
+- Emit closing :code:`balance` directive based on the "Kontostand vom" metadata
+  entry (thanks `@niels`_)
+
 v0.4.0
 ------
 
