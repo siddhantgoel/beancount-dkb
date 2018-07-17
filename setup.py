@@ -72,7 +72,7 @@ setup(
         'publish': PublishCommand
     },
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Environment :: Plugins',
         'Intended Audience :: End Users/Desktop',
         'Intended Audience :: Financial and Insurance Industry',
