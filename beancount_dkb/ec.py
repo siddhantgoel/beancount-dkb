@@ -58,59 +58,61 @@ class ECImporter(importer.ImporterProtocol):
 
     def extract(self, file_):
         entries = []
-
-        def _read_header(fd):
-            line = fd.readline().strip()
-
-            if not self._expected_header_regex.match(line):
-                raise InvalidFormatError()
-
-        def _read_empty_line(fd):
-            line = fd.readline().strip()
-
-            if line:
-                raise InvalidFormatError()
-
-        def _read_meta(fd):
-            lines = [fd.readline().strip() for _ in range(3)]
-
-            reader = csv.reader(lines, delimiter=';',
-                                quoting=csv.QUOTE_MINIMAL, quotechar='"')
-
-            for line in reader:
-                key, value, _ = line
-
-                if key.startswith('Von'):
-                    self._date_from = datetime.strptime(
-                        value, '%d.%m.%Y').date()
-                elif key.startswith('Bis'):
-                    self._date_to = datetime.strptime(
-                        value, '%d.%m.%Y').date()
-                elif key.startswith('Kontostand vom'):
-                    self._balance = Amount(locale.atof(value.rstrip(' EUR'),
-                                           Decimal), self.currency)
+        line_index = 0
+        closing_balance_index = -1
 
         with change_locale(locale.LC_NUMERIC, self.numeric_locale):
             with open(file_.name, encoding=self.file_encoding) as fd:
                 # Header
-                _read_header(fd)
+                line = fd.readline().strip()
+                line_index += 1
+
+                if not self._expected_header_regex.match(line):
+                    raise InvalidFormatError()
 
                 # Empty line
-                _read_empty_line(fd)
+                line = fd.readline().strip()
+                line_index += 1
+
+                if line:
+                    raise InvalidFormatError()
 
                 # Meta
-                _read_meta(fd)
+                lines = [fd.readline().strip() for _ in range(3)]
+
+                reader = csv.reader(lines, delimiter=';',
+                                    quoting=csv.QUOTE_MINIMAL, quotechar='"')
+
+                for line in reader:
+                    key, value, _ = line
+                    line_index += 1
+
+                    if key.startswith('Von'):
+                        self._date_from = datetime.strptime(
+                            value, '%d.%m.%Y').date()
+                    elif key.startswith('Bis'):
+                        self._date_to = datetime.strptime(
+                            value, '%d.%m.%Y').date()
+                    elif key.startswith('Kontostand vom'):
+                        self._balance = Amount(
+                            locale.atof(value.rstrip(' EUR'), Decimal),
+                            self.currency)
+                        closing_balance_index = line_index
 
                 # Another empty line
-                _read_empty_line(fd)
+                line = fd.readline().strip()
+                line_index += 1
+
+                if line:
+                    raise InvalidFormatError()
 
                 # Data entries
                 reader = csv.DictReader(fd, delimiter=';',
                                         quoting=csv.QUOTE_MINIMAL,
                                         quotechar='"')
 
-                for index, line in enumerate(reader):
-                    meta = data.new_metadata(file_.name, index)
+                for line in reader:
+                    meta = data.new_metadata(file_.name, line_index)
 
                     amount = Amount(locale.atof(line['Betrag (EUR)'], Decimal),
                                     self.currency)
@@ -142,8 +144,10 @@ class ECImporter(importer.ImporterProtocol):
                             )
                         )
 
+                    line_index += 1
+
                 # Closing Balance
-                meta = data.new_metadata(file_.name, -1)
+                meta = data.new_metadata(file_.name, closing_balance_index)
                 entries.append(
                     data.Balance(meta, self._date_to, self.account,
                                  self._balance, None, None)
