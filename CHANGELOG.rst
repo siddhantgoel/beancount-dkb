@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+v0.5.1
+------
+- Emit correct line numbers when constructing new metadata in :code:`ECImporter`
+
 v0.5.0
 ------
 
