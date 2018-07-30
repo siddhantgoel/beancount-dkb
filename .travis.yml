@@ -5,10 +5,9 @@ python:
     - "3.6"
 
 install:
-    - pip install --upgrade pip setuptools
-    - pip install -r requirements.txt
-    - python setup.py install
+    - pip install pipenv
+    - pipenv install --dev
 
 script:
-    - flake8
-    - py.test
+    - pipenv run flake8
+    - pipenv run py.test
