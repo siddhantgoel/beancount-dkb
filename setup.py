@@ -8,10 +8,6 @@ from shutil import rmtree
 from setuptools import setup, Command
 
 
-assert (sys.version_info.major > 2 and sys.version_info.minor >= 5), \
-    'Sorry, only Python 3.5+ is supported'
-
-
 pwd = os.path.abspath(os.path.dirname(__file__))
 
 
@@ -68,6 +64,7 @@ setup(
     packages=['beancount_dkb'],
     keywords=['beancount', 'cli-accounting', 'finance'],
     install_requires=('beancount',),
+    python_requires='>=3.5.0',
     cmdclass={
         'publish': PublishCommand
     },
