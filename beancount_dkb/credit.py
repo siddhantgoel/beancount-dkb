@@ -129,7 +129,8 @@ class CreditImporter(importer.ImporterProtocol):
                     date = datetime.strptime(
                         line['Belegdatum'], '%d.%m.%Y').date()
 
-                    description = line['Beschreibung']
+                    payee = line['Beschreibung']
+                    description = ""
 
                     postings = [
                         data.Posting(self.account, amount, None, None, None,
@@ -137,7 +138,7 @@ class CreditImporter(importer.ImporterProtocol):
                     ]
 
                     entries.append(
-                        data.Transaction(meta, date, self.FLAG, None,
+                        data.Transaction(meta, date, self.FLAG, payee,
                                          description, data.EMPTY_SET,
                                          data.EMPTY_SET, postings)
                     )
