@@ -5,6 +5,8 @@ from unittest import TestCase
 import datetime
 import os
 
+from beancount.core.data import Amount, Balance
+
 from beancount_dkb import CreditImporter
 from beancount_dkb.credit import FIELDS
 
@@ -121,7 +123,13 @@ class CreditImporterTestCase(TestCase):
             ''', dict(card_number=self.card_number, header=HEADER)))
 
         with open(self.filename) as fd:
-            self.assertFalse(importer.extract(fd))
+            transactions = importer.extract(fd)
+
+        self.assertEqual(len(transactions), 1)
+        self.assertTrue(isinstance(transactions[0], Balance))
+        self.assertEqual(transactions[0].date, datetime.date(2018, 2, 15))
+        self.assertEqual(transactions[0].amount,
+                         Amount(Decimal('5000.01'), currency='EUR'))
 
     def test_extract_transactions(self):
         with open(self.filename, 'wb') as fd:
@@ -143,7 +151,7 @@ class CreditImporterTestCase(TestCase):
         with open(self.filename) as fd:
             transactions = importer.extract(fd)
 
-        self.assertEqual(len(transactions), 1)
+        self.assertEqual(len(transactions), 2)
         self.assertEqual(transactions[0].date, datetime.date(2018, 1, 15))
 
         self.assertEqual(len(transactions[0].postings), 1)
@@ -180,4 +188,30 @@ class CreditImporterTestCase(TestCase):
         self.assertTrue(transactions)
         self.assertEqual(importer._date_from, datetime.date(2018, 1, 1))
         self.assertEqual(importer._date_to, datetime.date(2018, 1, 31))
-        self.assertEqual(importer._balance, Decimal('5000.01'))
+        self.assertEqual(importer._date_balance, datetime.date(2018, 2, 15))
+
+    def test_emits_closing_balance_directive(self):
+        with open(self.filename, 'wb') as fd:
+            fd.write(_format('''
+                "Kreditkarte:";"{card_number} Kreditkarte";
+
+                "Von:";"01.01.2018";
+                "Bis:";"31.01.2018";
+                "Saldo:";"5.000,01 EUR";
+                "Datum:";"15.02.2018";
+
+                {header};
+                "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
+            ''', dict(card_number=self.card_number, header=HEADER)))  # NOQA
+        importer = CreditImporter(self.card_number, 'Assets:DKB:Credit',
+                                  file_encoding='utf-8')
+
+
+        with open(self.filename) as fd:
+            transactions = importer.extract(fd)
+
+        self.assertEqual(len(transactions), 2)
+        self.assertTrue(isinstance(transactions[1], Balance))
+        self.assertEqual(transactions[1].date, datetime.date(2018, 2, 15))
+        self.assertEqual(transactions[1].amount,
+                         Amount(Decimal('5000.01'), currency='EUR'))

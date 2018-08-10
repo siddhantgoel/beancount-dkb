@@ -36,6 +36,7 @@ class CreditImporter(importer.ImporterProtocol):
 
         self._date_from = None
         self._date_to = None
+        self._date_balance = None
         self._balance = None
 
     def file_account(self, _):
@@ -53,59 +54,64 @@ class CreditImporter(importer.ImporterProtocol):
 
     def extract(self, file_):
         entries = []
-
-        def _read_header(fd):
-            line = fd.readline().strip()
-
-            if not self.is_valid_header(line):
-                raise InvalidFormatError()
-
-        def _read_empty_line(fd):
-            line = fd.readline().strip()
-
-            if line:
-                raise InvalidFormatError()
-
-        def _read_meta(fd):
-            expected_keys = set(['Von:', 'Bis:', 'Saldo:', 'Datum:'])
-
-            lines = [fd.readline().strip() for _ in range(len(expected_keys))]
-
-            reader = csv.reader(lines, delimiter=';',
-                                quoting=csv.QUOTE_MINIMAL, quotechar='"')
-
-            for line in reader:
-                key, value, _ = line
-
-                if key.startswith('Von'):
-                    self._date_from = datetime.strptime(
-                        value, '%d.%m.%Y').date()
-                elif key.startswith('Bis'):
-                    self._date_to = datetime.strptime(
-                        value, '%d.%m.%Y').date()
-                elif key.startswith('Saldo'):
-                    self._balance = locale.atof(value.rstrip(' EUR'), Decimal)
-                elif key.startswith('Datum'):
-                    pass
-
-                expected_keys.remove(key)
-
-            if expected_keys:
-                raise ValueError()
+        line_index = 0
+        closing_balance_index = -1
 
         with change_locale(locale.LC_NUMERIC, self.numeric_locale):
             with open(file_.name, encoding=self.file_encoding) as fd:
                 # Header
-                _read_header(fd)
+                line = fd.readline().strip()
+                line_index += 1
+
+                if not self.is_valid_header(line):
+                    raise InvalidFormatError()
 
                 # Empty line
-                _read_empty_line(fd)
+                line = fd.readline().strip()
+                line_index += 1
+
+                if line:
+                    raise InvalidFormatError()
 
                 # Meta
-                _read_meta(fd)
+                expected_keys = set(['Von:', 'Bis:', 'Saldo:', 'Datum:'])
+
+                lines = [fd.readline().strip() for _ in range(len(expected_keys))]
+
+                reader = csv.reader(lines, delimiter=';',
+                                    quoting=csv.QUOTE_MINIMAL, quotechar='"')
+
+                for line in reader:
+                    key, value, _ = line
+                    line_index += 1
+
+                    if key.startswith('Von'):
+                        self._date_from = datetime.strptime(
+                            value, '%d.%m.%Y').date()
+                    elif key.startswith('Bis'):
+                        self._date_to = datetime.strptime(
+                            value, '%d.%m.%Y').date()
+                    elif key.startswith('Saldo'):
+                        self._balance = Amount(
+                            locale.atof(value.rstrip(' EUR'), Decimal),
+                            self.currency)
+                        closing_balance_index = line_index
+                    elif key.startswith('Datum'):
+                        self._date_balance = datetime.strptime(
+                            value, '%d.%m.%Y').date()
+
+
+                    expected_keys.remove(key)
+
+                if expected_keys:
+                    raise ValueError()
 
                 # Another empty line
-                _read_empty_line(fd)
+                line = fd.readline().strip()
+                line_index += 1
+
+                if line:
+                    raise InvalidFormatError()
 
                 # Data entries
                 reader = csv.DictReader(fd, delimiter=';',
@@ -134,5 +140,12 @@ class CreditImporter(importer.ImporterProtocol):
                                          description, data.EMPTY_SET,
                                          data.EMPTY_SET, postings)
                     )
+
+                # Closing Balance
+                meta = data.new_metadata(file_.name, closing_balance_index)
+                entries.append(
+                    data.Balance(meta, self._date_balance, self.account,
+                                 self._balance, None, None)
+                )
 
             return entries
