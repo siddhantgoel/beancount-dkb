@@ -76,7 +76,8 @@ class CreditImporter(importer.ImporterProtocol):
                 # Meta
                 expected_keys = set(['Von:', 'Bis:', 'Saldo:', 'Datum:'])
 
-                lines = [fd.readline().strip() for _ in range(len(expected_keys))]
+                lines = [fd.readline().strip() for _
+                         in range(len(expected_keys))]
 
                 reader = csv.reader(lines, delimiter=';',
                                     quoting=csv.QUOTE_MINIMAL, quotechar='"')
@@ -99,7 +100,6 @@ class CreditImporter(importer.ImporterProtocol):
                     elif key.startswith('Datum'):
                         self._date_balance = datetime.strptime(
                             value, '%d.%m.%Y').date()
-
 
                     expected_keys.remove(key)
 

@@ -206,7 +206,6 @@ class CreditImporterTestCase(TestCase):
         importer = CreditImporter(self.card_number, 'Assets:DKB:Credit',
                                   file_encoding='utf-8')
 
-
         with open(self.filename) as fd:
             transactions = importer.extract(fd)
 
