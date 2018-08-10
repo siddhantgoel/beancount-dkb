@@ -93,9 +93,10 @@ class CreditImporter(importer.ImporterProtocol):
                         self._date_to = datetime.strptime(
                             value, '%d.%m.%Y').date()
                     elif key.startswith('Saldo'):
-                        self._balance = Amount(
-                            locale.atof(value.rstrip(' EUR'), Decimal),
-                            self.currency)
+                        with change_locale(locale.LC_NUMERIC, 'en_US.UTF-8'):
+                            self._balance = Amount(
+                                locale.atof(value.rstrip(' EUR'), Decimal),
+                                self.currency)
                         closing_balance_index = line_index
                     elif key.startswith('Datum'):
                         self._date_balance = datetime.strptime(
