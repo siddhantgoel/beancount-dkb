@@ -41,7 +41,7 @@ class CreditImporterTestCase(TestCase):
         common = '''
             "Von:";"01.01.2018";
             "Bis:";"31.01.2018";
-            "Saldo:";"5.000,01 EUR";
+            "Saldo:";"5000.01 EUR";
             "Datum:";"15.02.2018";
         '''
 
@@ -78,7 +78,7 @@ class CreditImporterTestCase(TestCase):
 
                 "Von:";"01.01.2018";
                 "Bis:";"31.01.2018";
-                "Saldo:";"5.000,01 EUR";
+                "Saldo:";"5000.01 EUR";
                 "Datum:";"15.02.2018";
 
                 {header};
@@ -96,7 +96,7 @@ class CreditImporterTestCase(TestCase):
 
                 "Von:";"01.01.2018";
                 "Bis:";"31.01.2018";
-                "Saldo:";"5.000,01 EUR";
+                "Saldo:";"5000.01 EUR";
                 "Datum:";"15.02.2018";
 
                 {header};
@@ -116,7 +116,7 @@ class CreditImporterTestCase(TestCase):
 
                 "Von:";"01.01.2018";
                 "Bis:";"31.01.2018";
-                "Saldo:";"5.000,01 EUR";
+                "Saldo:";"5000.01 EUR";
                 "Datum:";"15.02.2018";
 
                 {header};
@@ -138,7 +138,7 @@ class CreditImporterTestCase(TestCase):
 
                 "Von:";"01.01.2018";
                 "Bis:";"31.01.2018";
-                "Saldo:";"5.000,01 EUR";
+                "Saldo:";"5000.01 EUR";
                 "Datum:";"15.02.2018";
 
                 {header};
@@ -168,7 +168,7 @@ class CreditImporterTestCase(TestCase):
 
                 "Von:";"01.01.2018";
                 "Bis:";"31.01.2018";
-                "Saldo:";"5.000,01 EUR";
+                "Saldo:";"5000.01 EUR";
                 "Datum:";"15.02.2018";
 
                 {header};
@@ -197,7 +197,7 @@ class CreditImporterTestCase(TestCase):
 
                 "Von:";"01.01.2018";
                 "Bis:";"31.01.2018";
-                "Saldo:";"5.000,01 EUR";
+                "Saldo:";"5000.01 EUR";
                 "Datum:";"15.02.2018";
 
                 {header};

@@ -93,9 +93,10 @@ class CreditImporter(importer.ImporterProtocol):
                         self._date_to = datetime.strptime(
                             value, '%d.%m.%Y').date()
                     elif key.startswith('Saldo'):
-                        self._balance = Amount(
-                            locale.atof(value.rstrip(' EUR'), Decimal),
-                            self.currency)
+                        with change_locale(locale.LC_NUMERIC, 'en_US.UTF-8'):
+                            self._balance = Amount(
+                                locale.atof(value.rstrip(' EUR'), Decimal),
+                                self.currency)
                         closing_balance_index = line_index
                     elif key.startswith('Datum'):
                         self._date_balance = datetime.strptime(
@@ -128,7 +129,8 @@ class CreditImporter(importer.ImporterProtocol):
                     date = datetime.strptime(
                         line['Belegdatum'], '%d.%m.%Y').date()
 
-                    description = line['Beschreibung']
+                    payee = line['Beschreibung']
+                    description = ""
 
                     postings = [
                         data.Posting(self.account, amount, None, None, None,
@@ -136,7 +138,7 @@ class CreditImporter(importer.ImporterProtocol):
                     ]
 
                     entries.append(
-                        data.Transaction(meta, date, self.FLAG, None,
+                        data.Transaction(meta, date, self.FLAG, payee,
                                          description, data.EMPTY_SET,
                                          data.EMPTY_SET, postings)
                     )
