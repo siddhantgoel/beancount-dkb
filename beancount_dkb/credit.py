@@ -130,7 +130,7 @@ class CreditImporter(importer.ImporterProtocol):
                         line['Belegdatum'], '%d.%m.%Y').date()
 
                     payee = line['Beschreibung']
-                    description = ""
+                    description = ''
 
                     postings = [
                         data.Posting(self.account, amount, None, None, None,
