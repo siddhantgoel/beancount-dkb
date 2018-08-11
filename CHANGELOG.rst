@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+v0.6.0
+------
+- Emit closing :code:`balance` directive based on the "Saldo" metadata entry
+  (thanks `@dmerkert`_)
+
 v0.5.1
 ------
 - Emit correct line numbers when constructing new metadata in :code:`ECImporter`
@@ -49,3 +54,4 @@ v0.1.0
 
 
 .. _@niels: https://github.com/niels
+.. _@dmerkert: https://github.com/dmerkert

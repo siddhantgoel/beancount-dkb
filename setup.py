@@ -54,7 +54,7 @@ class PublishCommand(Command):
 
 setup(
     name='beancount-dkb',
-    version='0.5.1',
+    version='0.6.0',
     description='Beancount Importer for DKB CSV exports',
     long_description=long_description,
     author='Siddhant Goel',
