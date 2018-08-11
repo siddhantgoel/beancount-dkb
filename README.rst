@@ -50,5 +50,22 @@ FAQ
 Change the :code:`file_encoding` parameter. It seems like the CSV exports are
 :code:`ISO-8859-1` encoded, but :code:`utf-8` seems like a useful default.
 
+Contributing
+------------
+
+Contributions are most welcome!
+
+Please make sure you have Python 3 and pipenv_ installed.
+
+1. Git clone the repository -
+   :code:`git clone https://github.com/siddhantgoel/beancount-dkb`
+
+2. Install the packages required for development -
+   :code:`pipenv install --dev`
+
+3. That's basically it. You should now be able to run the test suite -
+   :code:`py.test`.
+
 .. _Beancount: http://furius.ca/beancount/
 .. _DKB: https://www.dkb.de/
+.. _pipenv: https://docs.pipenv.org/install/#installing-pipenv
