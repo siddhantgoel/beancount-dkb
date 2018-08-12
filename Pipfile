@@ -6,11 +6,10 @@ name = "pypi"
 [packages]
 beancount = "==2.1.2"
 beancount-dkb = {editable = true, path = "."}
-pytest = "==3.7.1"
 
 [dev-packages]
 "flake8" = "==3.5.0"
-pytest = "==3.6.3"
+pytest = "==3.7.1"
 twine = "==1.11.0"
 
 [requires]
