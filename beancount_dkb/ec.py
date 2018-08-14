@@ -114,16 +114,20 @@ class ECImporter(importer.ImporterProtocol):
                 for line in reader:
                     meta = data.new_metadata(file_.name, line_index)
 
-                    amount = Amount(locale.atof(line['Betrag (EUR)'], Decimal),
-                                    self.currency)
+                    amount = None
+                    if line['Betrag (EUR)']:
+                        amount = Amount(locale.atof(line['Betrag (EUR)'],
+                                        Decimal),
+                                        self.currency)
                     date = datetime.strptime(
                         line['Buchungstag'], '%d.%m.%Y').date()
 
                     if line['Verwendungszweck'] == 'Tagessaldo':
-                        entries.append(
-                            data.Balance(meta, date, self.account, amount,
-                                         None, None)
-                        )
+                        if amount:
+                            entries.append(
+                                data.Balance(meta, date, self.account, amount,
+                                             None, None)
+                            )
                     else:
                         description = '{} {}'.format(
                             line['Buchungstext'],

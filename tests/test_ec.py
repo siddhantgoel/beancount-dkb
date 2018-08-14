@@ -230,6 +230,26 @@ class ECImporterTestCase(TestCase):
         self.assertEqual(transactions[0].amount,
                          Amount(Decimal('2500.01'), currency='EUR'))
 
+    def test_tagessaldo_with_empty_balance_does_not_crash(self):
+        with open(self.filename, 'wb') as fd:
+            fd.write(_format('''
+                "Kontonummer:";"{iban} / Girokonto";
+
+                "Von:";"01.01.2018";
+                "Bis:";"31.01.2018";
+                "Kontostand vom 31.01.2018:";"5.000,01 EUR";
+
+                {header};
+                "20.01.2018";"";"";"";"Tagessaldo";"";"";"";
+            ''', dict(iban=self.iban, header=HEADER)))  # NOQA
+        importer = ECImporter(self.iban, 'Assets:DKB:EC',
+                              file_encoding='utf-8')
+
+        with open(self.filename) as fd:
+            transactions = importer.extract(fd)
+
+        self.assertEqual(len(transactions), 1)
+
     def test_file_date(self):
         with open(self.filename, 'wb') as fd:
             fd.write(_format('''
