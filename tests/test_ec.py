@@ -249,6 +249,10 @@ class ECImporterTestCase(TestCase):
             transactions = importer.extract(fd)
 
         self.assertEqual(len(transactions), 1)
+        self.assertTrue(isinstance(transactions[0], Balance))
+        self.assertEqual(transactions[0].date, datetime.date(2018, 1, 31))
+        self.assertEqual(transactions[0].amount,
+                         Amount(Decimal('5000.01'), currency='EUR'))
 
     def test_file_date(self):
         with open(self.filename, 'wb') as fd:
