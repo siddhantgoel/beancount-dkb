@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+v0.6.1
+------
+- Handle empty amount strings for :code:`Tagessaldo` entries in
+  :code:`ECImporter` (thanks `@dmerkert`_)
+
 v0.6.0
 ------
 - Emit closing :code:`balance` directive based on the "Saldo" metadata entry
