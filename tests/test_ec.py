@@ -1,15 +1,14 @@
+import datetime
+import os
 from decimal import Decimal
 from tempfile import gettempdir
 from textwrap import dedent
 from unittest import TestCase
-import datetime
-import os
 
 from beancount.core.data import Amount, Balance
 
 from beancount_dkb import ECImporter
 from beancount_dkb.ec import FIELDS
-
 
 HEADER = ';'.join('"{}"'.format(field) for field in FIELDS)
 

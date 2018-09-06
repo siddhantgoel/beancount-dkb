@@ -1,5 +1,5 @@
-from contextlib import contextmanager
 import locale
+from contextlib import contextmanager
 
 
 class InvalidFormatError(Exception):

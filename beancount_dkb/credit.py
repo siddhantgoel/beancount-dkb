@@ -1,14 +1,13 @@
 import csv
-from datetime import datetime
 import locale
+from datetime import datetime
 
-from beancount.core.amount import Amount
 from beancount.core import data
+from beancount.core.amount import Amount
 from beancount.core.number import Decimal
 from beancount.ingest import importer
 
-from ._common import change_locale, InvalidFormatError
-
+from ._common import InvalidFormatError, change_locale
 
 FIELDS = (
     'Umsatz abgerechnet und nicht im Saldo enthalten',

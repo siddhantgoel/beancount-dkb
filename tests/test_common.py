@@ -1,5 +1,5 @@
-from functools import partial
 import locale
+from functools import partial
 from unittest import TestCase
 
 from beancount_dkb._common import change_locale

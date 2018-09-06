@@ -1,15 +1,14 @@
 import csv
-from datetime import datetime
 import locale
 import re
+from datetime import datetime
 
-from beancount.core.amount import Amount
 from beancount.core import data
+from beancount.core.amount import Amount
 from beancount.core.number import Decimal
 from beancount.ingest import importer
 
-from ._common import change_locale, InvalidFormatError
-
+from ._common import InvalidFormatError, change_locale
 
 FIELDS = (
     'Buchungstag',
