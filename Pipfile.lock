@@ -51,9 +51,10 @@
         },
         "bottle": {
             "hashes": [
-                "sha256:39b751aee0b167be8dffb63ca81b735bbf1dd0905b3bc42761efedee8f123355"
+                "sha256:d363d91ac84a9b68760578eebc0d3ba5a6323ff2cd8fd79d9b34181fac913ab4",
+                "sha256:484b7f6499f0039ace2efb0aaeb143b179c38f364c2c1c87213905118b2c500f"
             ],
-            "version": "==0.12.13"
+            "version": "==0.12.14"
         },
         "cachetools": {
             "hashes": [
