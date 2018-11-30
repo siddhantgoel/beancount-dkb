@@ -79,10 +79,10 @@
         },
         "google-api-python-client": {
             "hashes": [
-                "sha256:5d5cb02c6f3112c68eed51b74891a49c0e35263380672d662f8bfe85b8114d7c",
-                "sha256:7cc47cf80b25ecd7f3d917ea247bb6c62587514e40604ae29c47c0e4ebd1174b"
+                "sha256:76fb37d199dfeae4fa8ee6c1c1118f3055750e3091a6bf11d131c0dcf4cd8a0e",
+                "sha256:85674c2aa4b96a478b4d0859f8b814879551a4eaf6977ead6f94863aa8ab46ef"
             ],
-            "version": "==1.7.4"
+            "version": "==1.7.5"
         },
         "google-auth": {
             "hashes": [
