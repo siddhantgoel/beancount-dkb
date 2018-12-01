@@ -6,9 +6,9 @@ python:
     - "3.7-dev"
 
 install:
-    - pip install pipenv
-    - pipenv install --dev
+    - pip install -r requirements.dev.txt
+    - pip install .
 
 script:
-    - pipenv run flake8
-    - pipenv run py.test
+    - flake8
+    - py.test

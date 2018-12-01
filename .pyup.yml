@@ -1,3 +1,2 @@
 requirements:
-    - Pipfile
-    - Pipfile.lock
+    - requirements.dev.in
