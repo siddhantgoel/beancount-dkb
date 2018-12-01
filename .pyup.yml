@@ -1,2 +1,4 @@
+search: False
+
 requirements:
     - requirements.dev.in
