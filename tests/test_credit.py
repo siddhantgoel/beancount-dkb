@@ -179,7 +179,7 @@ class CreditImporterTestCase(TestCase):
 
         self.assertFalse(importer._date_from)
         self.assertFalse(importer._date_to)
-        self.assertFalse(importer._balance)
+        self.assertFalse(importer._balance_amount)
 
         with open(self.filename) as fd:
             transactions = importer.extract(fd)
@@ -187,7 +187,7 @@ class CreditImporterTestCase(TestCase):
         self.assertTrue(transactions)
         self.assertEqual(importer._date_from, datetime.date(2018, 1, 1))
         self.assertEqual(importer._date_to, datetime.date(2018, 1, 31))
-        self.assertEqual(importer._date_balance, datetime.date(2018, 1, 30))
+        self.assertEqual(importer._balance_date, datetime.date(2018, 1, 30))
 
     def test_emits_closing_balance_directive(self):
         with open(self.filename, 'wb') as fd:

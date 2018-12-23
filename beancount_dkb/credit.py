@@ -35,8 +35,19 @@ class CreditImporter(importer.ImporterProtocol):
 
         self._date_from = None
         self._date_to = None
-        self._date_balance = None
-        self._balance = None
+
+        # The balance amount is picked from the "Saldo" meta entry, and
+        # corresponds to the amount at the end of the date contained in the
+        # "Datum" meta. From the data seen so far, this date is a few days
+        # behind the end of the last date, and marks the border between
+        # "Gebucht" and "Vorgemerkt" transactions.
+        #
+        # Also, since there is no documentation on the file format, this
+        # behavior is implemented purely based on intuition, but has worked out
+        # OK so far.
+
+        self._balance_date = None
+        self._balance_amount = None
 
     def file_account(self, _):
         return self.account
@@ -93,12 +104,12 @@ class CreditImporter(importer.ImporterProtocol):
                             value, '%d.%m.%Y').date()
                     elif key.startswith('Saldo'):
                         with change_locale(locale.LC_NUMERIC, 'en_US.UTF-8'):
-                            self._balance = Amount(
+                            self._balance_amount = Amount(
                                 locale.atof(value.rstrip(' EUR'), Decimal),
                                 self.currency)
                         closing_balance_index = line_index
                     elif key.startswith('Datum'):
-                        self._date_balance = datetime.strptime(
+                        self._balance_date = datetime.strptime(
                             value, '%d.%m.%Y').date()
 
                     expected_keys.remove(key)
@@ -145,8 +156,8 @@ class CreditImporter(importer.ImporterProtocol):
                 # Closing Balance
                 meta = data.new_metadata(file_.name, closing_balance_index)
                 entries.append(
-                    data.Balance(meta, self._date_balance, self.account,
-                                 self._balance, None, None)
+                    data.Balance(meta, self._balance_date, self.account,
+                                 self._balance_amount, None, None)
                 )
 
             return entries
