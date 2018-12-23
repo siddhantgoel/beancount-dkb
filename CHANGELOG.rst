@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+v0.6.2
+------
+- Support Python 3.7
+- Implement :code:`file_date` for :code:`CreditImporter`
+- Set :code:`payee` in :code:`CreditImporter` postings to :code:`None` because of missing data
+- Include additional assertions for matching dates in metadata entries in :code:`ECImporter`
+
 v0.6.1
 ------
 - Handle empty amount strings for :code:`Tagessaldo` entries in
