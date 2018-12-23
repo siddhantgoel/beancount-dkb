@@ -47,6 +47,7 @@ class ECImporter(importer.ImporterProtocol):
 
     def file_date(self, file_):
         self.extract(file_)
+
         return self._date_to
 
     def identify(self, file_):
@@ -78,6 +79,7 @@ class ECImporter(importer.ImporterProtocol):
 
                 # Meta
                 lines = [fd.readline().strip() for _ in range(3)]
+                raw_meta = {}
 
                 reader = csv.reader(lines, delimiter=';',
                                     quoting=csv.QUOTE_MINIMAL, quotechar='"')
@@ -87,12 +89,24 @@ class ECImporter(importer.ImporterProtocol):
                     line_index += 1
 
                     if key.startswith('Von'):
+                        raw_meta['Von'] = value
+
                         self._date_from = datetime.strptime(
                             value, '%d.%m.%Y').date()
                     elif key.startswith('Bis'):
+                        raw_meta['Bis'] = value
+
                         self._date_to = datetime.strptime(
                             value, '%d.%m.%Y').date()
                     elif key.startswith('Kontostand vom'):
+                        raw_meta['Kontostand'] = value
+
+                        if not raw_meta.get('Bis'):
+                            raise InvalidFormatError()
+
+                        if key != 'Kontostand vom {}:'.format(raw_meta['Bis']):
+                            raise InvalidFormatError()
+
                         self._balance = Amount(
                             locale.atof(value.rstrip(' EUR'), Decimal),
                             self.currency)
