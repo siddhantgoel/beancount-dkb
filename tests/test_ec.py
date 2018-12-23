@@ -7,7 +7,7 @@ from unittest import TestCase
 
 from beancount.core.data import Amount, Balance
 
-from beancount_dkb import ECImporter
+from beancount_dkb import ECImporter, InvalidFormatError
 from beancount_dkb.ec import FIELDS
 
 HEADER = ';'.join('"{}"'.format(field) for field in FIELDS)
@@ -295,3 +295,22 @@ class ECImporterTestCase(TestCase):
         self.assertEqual(transactions[1].date, datetime.date(2018, 1, 31))
         self.assertEqual(transactions[1].amount,
                          Amount(Decimal('5000.01'), currency='EUR'))
+
+    def test_mismatching_dates_in_meta(self):
+        with open(self.filename, 'wb') as fd:
+            fd.write(_format('''
+                "Kontonummer:";"{iban} / Girokonto";
+
+                "Von:";"01.01.2018";
+                "Bis:";"31.01.2018";
+                "Kontostand vom 31.01.2019:";"5.000,01 EUR";
+
+                {header};
+                "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
+            ''', dict(iban=self.iban, header=HEADER)))  # NOQA
+
+        with open(self.filename) as fd:
+            importer = ECImporter(
+                self.iban, 'Assets:DKB:EC', file_encoding='utf-8'
+            )
+            self.assertRaises(InvalidFormatError, importer.extract, fd)
