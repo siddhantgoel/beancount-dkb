@@ -52,6 +52,11 @@ class CreditImporter(importer.ImporterProtocol):
     def file_account(self, _):
         return self.account
 
+    def file_date(self, file_):
+        self.extract(file_)
+
+        return self._balance_date
+
     def is_valid_header(self, line):
         return any(line.startswith(header)
                    for header in self._expected_headers)
