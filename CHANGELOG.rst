@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+v0.6.3
+------
+- Fix date value on :code:`balance` that :code:`ECImporter` outputs
+
 v0.6.2
 ------
 - Support Python 3.7
