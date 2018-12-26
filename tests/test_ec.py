@@ -7,7 +7,7 @@ from unittest import TestCase
 
 from beancount.core.data import Amount, Balance
 
-from beancount_dkb import ECImporter, InvalidFormatError
+from beancount_dkb import ECImporter
 from beancount_dkb.ec import FIELDS
 
 HEADER = ';'.join('"{}"'.format(field) for field in FIELDS)
@@ -239,7 +239,8 @@ class ECImporterTestCase(TestCase):
 
         self.assertFalse(importer._date_from)
         self.assertFalse(importer._date_to)
-        self.assertFalse(importer._balance)
+        self.assertFalse(importer._balance_amount)
+        self.assertFalse(importer._balance_date)
 
         with open(self.filename) as fd:
             transactions = importer.extract(fd)
@@ -248,8 +249,10 @@ class ECImporterTestCase(TestCase):
         self.assertEqual(importer._date_from, datetime.date(2018, 1, 1))
         self.assertEqual(importer._date_to, datetime.date(2018, 1, 31))
         self.assertEqual(
-            importer._balance, Amount(Decimal('5000.01'), currency='EUR')
+            importer._balance_amount,
+            Amount(Decimal('5000.01'), currency='EUR'),
         )
+        self.assertEqual(importer._balance_date, datetime.date(2018, 1, 31))
 
     def test_tagessaldo_emits_balance_directive(self):
         with open(self.filename, 'wb') as fd:
@@ -388,8 +391,16 @@ class ECImporterTestCase(TestCase):
                 )
             )
 
+        importer = ECImporter(
+            self.iban, 'Assets:DKB:EC', file_encoding='utf-8'
+        )
+
         with open(self.filename) as fd:
-            importer = ECImporter(
-                self.iban, 'Assets:DKB:EC', file_encoding='utf-8'
-            )
-            self.assertRaises(InvalidFormatError, importer.extract, fd)
+            transactions = importer.extract(fd)
+
+        self.assertEqual(len(transactions), 2)
+        self.assertTrue(isinstance(transactions[1], Balance))
+        self.assertEqual(transactions[1].date, datetime.date(2019, 1, 31))
+        self.assertEqual(
+            transactions[1].amount, Amount(Decimal('5000.01'), currency='EUR')
+        )

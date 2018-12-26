@@ -47,7 +47,8 @@ class ECImporter(importer.ImporterProtocol):
         )
         self._date_from = None
         self._date_to = None
-        self._balance = None
+        self._balance_amount = None
+        self._balance_date = None
 
     def name(self):
         return 'DKB {}'.format(self.__class__.__name__)
@@ -89,7 +90,6 @@ class ECImporter(importer.ImporterProtocol):
 
                 # Meta
                 lines = [fd.readline().strip() for _ in range(3)]
-                raw_meta = {}
 
                 reader = csv.reader(
                     lines,
@@ -103,30 +103,22 @@ class ECImporter(importer.ImporterProtocol):
                     line_index += 1
 
                     if key.startswith('Von'):
-                        raw_meta['Von'] = value
-
                         self._date_from = datetime.strptime(
                             value, '%d.%m.%Y'
                         ).date()
                     elif key.startswith('Bis'):
-                        raw_meta['Bis'] = value
-
                         self._date_to = datetime.strptime(
                             value, '%d.%m.%Y'
                         ).date()
                     elif key.startswith('Kontostand vom'):
-                        raw_meta['Kontostand'] = value
-
-                        if not raw_meta.get('Bis'):
-                            raise InvalidFormatError()
-
-                        if key != 'Kontostand vom {}:'.format(raw_meta['Bis']):
-                            raise InvalidFormatError()
-
-                        self._balance = Amount(
+                        self._balance_amount = Amount(
                             locale.atof(value.rstrip(' EUR'), Decimal),
                             self.currency,
                         )
+                        self._balance_date = datetime.strptime(
+                            key.lstrip('Kontostand vom ').rstrip(':'),
+                            '%d.%m.%Y',
+                        ).date()
                         closing_balance_index = line_index
 
                 # Another empty line
@@ -197,9 +189,9 @@ class ECImporter(importer.ImporterProtocol):
                 entries.append(
                     data.Balance(
                         meta,
-                        self._date_to,
+                        self._balance_date,
                         self.account,
-                        self._balance,
+                        self._balance_amount,
                         None,
                         None,
                     )
