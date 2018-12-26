@@ -10,5 +10,4 @@ install:
     - pip install .
 
 script:
-    - flake8
-    - py.test
+    - make test
