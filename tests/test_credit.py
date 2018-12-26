@@ -46,24 +46,34 @@ class CreditImporterTestCase(TestCase):
 
         # previous header format
         with open(self.filename, 'wb') as fd:
-            fd.write(_format('''
-                "Kreditkarte:";"{card_number} Kreditkarte";
+            fd.write(
+                _format(
+                    '''
+                    "Kreditkarte:";"{card_number} Kreditkarte";
 
-                {common}
+                    {common}
 
-            ''', dict(card_number=self.card_number, common=common)))
+                    ''',
+                    dict(card_number=self.card_number, common=common),
+                )
+            )
 
         with open(self.filename) as fd:
             self.assertTrue(importer.identify(fd))
 
         # latest header format
         with open(self.filename, 'wb') as fd:
-            fd.write(_format('''
-                "Kreditkarte:";"{card_number}";
+            fd.write(
+                _format(
+                    '''
+                    "Kreditkarte:";"{card_number}";
 
-                {common}
+                    {common}
 
-            ''', dict(card_number=self.card_number, common=common)))
+                    ''',
+                    dict(card_number=self.card_number, common=common),
+                )
+            )
 
         with open(self.filename) as fd:
             self.assertTrue(importer.identify(fd))
@@ -72,16 +82,21 @@ class CreditImporterTestCase(TestCase):
         importer = CreditImporter(self.card_number, 'Assets:DKB:Credit')
 
         with open(self.filename, 'wb') as fd:
-            fd.write(_format('''
-                "Kreditkarte:";"{card_number} Kreditkarte";
+            fd.write(
+                _format(
+                    '''
+                    "Kreditkarte:";"{card_number} Kreditkarte";
 
-                "Von:";"01.01.2018";
-                "Bis:";"31.01.2018";
-                "Saldo:";"5000.01 EUR";
-                "Datum:";"30.01.2018";
+                    "Von:";"01.01.2018";
+                    "Bis:";"31.01.2018";
+                    "Saldo:";"5000.01 EUR";
+                    "Datum:";"30.01.2018";
 
-                {header};
-            ''', dict(card_number=self.card_number, header=HEADER)))
+                    {header};
+                    ''',
+                    dict(card_number=self.card_number, header=HEADER),
+                )
+            )
 
         with open(self.filename) as fd:
             self.assertTrue(importer.identify(fd))
@@ -90,16 +105,21 @@ class CreditImporterTestCase(TestCase):
         other_iban = '5678********1234'
 
         with open(self.filename, 'wb') as fd:
-            fd.write(_format('''
-                "Kreditkarte:";"{card_number} Kreditkarte";
+            fd.write(
+                _format(
+                    '''
+                    "Kreditkarte:";"{card_number} Kreditkarte";
 
-                "Von:";"01.01.2018";
-                "Bis:";"31.01.2018";
-                "Saldo:";"5000.01 EUR";
-                "Datum:";"30.01.2018";
+                    "Von:";"01.01.2018";
+                    "Bis:";"31.01.2018";
+                    "Saldo:";"5000.01 EUR";
+                    "Datum:";"30.01.2018";
 
-                {header};
-            ''', dict(card_number=self.card_number, header=HEADER)))
+                    {header};
+                    ''',
+                    dict(card_number=self.card_number, header=HEADER),
+                )
+            )
 
         importer = CreditImporter(other_iban, 'Assets:DKB:Credit')
 
@@ -110,16 +130,21 @@ class CreditImporterTestCase(TestCase):
         importer = CreditImporter(self.card_number, 'Assets:DKB:Credit')
 
         with open(self.filename, 'wb') as fd:
-            fd.write(_format('''
-                "Kreditkarte:";"{card_number} Kreditkarte";
+            fd.write(
+                _format(
+                    '''
+                    "Kreditkarte:";"{card_number} Kreditkarte";
 
-                "Von:";"01.01.2018";
-                "Bis:";"31.01.2018";
-                "Saldo:";"5000.01 EUR";
-                "Datum:";"30.01.2018";
+                    "Von:";"01.01.2018";
+                    "Bis:";"31.01.2018";
+                    "Saldo:";"5000.01 EUR";
+                    "Datum:";"30.01.2018";
 
-                {header};
-            ''', dict(card_number=self.card_number, header=HEADER)))
+                    {header};
+                    ''',
+                    dict(card_number=self.card_number, header=HEADER),
+                )
+            )
 
         with open(self.filename) as fd:
             transactions = importer.extract(fd)
@@ -127,25 +152,32 @@ class CreditImporterTestCase(TestCase):
         self.assertEqual(len(transactions), 1)
         self.assertTrue(isinstance(transactions[0], Balance))
         self.assertEqual(transactions[0].date, datetime.date(2018, 1, 30))
-        self.assertEqual(transactions[0].amount,
-                         Amount(Decimal('5000.01'), currency='EUR'))
+        self.assertEqual(
+            transactions[0].amount, Amount(Decimal('5000.01'), currency='EUR')
+        )
 
     def test_extract_transactions(self):
         with open(self.filename, 'wb') as fd:
-            fd.write(_format('''
-                "Kreditkarte:";"{card_number} Kreditkarte";
+            fd.write(
+                _format(
+                    '''
+                    "Kreditkarte:";"{card_number} Kreditkarte";
 
-                "Von:";"01.01.2018";
-                "Bis:";"31.01.2018";
-                "Saldo:";"5000.01 EUR";
-                "Datum:";"30.01.2018";
+                    "Von:";"01.01.2018";
+                    "Bis:";"31.01.2018";
+                    "Saldo:";"5000.01 EUR";
+                    "Datum:";"30.01.2018";
 
-                {header};
-                "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
-            ''', dict(card_number=self.card_number, header=HEADER)))  # NOQA
+                    {header};
+                    "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
+                    ''',  # NOQA
+                    dict(card_number=self.card_number, header=HEADER),
+                )
+            )
 
-        importer = CreditImporter(self.card_number, 'Assets:DKB:Credit',
-                                  file_encoding='utf-8')
+        importer = CreditImporter(
+            self.card_number, 'Assets:DKB:Credit', file_encoding='utf-8'
+        )
 
         with open(self.filename) as fd:
             transactions = importer.extract(fd)
@@ -154,28 +186,36 @@ class CreditImporterTestCase(TestCase):
         self.assertEqual(transactions[0].date, datetime.date(2018, 1, 15))
 
         self.assertEqual(len(transactions[0].postings), 1)
-        self.assertEqual(transactions[0].postings[0].account,
-                         'Assets:DKB:Credit')
+        self.assertEqual(
+            transactions[0].postings[0].account, 'Assets:DKB:Credit'
+        )
         self.assertEqual(transactions[0].postings[0].units.currency, 'EUR')
-        self.assertEqual(transactions[0].postings[0].units.number,
-                         Decimal('-10.80'))
+        self.assertEqual(
+            transactions[0].postings[0].units.number, Decimal('-10.80')
+        )
 
     def test_extract_sets_timestamps(self):
         with open(self.filename, 'wb') as fd:
-            fd.write(_format('''
-                "Kreditkarte:";"{card_number} Kreditkarte";
+            fd.write(
+                _format(
+                    '''
+                    "Kreditkarte:";"{card_number} Kreditkarte";
 
-                "Von:";"01.01.2018";
-                "Bis:";"31.01.2018";
-                "Saldo:";"5000.01 EUR";
-                "Datum:";"30.01.2018";
+                    "Von:";"01.01.2018";
+                    "Bis:";"31.01.2018";
+                    "Saldo:";"5000.01 EUR";
+                    "Datum:";"30.01.2018";
 
-                {header};
-                "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
-            ''', dict(card_number=self.card_number, header=HEADER)))  # NOQA
+                    {header};
+                    "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
+                    ''',  # NOQA
+                    dict(card_number=self.card_number, header=HEADER),
+                )
+            )
 
-        importer = CreditImporter(self.card_number, 'Assets:DKB:Credit',
-                                  file_encoding='utf-8')
+        importer = CreditImporter(
+            self.card_number, 'Assets:DKB:Credit', file_encoding='utf-8'
+        )
 
         self.assertFalse(importer._date_from)
         self.assertFalse(importer._date_to)
@@ -191,19 +231,25 @@ class CreditImporterTestCase(TestCase):
 
     def test_emits_closing_balance_directive(self):
         with open(self.filename, 'wb') as fd:
-            fd.write(_format('''
-                "Kreditkarte:";"{card_number} Kreditkarte";
+            fd.write(
+                _format(
+                    '''
+                    "Kreditkarte:";"{card_number} Kreditkarte";
 
-                "Von:";"01.01.2018";
-                "Bis:";"31.01.2018";
-                "Saldo:";"5000.01 EUR";
-                "Datum:";"30.01.2018";
+                    "Von:";"01.01.2018";
+                    "Bis:";"31.01.2018";
+                    "Saldo:";"5000.01 EUR";
+                    "Datum:";"30.01.2018";
 
-                {header};
-                "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
-            ''', dict(card_number=self.card_number, header=HEADER)))  # NOQA
-        importer = CreditImporter(self.card_number, 'Assets:DKB:Credit',
-                                  file_encoding='utf-8')
+                    {header};
+                    "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
+                    ''',  # NOQA
+                    dict(card_number=self.card_number, header=HEADER),
+                )
+            )
+        importer = CreditImporter(
+            self.card_number, 'Assets:DKB:Credit', file_encoding='utf-8'
+        )
 
         with open(self.filename) as fd:
             transactions = importer.extract(fd)
@@ -211,5 +257,6 @@ class CreditImporterTestCase(TestCase):
         self.assertEqual(len(transactions), 2)
         self.assertTrue(isinstance(transactions[1], Balance))
         self.assertEqual(transactions[1].date, datetime.date(2018, 1, 30))
-        self.assertEqual(transactions[1].amount,
-                         Amount(Decimal('5000.01'), currency='EUR'))
+        self.assertEqual(
+            transactions[1].amount, Amount(Decimal('5000.01'), currency='EUR')
+        )

@@ -26,21 +26,31 @@ FIELDS = (
 
 
 class ECImporter(importer.ImporterProtocol):
-    def __init__(self, iban, account, currency='EUR',
-                 numeric_locale='de_DE.UTF-8', file_encoding='utf-8'):
+    def __init__(
+        self,
+        iban,
+        account,
+        currency='EUR',
+        numeric_locale='de_DE.UTF-8',
+        file_encoding='utf-8',
+    ):
         self.account = account
         self.currency = currency
         self.numeric_locale = numeric_locale
         self.file_encoding = file_encoding
 
         self._expected_header_regex = re.compile(
-            r'^"Kontonummer:";"' +
-            re.escape(re.sub(r'\s+', '', iban, flags=re.UNICODE)) + r'\s',
-            re.IGNORECASE
+            r'^"Kontonummer:";"'
+            + re.escape(re.sub(r'\s+', '', iban, flags=re.UNICODE))
+            + r'\s',
+            re.IGNORECASE,
         )
         self._date_from = None
         self._date_to = None
         self._balance = None
+
+    def name(self):
+        return 'DKB {}'.format(self.__class__.__name__)
 
     def file_account(self, _):
         return self.account
@@ -81,8 +91,12 @@ class ECImporter(importer.ImporterProtocol):
                 lines = [fd.readline().strip() for _ in range(3)]
                 raw_meta = {}
 
-                reader = csv.reader(lines, delimiter=';',
-                                    quoting=csv.QUOTE_MINIMAL, quotechar='"')
+                reader = csv.reader(
+                    lines,
+                    delimiter=';',
+                    quoting=csv.QUOTE_MINIMAL,
+                    quotechar='"',
+                )
 
                 for line in reader:
                     key, value, _ = line
@@ -92,12 +106,14 @@ class ECImporter(importer.ImporterProtocol):
                         raw_meta['Von'] = value
 
                         self._date_from = datetime.strptime(
-                            value, '%d.%m.%Y').date()
+                            value, '%d.%m.%Y'
+                        ).date()
                     elif key.startswith('Bis'):
                         raw_meta['Bis'] = value
 
                         self._date_to = datetime.strptime(
-                            value, '%d.%m.%Y').date()
+                            value, '%d.%m.%Y'
+                        ).date()
                     elif key.startswith('Kontostand vom'):
                         raw_meta['Kontostand'] = value
 
@@ -109,7 +125,8 @@ class ECImporter(importer.ImporterProtocol):
 
                         self._balance = Amount(
                             locale.atof(value.rstrip(' EUR'), Decimal),
-                            self.currency)
+                            self.currency,
+                        )
                         closing_balance_index = line_index
 
                 # Another empty line
@@ -120,44 +137,56 @@ class ECImporter(importer.ImporterProtocol):
                     raise InvalidFormatError()
 
                 # Data entries
-                reader = csv.DictReader(fd, delimiter=';',
-                                        quoting=csv.QUOTE_MINIMAL,
-                                        quotechar='"')
+                reader = csv.DictReader(
+                    fd, delimiter=';', quoting=csv.QUOTE_MINIMAL, quotechar='"'
+                )
 
                 for line in reader:
                     meta = data.new_metadata(file_.name, line_index)
 
                     amount = None
                     if line['Betrag (EUR)']:
-                        amount = Amount(locale.atof(line['Betrag (EUR)'],
-                                        Decimal),
-                                        self.currency)
+                        amount = Amount(
+                            locale.atof(line['Betrag (EUR)'], Decimal),
+                            self.currency,
+                        )
                     date = datetime.strptime(
-                        line['Buchungstag'], '%d.%m.%Y').date()
+                        line['Buchungstag'], '%d.%m.%Y'
+                    ).date()
 
                     if line['Verwendungszweck'] == 'Tagessaldo':
                         if amount:
                             entries.append(
-                                data.Balance(meta, date, self.account, amount,
-                                             None, None)
+                                data.Balance(
+                                    meta,
+                                    date,
+                                    self.account,
+                                    amount,
+                                    None,
+                                    None,
+                                )
                             )
                     else:
                         description = '{} {}'.format(
-                            line['Buchungstext'],
-                            line['Verwendungszweck']
+                            line['Buchungstext'], line['Verwendungszweck']
                         )
 
                         postings = [
-                            data.Posting(self.account, amount, None, None,
-                                         None, None)
+                            data.Posting(
+                                self.account, amount, None, None, None, None
+                            )
                         ]
 
                         entries.append(
                             data.Transaction(
-                                meta, date, self.FLAG,
+                                meta,
+                                date,
+                                self.FLAG,
                                 line['Auftraggeber / Begünstigter'],
-                                description, data.EMPTY_SET, data.EMPTY_SET,
-                                postings
+                                description,
+                                data.EMPTY_SET,
+                                data.EMPTY_SET,
+                                postings,
                             )
                         )
 
@@ -166,8 +195,14 @@ class ECImporter(importer.ImporterProtocol):
                 # Closing Balance
                 meta = data.new_metadata(file_.name, closing_balance_index)
                 entries.append(
-                    data.Balance(meta, self._date_to, self.account,
-                                 self._balance, None, None)
+                    data.Balance(
+                        meta,
+                        self._date_to,
+                        self.account,
+                        self._balance,
+                        None,
+                        None,
+                    )
                 )
 
             return entries

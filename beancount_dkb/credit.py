@@ -15,13 +15,19 @@ FIELDS = (
     'Belegdatum',
     'Beschreibung',
     'Betrag (EUR)',
-    'Ursprünglicher Betrag'
+    'Ursprünglicher Betrag',
 )
 
 
 class CreditImporter(importer.ImporterProtocol):
-    def __init__(self, card_number, account, currency='EUR',
-                 numeric_locale='de_DE.UTF-8', file_encoding='utf-8'):
+    def __init__(
+        self,
+        card_number,
+        account,
+        currency='EUR',
+        numeric_locale='de_DE.UTF-8',
+        file_encoding='utf-8',
+    ):
         self.card_number = card_number
         self.account = account
         self.currency = currency
@@ -49,6 +55,9 @@ class CreditImporter(importer.ImporterProtocol):
         self._balance_date = None
         self._balance_amount = None
 
+    def name(self):
+        return 'DKB {}'.format(self.__class__.__name__)
+
     def file_account(self, _):
         return self.account
 
@@ -58,8 +67,9 @@ class CreditImporter(importer.ImporterProtocol):
         return self._balance_date
 
     def is_valid_header(self, line):
-        return any(line.startswith(header)
-                   for header in self._expected_headers)
+        return any(
+            line.startswith(header) for header in self._expected_headers
+        )
 
     def identify(self, file_):
         with open(file_.name, encoding=self.file_encoding) as fd:
@@ -91,11 +101,16 @@ class CreditImporter(importer.ImporterProtocol):
                 # Meta
                 expected_keys = set(['Von:', 'Bis:', 'Saldo:', 'Datum:'])
 
-                lines = [fd.readline().strip() for _
-                         in range(len(expected_keys))]
+                lines = [
+                    fd.readline().strip() for _ in range(len(expected_keys))
+                ]
 
-                reader = csv.reader(lines, delimiter=';',
-                                    quoting=csv.QUOTE_MINIMAL, quotechar='"')
+                reader = csv.reader(
+                    lines,
+                    delimiter=';',
+                    quoting=csv.QUOTE_MINIMAL,
+                    quotechar='"',
+                )
 
                 for line in reader:
                     key, value, _ = line
@@ -103,19 +118,23 @@ class CreditImporter(importer.ImporterProtocol):
 
                     if key.startswith('Von'):
                         self._date_from = datetime.strptime(
-                            value, '%d.%m.%Y').date()
+                            value, '%d.%m.%Y'
+                        ).date()
                     elif key.startswith('Bis'):
                         self._date_to = datetime.strptime(
-                            value, '%d.%m.%Y').date()
+                            value, '%d.%m.%Y'
+                        ).date()
                     elif key.startswith('Saldo'):
                         with change_locale(locale.LC_NUMERIC, 'en_US.UTF-8'):
                             self._balance_amount = Amount(
                                 locale.atof(value.rstrip(' EUR'), Decimal),
-                                self.currency)
+                                self.currency,
+                            )
                         closing_balance_index = line_index
                     elif key.startswith('Datum'):
                         self._balance_date = datetime.strptime(
-                            value, '%d.%m.%Y').date()
+                            value, '%d.%m.%Y'
+                        ).date()
 
                     expected_keys.remove(key)
 
@@ -130,38 +149,54 @@ class CreditImporter(importer.ImporterProtocol):
                     raise InvalidFormatError()
 
                 # Data entries
-                reader = csv.DictReader(fd, delimiter=';',
-                                        quoting=csv.QUOTE_MINIMAL,
-                                        quotechar='"')
+                reader = csv.DictReader(
+                    fd, delimiter=';', quoting=csv.QUOTE_MINIMAL, quotechar='"'
+                )
 
                 for index, line in enumerate(reader):
                     meta = data.new_metadata(file_.name, index)
 
                     amount = Amount(
                         locale.atof(line['Betrag (EUR)'], Decimal),
-                        self.currency)
+                        self.currency,
+                    )
 
                     date = datetime.strptime(
-                        line['Belegdatum'], '%d.%m.%Y').date()
+                        line['Belegdatum'], '%d.%m.%Y'
+                    ).date()
 
                     description = line['Beschreibung']
 
                     postings = [
-                        data.Posting(self.account, amount, None, None, None,
-                                     None)
+                        data.Posting(
+                            self.account, amount, None, None, None, None
+                        )
                     ]
 
                     entries.append(
-                        data.Transaction(meta, date, self.FLAG, None,
-                                         description, data.EMPTY_SET,
-                                         data.EMPTY_SET, postings)
+                        data.Transaction(
+                            meta,
+                            date,
+                            self.FLAG,
+                            None,
+                            description,
+                            data.EMPTY_SET,
+                            data.EMPTY_SET,
+                            postings,
+                        )
                     )
 
                 # Closing Balance
                 meta = data.new_metadata(file_.name, closing_balance_index)
                 entries.append(
-                    data.Balance(meta, self._balance_date, self.account,
-                                 self._balance_amount, None, None)
+                    data.Balance(
+                        meta,
+                        self._balance_date,
+                        self.account,
+                        self._balance_amount,
+                        None,
+                        None,
+                    )
                 )
 
             return entries
