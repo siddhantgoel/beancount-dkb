@@ -51,6 +51,12 @@ class CreditImporter(importer.ImporterProtocol):
         # Also, since there is no documentation on the file format, this
         # behavior is implemented purely based on intuition, but has worked out
         # OK so far.
+        #
+        # Beancount expects the balance amount to be from the beginning of the
+        # day, while the Tagessaldo entries in the DKB exports seem to be from
+        # the end of the day. So when setting the balance date, we add a
+        # timedelta of 1 day to the original value to make the balance
+        # assertions work.
 
         self._balance_date = None
         self._balance_amount = None

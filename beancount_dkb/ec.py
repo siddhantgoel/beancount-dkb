@@ -111,6 +111,13 @@ class ECImporter(importer.ImporterProtocol):
                             value, '%d.%m.%Y'
                         ).date()
                     elif key.startswith('Kontostand vom'):
+                        # Beancount expects the balance amount to be from the
+                        # beginning of the day, while the Tagessaldo entries in
+                        # the DKB exports seem to be from the end of the day.
+                        # So when setting the balance date, we add a timedelta
+                        # of 1 day to the original value to make the balance
+                        # assertions work.
+
                         self._balance_amount = Amount(
                             locale.atof(value.rstrip(' EUR'), Decimal),
                             self.currency,
