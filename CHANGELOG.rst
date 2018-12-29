@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+v0.6.4
+------
+- Add a :code:`timedelta` of 1 day when setting the date on the :code:`balance`
+  directive outputs to make things consistent between what Beancount expects
+  (balance amount valid from the beginning of the day) and what DKB exports
+  contain (balance amount valid at the end of the day)
+
 v0.6.3
 ------
 - Fix date value on :code:`balance` that :code:`ECImporter` outputs
