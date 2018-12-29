@@ -1,6 +1,6 @@
 import csv
 import locale
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from beancount.core import data
 from beancount.core.amount import Amount
@@ -64,7 +64,7 @@ class CreditImporter(importer.ImporterProtocol):
     def file_date(self, file_):
         self.extract(file_)
 
-        return self._balance_date
+        return self._balance_date - timedelta(days=1)
 
     def is_valid_header(self, line):
         return any(
@@ -134,7 +134,7 @@ class CreditImporter(importer.ImporterProtocol):
                     elif key.startswith('Datum'):
                         self._balance_date = datetime.strptime(
                             value, '%d.%m.%Y'
-                        ).date()
+                        ).date() + timedelta(days=1)
 
                     expected_keys.remove(key)
 

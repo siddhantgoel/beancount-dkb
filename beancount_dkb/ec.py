@@ -1,7 +1,7 @@
 import csv
 import locale
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from beancount.core import data
 from beancount.core.amount import Amount
@@ -118,7 +118,7 @@ class ECImporter(importer.ImporterProtocol):
                         self._balance_date = datetime.strptime(
                             key.lstrip('Kontostand vom ').rstrip(':'),
                             '%d.%m.%Y',
-                        ).date()
+                        ).date() + timedelta(days=1)
                         closing_balance_index = line_index
 
                 # Another empty line
@@ -151,7 +151,7 @@ class ECImporter(importer.ImporterProtocol):
                             entries.append(
                                 data.Balance(
                                     meta,
-                                    date,
+                                    date + timedelta(days=1),
                                     self.account,
                                     amount,
                                     None,

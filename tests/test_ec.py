@@ -171,7 +171,7 @@ class ECImporterTestCase(TestCase):
 
         self.assertEqual(len(transactions), 1)
         self.assertTrue(isinstance(transactions[0], Balance))
-        self.assertEqual(transactions[0].date, datetime.date(2018, 1, 31))
+        self.assertEqual(transactions[0].date, datetime.date(2018, 2, 1))
         self.assertEqual(
             transactions[0].amount, Amount(Decimal('5000.01'), currency='EUR')
         )
@@ -252,7 +252,7 @@ class ECImporterTestCase(TestCase):
             importer._balance_amount,
             Amount(Decimal('5000.01'), currency='EUR'),
         )
-        self.assertEqual(importer._balance_date, datetime.date(2018, 1, 31))
+        self.assertEqual(importer._balance_date, datetime.date(2018, 2, 1))
 
     def test_tagessaldo_emits_balance_directive(self):
         with open(self.filename, 'wb') as fd:
@@ -280,7 +280,7 @@ class ECImporterTestCase(TestCase):
 
         self.assertEqual(len(transactions), 2)
         self.assertTrue(isinstance(transactions[0], Balance))
-        self.assertEqual(transactions[0].date, datetime.date(2018, 1, 20))
+        self.assertEqual(transactions[0].date, datetime.date(2018, 1, 21))
         self.assertEqual(
             transactions[0].amount, Amount(Decimal('2500.01'), currency='EUR')
         )
@@ -311,7 +311,7 @@ class ECImporterTestCase(TestCase):
 
         self.assertEqual(len(transactions), 1)
         self.assertTrue(isinstance(transactions[0], Balance))
-        self.assertEqual(transactions[0].date, datetime.date(2018, 1, 31))
+        self.assertEqual(transactions[0].date, datetime.date(2018, 2, 1))
         self.assertEqual(
             transactions[0].amount, Amount(Decimal('5000.01'), currency='EUR')
         )
@@ -368,7 +368,7 @@ class ECImporterTestCase(TestCase):
 
         self.assertEqual(len(transactions), 2)
         self.assertTrue(isinstance(transactions[1], Balance))
-        self.assertEqual(transactions[1].date, datetime.date(2018, 1, 31))
+        self.assertEqual(transactions[1].date, datetime.date(2018, 2, 1))
         self.assertEqual(
             transactions[1].amount, Amount(Decimal('5000.01'), currency='EUR')
         )
@@ -400,7 +400,7 @@ class ECImporterTestCase(TestCase):
 
         self.assertEqual(len(transactions), 2)
         self.assertTrue(isinstance(transactions[1], Balance))
-        self.assertEqual(transactions[1].date, datetime.date(2019, 1, 31))
+        self.assertEqual(transactions[1].date, datetime.date(2019, 2, 1))
         self.assertEqual(
             transactions[1].amount, Amount(Decimal('5000.01'), currency='EUR')
         )

@@ -151,7 +151,7 @@ class CreditImporterTestCase(TestCase):
 
         self.assertEqual(len(transactions), 1)
         self.assertTrue(isinstance(transactions[0], Balance))
-        self.assertEqual(transactions[0].date, datetime.date(2018, 1, 30))
+        self.assertEqual(transactions[0].date, datetime.date(2018, 1, 31))
         self.assertEqual(
             transactions[0].amount, Amount(Decimal('5000.01'), currency='EUR')
         )
@@ -227,7 +227,7 @@ class CreditImporterTestCase(TestCase):
         self.assertTrue(transactions)
         self.assertEqual(importer._date_from, datetime.date(2018, 1, 1))
         self.assertEqual(importer._date_to, datetime.date(2018, 1, 31))
-        self.assertEqual(importer._balance_date, datetime.date(2018, 1, 30))
+        self.assertEqual(importer._balance_date, datetime.date(2018, 1, 31))
 
     def test_emits_closing_balance_directive(self):
         with open(self.filename, 'wb') as fd:
@@ -256,7 +256,7 @@ class CreditImporterTestCase(TestCase):
 
         self.assertEqual(len(transactions), 2)
         self.assertTrue(isinstance(transactions[1], Balance))
-        self.assertEqual(transactions[1].date, datetime.date(2018, 1, 30))
+        self.assertEqual(transactions[1].date, datetime.date(2018, 1, 31))
         self.assertEqual(
             transactions[1].amount, Amount(Decimal('5000.01'), currency='EUR')
         )
