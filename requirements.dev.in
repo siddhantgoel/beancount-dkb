@@ -1,4 +1,4 @@
-beancount==2.2.0
+beancount==2.2.1
 flake8==3.6.0
 isort==4.3.4
 pytest==4.1.1
