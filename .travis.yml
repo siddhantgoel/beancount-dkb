@@ -5,9 +5,13 @@ python:
     - "3.6"
     - "3.7-dev"
 
+before_install:
+    - pip install --upgrade pip
+    - pip install poetry
+
 install:
-    - pip install -r requirements.dev.txt
-    - pip install .
+    - poetry install
 
 script:
-    - make test
+    - poetry run flake8 beancount_dkb/ tests/
+    - poetry run py.test tests/

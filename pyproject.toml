@@ -1,0 +1,39 @@
+[tool.poetry]
+name = "beancount-dkb"
+version = "0.6.4"
+description = "Beancount Importer for DKB CSV exports"
+authors = ["Siddhant Goel <me@sgoel.org>"]
+license = "MIT"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Plugins",
+    "Intended Audience :: End Users/Desktop",
+    "Intended Audience :: Financial and Insurance Industry",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.5",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3 :: Only",
+]
+repository = "https://github.com/siddhantgoel/beancount-dkb"
+keywords = ["beancount", "cli-accounting", "finance"]
+
+[tool.poetry.dependencies]
+python = "^3.5"
+
+[tool.poetry.dev-dependencies]
+beancount = "^2.2"
+flake8 = "^3.7"
+isort = "^4.3"
+pytest = "^4.4"
+black = {version = "^18.3-alpha.0",allows-prereleases = true,python = "^3.6"}
+
+[tool.black]
+line-length = 79
+skip-string-normalization = true
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
+

@@ -100,5 +100,8 @@ venv.bak/
 # mypy
 .mypy_cache/
 
+# Project settings
+pip-wheel-metadata/
+
 
 # End of https://www.gitignore.io/api/python
