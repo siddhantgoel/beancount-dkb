@@ -55,16 +55,17 @@ Contributing
 
 Contributions are most welcome!
 
-Please make sure you have Python 3.5+ installed.
+Please make sure you have Python 3.5+ and Poetry_ installed.
 
 1. Git clone the repository -
    :code:`git clone https://github.com/siddhantgoel/beancount-dkb`
 
 2. Install the packages required for development -
-   :code:`pip install -r requirements.dev.txt`
+   :code:`poetry install`
 
 3. That's basically it. You should now be able to run the test suite -
-   :code:`py.test`.
+   :code:`poetry run py.test`.
 
 .. _Beancount: http://furius.ca/beancount/
 .. _DKB: https://www.dkb.de/
+.. _Poetry: https://poetry.eustace.io/
