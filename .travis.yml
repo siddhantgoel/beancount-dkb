@@ -17,3 +17,4 @@ install:
 script:
     - poetry run flake8 beancount_dkb/ tests/
     - poetry run py.test tests/
+    - if [ $TRAVIS_PYTHON_VERSION != '3.5' ]; then poetry run black --check beancount_dkb/ tests/ ; fi
