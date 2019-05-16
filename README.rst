@@ -30,13 +30,17 @@ Usage
 
     CONFIG = [
         ECImporter(
-            IBAN_NUMBER, 'Assets:DKB:EC', currency='EUR',
-            numeric_locale='de_DE.UTF-8', file_encoding='utf-8'
+            IBAN_NUMBER, 'Assets:DKB:EC',
+            currency='EUR',
+            numeric_locale='de_DE.UTF-8',
+            file_encoding='utf-8',
         ),
 
         CreditImporter(
-            CARD_NUMBER, 'Assets:DKB:Credit', currency='EUR',
-            numeric_locale='de_DE.UTF-8', file_encoding='utf-8'
+            CARD_NUMBER, 'Assets:DKB:Credit',
+            currency='EUR',
+            numeric_locale='de_DE.UTF-8',
+            file_encoding='utf-8',
         )
     ]
 
