@@ -1,17 +1,12 @@
-import locale
-from contextlib import contextmanager
+from beancount.core.number import Decimal
 
 
 class InvalidFormatError(Exception):
     pass
 
 
-@contextmanager
-def change_locale(key, value):
-    original = locale.getlocale(key)
+def fmt_number_de(value: str) -> Decimal:
+    thousands_sep = '.'
+    decimal_sep = ','
 
-    try:
-        locale.setlocale(key, value)
-        yield
-    finally:
-        locale.setlocale(key, original)
+    return Decimal(value.replace(thousands_sep, '').replace(decimal_sep, '.'))

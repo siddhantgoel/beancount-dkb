@@ -1,14 +1,12 @@
 import csv
-import locale
 import re
 from datetime import datetime, timedelta
 
 from beancount.core import data
 from beancount.core.amount import Amount
-from beancount.core.number import Decimal
 from beancount.ingest import importer
 
-from ._common import InvalidFormatError, change_locale
+from ._common import fmt_number_de, InvalidFormatError
 
 FIELDS = (
     'Buchungstag',
@@ -31,12 +29,10 @@ class ECImporter(importer.ImporterProtocol):
         iban,
         account,
         currency='EUR',
-        numeric_locale='de_DE.UTF-8',
         file_encoding='utf-8',
     ):
         self.account = account
         self.currency = currency
-        self.numeric_locale = numeric_locale
         self.file_encoding = file_encoding
 
         self._expected_header_regex = re.compile(
@@ -72,136 +68,135 @@ class ECImporter(importer.ImporterProtocol):
         line_index = 0
         closing_balance_index = -1
 
-        with change_locale(locale.LC_NUMERIC, self.numeric_locale):
-            with open(file_.name, encoding=self.file_encoding) as fd:
-                # Header
-                line = fd.readline().strip()
+        with open(file_.name, encoding=self.file_encoding) as fd:
+            # Header
+            line = fd.readline().strip()
+            line_index += 1
+
+            if not self._expected_header_regex.match(line):
+                raise InvalidFormatError()
+
+            # Empty line
+            line = fd.readline().strip()
+            line_index += 1
+
+            if line:
+                raise InvalidFormatError()
+
+            # Meta
+            lines = [fd.readline().strip() for _ in range(3)]
+
+            reader = csv.reader(
+                lines,
+                delimiter=';',
+                quoting=csv.QUOTE_MINIMAL,
+                quotechar='"',
+            )
+
+            for line in reader:
+                key, value, _ = line
                 line_index += 1
 
-                if not self._expected_header_regex.match(line):
-                    raise InvalidFormatError()
-
-                # Empty line
-                line = fd.readline().strip()
-                line_index += 1
-
-                if line:
-                    raise InvalidFormatError()
-
-                # Meta
-                lines = [fd.readline().strip() for _ in range(3)]
-
-                reader = csv.reader(
-                    lines,
-                    delimiter=';',
-                    quoting=csv.QUOTE_MINIMAL,
-                    quotechar='"',
-                )
-
-                for line in reader:
-                    key, value, _ = line
-                    line_index += 1
-
-                    if key.startswith('Von'):
-                        self._date_from = datetime.strptime(
-                            value, '%d.%m.%Y'
-                        ).date()
-                    elif key.startswith('Bis'):
-                        self._date_to = datetime.strptime(
-                            value, '%d.%m.%Y'
-                        ).date()
-                    elif key.startswith('Kontostand vom'):
-                        # Beancount expects the balance amount to be from the
-                        # beginning of the day, while the Tagessaldo entries in
-                        # the DKB exports seem to be from the end of the day.
-                        # So when setting the balance date, we add a timedelta
-                        # of 1 day to the original value to make the balance
-                        # assertions work.
-
-                        self._balance_amount = Amount(
-                            locale.atof(value.rstrip(' EUR'), Decimal),
-                            self.currency,
-                        )
-                        self._balance_date = datetime.strptime(
-                            key.lstrip('Kontostand vom ').rstrip(':'),
-                            '%d.%m.%Y',
-                        ).date() + timedelta(days=1)
-                        closing_balance_index = line_index
-
-                # Another empty line
-                line = fd.readline().strip()
-                line_index += 1
-
-                if line:
-                    raise InvalidFormatError()
-
-                # Data entries
-                reader = csv.DictReader(
-                    fd, delimiter=';', quoting=csv.QUOTE_MINIMAL, quotechar='"'
-                )
-
-                for line in reader:
-                    meta = data.new_metadata(file_.name, line_index)
-
-                    amount = None
-                    if line['Betrag (EUR)']:
-                        amount = Amount(
-                            locale.atof(line['Betrag (EUR)'], Decimal),
-                            self.currency,
-                        )
-                    date = datetime.strptime(
-                        line['Buchungstag'], '%d.%m.%Y'
+                if key.startswith('Von'):
+                    self._date_from = datetime.strptime(
+                        value, '%d.%m.%Y'
                     ).date()
+                elif key.startswith('Bis'):
+                    self._date_to = datetime.strptime(
+                        value, '%d.%m.%Y'
+                    ).date()
+                elif key.startswith('Kontostand vom'):
+                    # Beancount expects the balance amount to be from the
+                    # beginning of the day, while the Tagessaldo entries in
+                    # the DKB exports seem to be from the end of the day.
+                    # So when setting the balance date, we add a timedelta
+                    # of 1 day to the original value to make the balance
+                    # assertions work.
 
-                    if line['Verwendungszweck'] == 'Tagessaldo':
-                        if amount:
-                            entries.append(
-                                data.Balance(
-                                    meta,
-                                    date + timedelta(days=1),
-                                    self.account,
-                                    amount,
-                                    None,
-                                    None,
-                                )
-                            )
-                    else:
-                        description = '{} {}'.format(
-                            line['Buchungstext'], line['Verwendungszweck']
-                        )
-
-                        postings = [
-                            data.Posting(
-                                self.account, amount, None, None, None, None
-                            )
-                        ]
-
-                        entries.append(
-                            data.Transaction(
-                                meta,
-                                date,
-                                self.FLAG,
-                                line['Auftraggeber / Begünstigter'],
-                                description,
-                                data.EMPTY_SET,
-                                data.EMPTY_SET,
-                                postings,
-                            )
-                        )
-
-                    line_index += 1
-
-                # Closing Balance
-                meta = data.new_metadata(file_.name, closing_balance_index)
-                entries.append(
-                    data.Balance(
-                        meta,
-                        self._balance_date,
-                        self.account,
-                        self._balance_amount,
-                        None,
-                        None,
+                    self._balance_amount = Amount(
+                        fmt_number_de(value.rstrip(' EUR')),
+                        self.currency,
                     )
-                )
+                    self._balance_date = datetime.strptime(
+                        key.lstrip('Kontostand vom ').rstrip(':'),
+                        '%d.%m.%Y',
+                    ).date() + timedelta(days=1)
+                    closing_balance_index = line_index
 
-            return entries
+            # Another empty line
+            line = fd.readline().strip()
+            line_index += 1
+
+            if line:
+                raise InvalidFormatError()
+
+            # Data entries
+            reader = csv.DictReader(
+                fd, delimiter=';', quoting=csv.QUOTE_MINIMAL, quotechar='"'
+            )
+
+            for line in reader:
+                meta = data.new_metadata(file_.name, line_index)
+
+                amount = None
+                if line['Betrag (EUR)']:
+                    amount = Amount(
+                        fmt_number_de(line['Betrag (EUR)']),
+                        self.currency,
+                    )
+                date = datetime.strptime(
+                    line['Buchungstag'], '%d.%m.%Y'
+                ).date()
+
+                if line['Verwendungszweck'] == 'Tagessaldo':
+                    if amount:
+                        entries.append(
+                            data.Balance(
+                                meta,
+                                date + timedelta(days=1),
+                                self.account,
+                                amount,
+                                None,
+                                None,
+                            )
+                        )
+                else:
+                    description = '{} {}'.format(
+                        line['Buchungstext'], line['Verwendungszweck']
+                    )
+
+                    postings = [
+                        data.Posting(
+                            self.account, amount, None, None, None, None
+                        )
+                    ]
+
+                    entries.append(
+                        data.Transaction(
+                            meta,
+                            date,
+                            self.FLAG,
+                            line['Auftraggeber / Begünstigter'],
+                            description,
+                            data.EMPTY_SET,
+                            data.EMPTY_SET,
+                            postings,
+                        )
+                    )
+
+                line_index += 1
+
+            # Closing Balance
+            meta = data.new_metadata(file_.name, closing_balance_index)
+            entries.append(
+                data.Balance(
+                    meta,
+                    self._balance_date,
+                    self.account,
+                    self._balance_amount,
+                    None,
+                    None,
+                )
+            )
+
+        return entries

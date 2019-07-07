@@ -1,19 +1,13 @@
-import locale
-from functools import partial
 from unittest import TestCase
 
-from beancount_dkb._common import change_locale
+from beancount.core.number import Decimal
+from beancount_dkb._common import fmt_number_de
 
 
 class CommonTestCase(TestCase):
-    def test_change_locale(self):
-        locale.setlocale(locale.LC_NUMERIC, 'en_US.UTF-8')
-
-        getlocale = partial(locale.getlocale, locale.LC_NUMERIC)
-
-        self.assertEqual(getlocale(), ('en_US', 'UTF-8'))
-
-        with change_locale(locale.LC_NUMERIC, 'de_DE.UTF-8'):
-            self.assertEqual(getlocale(), ('de_DE', 'UTF-8'))
-
-        self.assertEqual(getlocale(), ('en_US', 'UTF-8'))
+    def test_fmt_number_de(self):
+        self.assertEqual(fmt_number_de('1'), Decimal(1))
+        self.assertEqual(fmt_number_de('1,50'), Decimal(1.50))
+        self.assertEqual(fmt_number_de('150'), Decimal(150))
+        self.assertEqual(fmt_number_de('15,0'), Decimal(15))
+        self.assertEqual(fmt_number_de('1234,0'), Decimal(1234))
