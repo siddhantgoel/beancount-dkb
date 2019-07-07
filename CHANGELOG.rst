@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+v0.7.0
+------
+- Replace :code:`locale` based parsing of numbers with a simple helper function
+  specifically for handling German formatting of numbers
+
 v0.6.4
 ------
 - Add a :code:`timedelta` of 1 day when setting the date on the :code:`balance`
