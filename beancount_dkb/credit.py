@@ -19,11 +19,7 @@ FIELDS = (
 
 class CreditImporter(importer.ImporterProtocol):
     def __init__(
-        self,
-        card_number,
-        account,
-        currency='EUR',
-        file_encoding='utf-8',
+        self, card_number, account, currency='EUR', file_encoding='utf-8'
     ):
         self.card_number = card_number
         self.account = account
@@ -102,15 +98,10 @@ class CreditImporter(importer.ImporterProtocol):
             # Meta
             expected_keys = set(['Von:', 'Bis:', 'Saldo:', 'Datum:'])
 
-            lines = [
-                fd.readline().strip() for _ in range(len(expected_keys))
-            ]
+            lines = [fd.readline().strip() for _ in range(len(expected_keys))]
 
             reader = csv.reader(
-                lines,
-                delimiter=';',
-                quoting=csv.QUOTE_MINIMAL,
-                quotechar='"',
+                lines, delimiter=';', quoting=csv.QUOTE_MINIMAL, quotechar='"'
             )
 
             for line in reader:
@@ -122,13 +113,10 @@ class CreditImporter(importer.ImporterProtocol):
                         value, '%d.%m.%Y'
                     ).date()
                 elif key.startswith('Bis'):
-                    self._date_to = datetime.strptime(
-                        value, '%d.%m.%Y'
-                    ).date()
+                    self._date_to = datetime.strptime(value, '%d.%m.%Y').date()
                 elif key.startswith('Saldo'):
                     self._balance_amount = Amount(
-                        fmt_number_de(value.rstrip(' EUR')),
-                        self.currency,
+                        fmt_number_de(value.rstrip(' EUR')), self.currency
                     )
                     closing_balance_index = line_index
                 elif key.startswith('Datum'):
@@ -157,20 +145,15 @@ class CreditImporter(importer.ImporterProtocol):
                 meta = data.new_metadata(file_.name, index)
 
                 amount = Amount(
-                    fmt_number_de(line['Betrag (EUR)']),
-                    self.currency,
+                    fmt_number_de(line['Betrag (EUR)']), self.currency
                 )
 
-                date = datetime.strptime(
-                    line['Belegdatum'], '%d.%m.%Y'
-                ).date()
+                date = datetime.strptime(line['Belegdatum'], '%d.%m.%Y').date()
 
                 description = line['Beschreibung']
 
                 postings = [
-                    data.Posting(
-                        self.account, amount, None, None, None, None
-                    )
+                    data.Posting(self.account, amount, None, None, None, None)
                 ]
 
                 entries.append(

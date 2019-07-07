@@ -24,13 +24,7 @@ FIELDS = (
 
 
 class ECImporter(importer.ImporterProtocol):
-    def __init__(
-        self,
-        iban,
-        account,
-        currency='EUR',
-        file_encoding='utf-8',
-    ):
+    def __init__(self, iban, account, currency='EUR', file_encoding='utf-8'):
         self.account = account
         self.currency = currency
         self.file_encoding = file_encoding
@@ -87,10 +81,7 @@ class ECImporter(importer.ImporterProtocol):
             lines = [fd.readline().strip() for _ in range(3)]
 
             reader = csv.reader(
-                lines,
-                delimiter=';',
-                quoting=csv.QUOTE_MINIMAL,
-                quotechar='"',
+                lines, delimiter=';', quoting=csv.QUOTE_MINIMAL, quotechar='"'
             )
 
             for line in reader:
@@ -102,9 +93,7 @@ class ECImporter(importer.ImporterProtocol):
                         value, '%d.%m.%Y'
                     ).date()
                 elif key.startswith('Bis'):
-                    self._date_to = datetime.strptime(
-                        value, '%d.%m.%Y'
-                    ).date()
+                    self._date_to = datetime.strptime(value, '%d.%m.%Y').date()
                 elif key.startswith('Kontostand vom'):
                     # Beancount expects the balance amount to be from the
                     # beginning of the day, while the Tagessaldo entries in
@@ -114,12 +103,10 @@ class ECImporter(importer.ImporterProtocol):
                     # assertions work.
 
                     self._balance_amount = Amount(
-                        fmt_number_de(value.rstrip(' EUR')),
-                        self.currency,
+                        fmt_number_de(value.rstrip(' EUR')), self.currency
                     )
                     self._balance_date = datetime.strptime(
-                        key.lstrip('Kontostand vom ').rstrip(':'),
-                        '%d.%m.%Y',
+                        key.lstrip('Kontostand vom ').rstrip(':'), '%d.%m.%Y'
                     ).date() + timedelta(days=1)
                     closing_balance_index = line_index
 
@@ -141,8 +128,7 @@ class ECImporter(importer.ImporterProtocol):
                 amount = None
                 if line['Betrag (EUR)']:
                     amount = Amount(
-                        fmt_number_de(line['Betrag (EUR)']),
-                        self.currency,
+                        fmt_number_de(line['Betrag (EUR)']), self.currency
                     )
                 date = datetime.strptime(
                     line['Buchungstag'], '%d.%m.%Y'
