@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "beancount-dkb"
-version = "0.6.4"
+version = "0.7.0"
 description = "Beancount Importer for DKB CSV exports"
 authors = ["Siddhant Goel <me@sgoel.org>"]
 license = "MIT"
