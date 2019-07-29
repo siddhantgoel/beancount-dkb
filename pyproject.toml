@@ -2,6 +2,7 @@
 name = "beancount-dkb"
 version = "0.7.1"
 description = "Beancount Importer for DKB CSV exports"
+readme = "README.rst"
 authors = ["Siddhant Goel <me@sgoel.org>"]
 license = "MIT"
 classifiers = [
@@ -16,6 +17,7 @@ classifiers = [
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3 :: Only",
 ]
+include = ["README.rst", "LICENSE.txt"]
 repository = "https://github.com/siddhantgoel/beancount-dkb"
 keywords = ["beancount", "cli-accounting", "finance"]
 
