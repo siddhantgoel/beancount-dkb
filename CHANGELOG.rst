@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+v0.7.1
+------
+- Fix parsing "Saldo" amounts in :code:`CreditImporter` (#84)
+
 v0.7.0
 ------
 - Replace :code:`locale` based parsing of numbers with a simple helper function
