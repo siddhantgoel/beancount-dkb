@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 
 from beancount.core import data
 from beancount.core.amount import Amount
+from beancount.core.number import Decimal
 from beancount.ingest import importer
 
 from ._common import fmt_number_de, InvalidFormatError
@@ -116,7 +117,7 @@ class CreditImporter(importer.ImporterProtocol):
                     self._date_to = datetime.strptime(value, '%d.%m.%Y').date()
                 elif key.startswith('Saldo'):
                     self._balance_amount = Amount(
-                        fmt_number_de(value.rstrip(' EUR')), self.currency
+                        Decimal(value.rstrip(' EUR')), self.currency
                     )
                     closing_balance_index = line_index
                 elif key.startswith('Datum'):
