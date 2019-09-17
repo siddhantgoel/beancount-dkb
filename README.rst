@@ -1,11 +1,11 @@
 Beancount DKB Importer
 ======================
 
+.. image:: https://github.com/siddhantgoel/beancount-dkb/workflows/beancount-dkb/badge.svg
+    :target: https://github.com/siddhantgoel/beancount-dkb/workflows/beancount-dkb/badge.svg
+
 .. image:: https://img.shields.io/pypi/v/beancount-dkb.svg
     :target: https://pypi.python.org/pypi/beancount-dkb
-
-.. image:: https://travis-ci.org/siddhantgoel/beancount-dkb.svg?branch=stable
-    :target: https://travis-ci.org/siddhantgoel/beancount-dkb
 
 :code:`beancount-dkb` provides an Importer for converting CSV exports of
 DKB_ (Deutsche Kredit Bank) account summaries to the Beancount_ format.
