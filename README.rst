@@ -7,6 +7,9 @@ Beancount DKB Importer
 .. image:: https://img.shields.io/pypi/v/beancount-dkb.svg
     :target: https://pypi.python.org/pypi/beancount-dkb
 
+.. image:: https://img.shields.io/pypi/pyversions/beancount-dkb.svg
+    :target: https://pypi.python.org/pypi/beancount-dkb
+
 :code:`beancount-dkb` provides an Importer for converting CSV exports of
 DKB_ (Deutsche Kredit Bank) account summaries to the Beancount_ format.
 
