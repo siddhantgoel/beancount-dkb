@@ -19,7 +19,7 @@ classifiers = [
 ]
 include = ["README.rst", "LICENSE.txt"]
 repository = "https://github.com/siddhantgoel/beancount-dkb"
-keywords = ["beancount", "cli-accounting", "finance"]
+keywords = ["banking", "beancount", "cli-accounting", "finance"]
 
 [tool.poetry.dependencies]
 python = "^3.5"
