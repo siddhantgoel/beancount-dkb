@@ -34,15 +34,21 @@ Usage
 
     from beancount_dkb import ECImporter, CreditImporter
 
+    IBAN_NUMBER = 'DE99 9999 9999 9999 9999 99' # your real IBAN number
+
+    CARD_NUMBER = '9999 9999 9999 9999'         # your real Credit Card number
+
     CONFIG = [
         ECImporter(
-            IBAN_NUMBER, 'Assets:DKB:EC',
+            IBAN_NUMBER,
+            'Assets:DKB:EC',
             currency='EUR',
             file_encoding='utf-8',
         ),
 
         CreditImporter(
-            CARD_NUMBER, 'Assets:DKB:Credit',
+            CARD_NUMBER,
+            'Assets:DKB:Credit',
             currency='EUR',
             file_encoding='utf-8',
         )
