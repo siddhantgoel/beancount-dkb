@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+v0.8.0
+------
+- Enable support for Python 3.8
+
 v0.7.1
 ------
 - Fix parsing "Saldo" amounts in :code:`CreditImporter` (#84)
