@@ -15,6 +15,7 @@ classifiers = [
     "Programming Language :: Python :: 3.5",
     "Programming Language :: Python :: 3.6",
     "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3 :: Only",
 ]
 include = ["README.rst", "LICENSE.txt"]
@@ -29,7 +30,7 @@ beancount = "^2.2"
 flake8 = "^3.7"
 isort = "^4.3"
 pytest = "^4.4"
-black = {version = "^18.3-alpha.0",allows-prereleases = true,python = "^3.6"}
+black = {version = "^18.3-alpha.0",allow-prereleases = true,python = "^3.6"}
 
 [tool.black]
 line-length = 79
