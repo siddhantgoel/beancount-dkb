@@ -17,6 +17,8 @@ classifiers = [
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Office/Business :: Financial",
+    "Topic :: Office/Business :: Financial :: Accounting",
 ]
 include = ["README.rst", "LICENSE.txt"]
 repository = "https://github.com/siddhantgoel/beancount-dkb"
