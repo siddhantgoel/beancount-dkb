@@ -30,7 +30,7 @@ class ECImporter(importer.ImporterProtocol):
         self.file_encoding = file_encoding
 
         self._expected_header_regex = re.compile(
-            r'^"Kontonummer:";"'
+            r'^\W*Kontonummer\W+' 
             + re.escape(re.sub(r'\s+', '', iban, flags=re.UNICODE))
             + r'\s',
             re.IGNORECASE,
@@ -70,12 +70,9 @@ class ECImporter(importer.ImporterProtocol):
             if not self._expected_header_regex.match(line):
                 raise InvalidFormatError()
 
-            # Empty line
+            # (sometimes) Empty line
             line = fd.readline().strip()
             line_index += 1
-
-            if line:
-                raise InvalidFormatError()
 
             # Meta
             lines = [fd.readline().strip() for _ in range(3)]
@@ -85,7 +82,8 @@ class ECImporter(importer.ImporterProtocol):
             )
 
             for line in reader:
-                key, value, _ = line
+                key=line[0]
+                value= line[1]
                 line_index += 1
 
                 if key.startswith('Von'):
@@ -110,13 +108,10 @@ class ECImporter(importer.ImporterProtocol):
                     ).date() + timedelta(days=1)
                     closing_balance_index = line_index
 
-            # Another empty line
+            # Another (sometimes) empty line
             line = fd.readline().strip()
             line_index += 1
-
-            if line:
-                raise InvalidFormatError()
-
+ 
             # Data entries
             reader = csv.DictReader(
                 fd, delimiter=';', quoting=csv.QUOTE_MINIMAL, quotechar='"'
