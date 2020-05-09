@@ -31,8 +31,8 @@ python = "^3.5"
 beancount = "^2.2"
 flake8 = "^3.7"
 isort = "^4.3"
-pytest = "^4.4"
-black = {version = "^18.3-alpha.0",allow-prereleases = true,python = "^3.6"}
+pytest = "^5.4"
+black = {version = "^19.10b0",python = "^3.6"}
 
 [tool.black]
 line-length = 79
