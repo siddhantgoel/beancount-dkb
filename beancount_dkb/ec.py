@@ -57,7 +57,7 @@ class ECImporter(importer.ImporterProtocol):
 
         return self._expected_header_regex.match(line)
 
-    def extract(self, file_):
+    def extract(self, file_, existing_entries=None):
         entries = []
         line_index = 0
         closing_balance_index = -1
