@@ -180,6 +180,7 @@ def test_extract_transactions(tmp_file):
 
             {header};
             "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
+            "06.05.2020";"06.05.2020";"Gutschrift";"From Someone";"";"DE88700222000012345678";"FDDODEMMXXX";"1,00";"";"";"NOTPROVIDED";
             ''',  # NOQA
             dict(iban=Constants.iban.value, header=Constants.header.value),
         )
@@ -192,7 +193,7 @@ def test_extract_transactions(tmp_file):
     with open(str(tmp_file.realpath())) as fd:
         transactions = importer.extract(fd)
 
-    assert len(transactions) == 2
+    assert len(transactions) == 3
     assert transactions[0].date == datetime.date(2018, 1, 16)
     assert transactions[0].payee == 'REWE Filialen Voll'
     assert transactions[0].narration == 'Lastschrift REWE SAGT DANKE.'
@@ -201,6 +202,15 @@ def test_extract_transactions(tmp_file):
     assert transactions[0].postings[0].account == 'Assets:DKB:EC'
     assert transactions[0].postings[0].units.currency == 'EUR'
     assert transactions[0].postings[0].units.number == Decimal('-15.37')
+
+    assert transactions[1].date == datetime.date(2020, 5, 6)
+    assert transactions[1].payee == 'From Someone'
+    assert transactions[1].narration == 'Gutschrift DE88700222000012345678'
+
+    assert len(transactions[1].postings) == 1
+    assert transactions[1].postings[0].account == 'Assets:DKB:EC'
+    assert transactions[1].postings[0].units.currency == 'EUR'
+    assert transactions[1].postings[0].units.number == Decimal('1.00')
 
 
 def test_extract_sets_timestamps(tmp_file):

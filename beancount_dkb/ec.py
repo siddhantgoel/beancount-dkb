@@ -148,7 +148,8 @@ class ECImporter(importer.ImporterProtocol):
                         )
                 else:
                     description = '{} {}'.format(
-                        line['Buchungstext'], line['Verwendungszweck']
+                        line['Buchungstext'],
+                        line['Verwendungszweck'] or line['Kontonummer'],
                     )
 
                     postings = [
