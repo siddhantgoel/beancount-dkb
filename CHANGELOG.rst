@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+v0.8.1
+------
+- Add accout number to narration if there's no transfer text (thanks `@tbm`_)
+- Add optional parameter :code:`existing_entries` to :code:`extract()` (thanks `@tbm`_)
+
 v0.8.0
 ------
 - Enable support for Python 3.8
@@ -89,5 +94,6 @@ v0.1.0
 - Added ECImporter to import CSV exports of EC accounts
 
 
-.. _@niels: https://github.com/niels
 .. _@dmerkert: https://github.com/dmerkert
+.. _@niels: https://github.com/niels
+.. _@tbm: https://github.com/tbm
