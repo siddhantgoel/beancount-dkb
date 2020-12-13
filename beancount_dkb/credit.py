@@ -63,7 +63,7 @@ class CreditImporter(importer.ImporterProtocol):
     def file_date(self, file_):
         self.extract(file_)
 
-        return self._balance_date - timedelta(days=1)
+        return self._date_to
 
     def is_valid_header(self, line):
         return any(

@@ -311,7 +311,7 @@ def test_tagessaldo_with_empty_balance_does_not_crash(tmp_file):
     assert transactions[0].amount == Amount(Decimal('5000.01'), currency='EUR')
 
 
-def test_file_date(tmp_file):
+def test_file_date_is_set_correctly(tmp_file):
     tmp_file.write(
         _format(
             '''

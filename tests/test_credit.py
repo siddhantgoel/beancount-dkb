@@ -259,3 +259,32 @@ def test_emits_closing_balance_directive(tmp_file):
     assert isinstance(transactions[1], Balance)
     assert transactions[1].date == datetime.date(2018, 1, 31)
     assert transactions[1].amount == Amount(Decimal('5000.01'), currency='EUR')
+
+
+def test_file_date_is_set_correctly(tmp_file):
+    tmp_file.write(
+        _format(
+            '''
+            "Kreditkarte:";"{card_number} Kreditkarte";
+
+            "Von:";"01.01.2016";
+            "Bis:";"31.01.2016";
+            "Saldo:";"5000.01 EUR";
+            "Datum:";"30.01.2018";
+
+            {header};
+            "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
+            ''',  # NOQA
+            dict(
+                card_number=Constants.card_number.value,
+                header=Constants.header.value,
+            ),
+        )
+    )
+
+    importer = CreditImporter(
+        Constants.card_number.value, 'Assets:DKB:Credit', file_encoding='utf-8'
+    )
+
+    with open(str(tmp_file.realpath())) as fd:
+        assert importer.file_date(fd) == datetime.date(2016, 1, 31)
