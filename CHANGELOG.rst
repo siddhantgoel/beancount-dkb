@@ -1,9 +1,13 @@
 CHANGELOG
 =========
 
+v0.8.2
+------
+- Return date of last transaction from :code:`file_date` for :code:`CreditImporter`
+
 v0.8.1
 ------
-- Add accout number to narration if there's no transfer text (thanks `@tbm`_)
+- Add account number to narration if there's no transfer text (thanks `@tbm`_)
 - Add optional parameter :code:`existing_entries` to :code:`extract()` (thanks `@tbm`_)
 
 v0.8.0
