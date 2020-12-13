@@ -14,7 +14,7 @@ Beancount DKB Importer
     :target: https://github.com/psf/black
 
 :code:`beancount-dkb` provides an Importer for converting CSV exports of
-DKB_ (Deutsche Kredit Bank) account summaries to the Beancount_ format.
+DKB_ (Deutsche Kreditbank) account summaries to the Beancount_ format.
 
 Installation
 ------------
