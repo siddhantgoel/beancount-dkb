@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.5, 3.6, 3.7, 3.8]
+        python-version: [3.6, 3.7, 3.8, 3.9]
     steps:
     - uses: actions/checkout@v1
 
@@ -35,7 +35,6 @@ jobs:
         poetry run flake8 beancount_dkb/ tests/
 
     - name: Lint with black
-      if: matrix.python-version != '3.5'
       run: |
         poetry run black --check beancount_dkb/ tests/
 
