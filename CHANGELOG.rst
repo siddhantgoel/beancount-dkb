@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+v0.8.3
+------
+- Enable support for Python 3.9
+- Drop support for Python 3.5
+
 v0.8.2
 ------
 - Return date of last transaction from :code:`file_date` for :code:`CreditImporter`
