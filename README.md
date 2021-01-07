@@ -55,8 +55,8 @@ CONFIG = [
 ]
 ```
 
-Once this is in place, you should be able to run `bean-extract` to extract the
-transactions and pipe them all into your Beancount file.
+Once this is in place, you should be able to run `bean-extract` on the command
+line to extract the transactions and pipe all of them into your Beancount file.
 
 ```sh
 $ bean-extract /path/to/config.py transaction.csv >> you.beancount
@@ -86,4 +86,4 @@ Please make sure you have Python 3.6+ and [Poetry] installed.
 [config file]: https://beancount.github.io/docs/importing_external_data.html#configuration
 [DKB]: https://www.dkb.de
 [Poetry]: https://python-poetry.org/
-[this guide]: https://beancount.github.io/docs/importing_external_data.html#example-importers
+[this guide]: https://beancount.github.io/docs/importing_external_data.html
