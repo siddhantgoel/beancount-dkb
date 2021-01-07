@@ -23,6 +23,14 @@ from.
 
 ## Usage
 
+If you're not familiar with how to import external data into Beancount, please
+read [this guide] first.
+
+Adjust your [config file] to include `ECImporter` and `CreditImporter`
+(depending on what account you're trying to import).
+
+A sample configuration might look like the following:
+
 ```python
 from beancount_dkb import ECImporter, CreditImporter
 
@@ -47,6 +55,13 @@ CONFIG = [
 ]
 ```
 
+Once this is in place, you should be able to run `bean-extract` to extract the
+transactions and pipe them all into your Beancount file.
+
+```sh
+$ bean-extract /path/to/config.py transaction.csv >> you.beancount
+```
+
 ## FAQ
 
 ```sh
@@ -67,6 +82,8 @@ Please make sure you have Python 3.6+ and [Poetry] installed.
 2. Install the packages required for development: `poetry install`
 3. That's basically it. You should now be able to run the test suite: `poetry run py.test`.
 
-[DKB]: https://www.dkb.de
 [Beancount]: http://furius.ca/beancount/
+[config file]: https://beancount.github.io/docs/importing_external_data.html#configuration
+[DKB]: https://www.dkb.de
 [Poetry]: https://python-poetry.org/
+[this guide]: https://beancount.github.io/docs/importing_external_data.html#example-importers
