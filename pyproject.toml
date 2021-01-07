@@ -2,7 +2,7 @@
 name = "beancount-dkb"
 version = "0.8.3"
 description = "Beancount Importer for DKB CSV exports"
-readme = "README.rst"
+readme = "README.md"
 authors = ["Siddhant Goel <me@sgoel.org>"]
 license = "MIT"
 classifiers = [
@@ -20,7 +20,7 @@ classifiers = [
     "Topic :: Office/Business :: Financial",
     "Topic :: Office/Business :: Financial :: Accounting",
 ]
-include = ["README.rst", "LICENSE.txt"]
+include = ["README.md", "LICENSE.txt"]
 repository = "https://github.com/siddhantgoel/beancount-dkb"
 keywords = ["banking", "beancount", "cli-accounting", "finance"]
 
