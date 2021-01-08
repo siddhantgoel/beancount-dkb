@@ -1,5 +1,4 @@
 import datetime
-from enum import Enum
 from decimal import Decimal
 from textwrap import dedent
 
@@ -9,10 +8,9 @@ import pytest
 from beancount_dkb import CreditImporter
 from beancount_dkb.credit import FIELDS
 
+CARD_NUMBER = '1234********5678'
 
-class Constants(Enum):
-    card_number = '1234********5678'
-    header = ';'.join('"{}"'.format(field) for field in FIELDS)
+HEADER = ';'.join('"{}"'.format(field) for field in FIELDS)
 
 
 def _format(string, kwargs):
@@ -21,11 +19,11 @@ def _format(string, kwargs):
 
 @pytest.fixture
 def tmp_file(tmpdir):
-    return tmpdir.join('{}.csv'.format(Constants.card_number.value))
+    return tmpdir.join('{}.csv'.format(CARD_NUMBER))
 
 
 def test_multiple_headers(tmp_file):
-    importer = CreditImporter(Constants.card_number.value, 'Assets:DKB:Credit')
+    importer = CreditImporter(CARD_NUMBER, 'Assets:DKB:Credit')
 
     common = '''
         "Von:";"01.01.2018";
@@ -43,7 +41,7 @@ def test_multiple_headers(tmp_file):
             {common}
 
             ''',
-            dict(card_number=Constants.card_number.value, common=common),
+            dict(card_number=CARD_NUMBER, common=common),
         )
     )
 
@@ -59,7 +57,7 @@ def test_multiple_headers(tmp_file):
             {common}
 
             ''',
-            dict(card_number=Constants.card_number.value, common=common),
+            dict(card_number=CARD_NUMBER, common=common),
         )
     )
 
@@ -68,7 +66,7 @@ def test_multiple_headers(tmp_file):
 
 
 def test_identify_correct(tmp_file):
-    importer = CreditImporter(Constants.card_number.value, 'Assets:DKB:Credit')
+    importer = CreditImporter(CARD_NUMBER, 'Assets:DKB:Credit')
 
     tmp_file.write(
         _format(
@@ -82,10 +80,7 @@ def test_identify_correct(tmp_file):
 
             {header};
             ''',
-            dict(
-                card_number=Constants.card_number.value,
-                header=Constants.header.value,
-            ),
+            dict(card_number=CARD_NUMBER, header=HEADER),
         )
     )
 
@@ -108,10 +103,7 @@ def test_identify_invalid_iban(tmp_file):
 
             {header};
             ''',
-            dict(
-                card_number=Constants.card_number.value,
-                header=Constants.header.value,
-            ),
+            dict(card_number=CARD_NUMBER, header=HEADER),
         )
     )
 
@@ -122,7 +114,7 @@ def test_identify_invalid_iban(tmp_file):
 
 
 def test_extract_no_transactions(tmp_file):
-    importer = CreditImporter(Constants.card_number.value, 'Assets:DKB:Credit')
+    importer = CreditImporter(CARD_NUMBER, 'Assets:DKB:Credit')
 
     tmp_file.write(
         _format(
@@ -136,10 +128,7 @@ def test_extract_no_transactions(tmp_file):
 
             {header};
             ''',
-            dict(
-                card_number=Constants.card_number.value,
-                header=Constants.header.value,
-            ),
+            dict(card_number=CARD_NUMBER, header=HEADER),
         )
     )
 
@@ -166,15 +155,12 @@ def test_extract_transactions(tmp_file):
             {header};
             "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
             ''',  # NOQA
-            dict(
-                card_number=Constants.card_number.value,
-                header=Constants.header.value,
-            ),
+            dict(card_number=CARD_NUMBER, header=HEADER),
         )
     )
 
     importer = CreditImporter(
-        Constants.card_number.value, 'Assets:DKB:Credit', file_encoding='utf-8'
+        CARD_NUMBER, 'Assets:DKB:Credit', file_encoding='utf-8'
     )
 
     with open(str(tmp_file.realpath())) as fd:
@@ -203,15 +189,12 @@ def test_extract_sets_timestamps(tmp_file):
             {header};
             "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
             ''',  # NOQA
-            dict(
-                card_number=Constants.card_number.value,
-                header=Constants.header.value,
-            ),
+            dict(card_number=CARD_NUMBER, header=HEADER),
         )
     )
 
     importer = CreditImporter(
-        Constants.card_number.value, 'Assets:DKB:Credit', file_encoding='utf-8'
+        CARD_NUMBER, 'Assets:DKB:Credit', file_encoding='utf-8'
     )
 
     assert not importer._date_from
@@ -240,15 +223,12 @@ def test_extract_with_zeitraum(tmp_file):
             {header};
             "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
             ''',  # NOQA
-            dict(
-                card_number=Constants.card_number.value,
-                header=Constants.header.value,
-            ),
+            dict(card_number=CARD_NUMBER, header=HEADER),
         )
     )
 
     importer = CreditImporter(
-        Constants.card_number.value, 'Assets:DKB:Credit', file_encoding='utf-8'
+        CARD_NUMBER, 'Assets:DKB:Credit', file_encoding='utf-8'
     )
 
     assert not importer._date_from
@@ -278,15 +258,12 @@ def test_emits_closing_balance_directive(tmp_file):
             {header};
             "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
             ''',  # NOQA
-            dict(
-                card_number=Constants.card_number.value,
-                header=Constants.header.value,
-            ),
+            dict(card_number=CARD_NUMBER, header=HEADER),
         )
     )
 
     importer = CreditImporter(
-        Constants.card_number.value, 'Assets:DKB:Credit', file_encoding='utf-8'
+        CARD_NUMBER, 'Assets:DKB:Credit', file_encoding='utf-8'
     )
 
     with open(str(tmp_file.realpath())) as fd:
@@ -312,15 +289,12 @@ def test_file_date_is_set_correctly(tmp_file):
             {header};
             "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
             ''',  # NOQA
-            dict(
-                card_number=Constants.card_number.value,
-                header=Constants.header.value,
-            ),
+            dict(card_number=CARD_NUMBER, header=HEADER),
         )
     )
 
     importer = CreditImporter(
-        Constants.card_number.value, 'Assets:DKB:Credit', file_encoding='utf-8'
+        CARD_NUMBER, 'Assets:DKB:Credit', file_encoding='utf-8'
     )
 
     with open(str(tmp_file.realpath())) as fd:

@@ -1,5 +1,4 @@
 import datetime
-from enum import Enum
 from decimal import Decimal
 from textwrap import dedent
 
@@ -10,10 +9,11 @@ from beancount_dkb import ECImporter
 from beancount_dkb.ec import FIELDS
 
 
-class Constants(Enum):
-    header = ';'.join('"{}"'.format(field) for field in FIELDS)
-    formatted_iban = 'DE99 9999 9999 9999 9999 99'
-    iban = formatted_iban.replace(' ', '')
+FORMATTED_IBAN = 'DE99 9999 9999 9999 9999 99'
+
+IBAN = FORMATTED_IBAN.replace(' ', '')
+
+HEADER = ';'.join('"{}"'.format(field) for field in FIELDS)
 
 
 def _format(string, kwargs):
@@ -22,7 +22,7 @@ def _format(string, kwargs):
 
 @pytest.fixture
 def tmp_file(tmpdir):
-    return tmpdir.join('{}.csv'.format(Constants.formatted_iban.value))
+    return tmpdir.join('{}.csv'.format(FORMATTED_IBAN))
 
 
 def tmp_file_path(file_):
@@ -30,7 +30,7 @@ def tmp_file_path(file_):
 
 
 def test_identify_correct(tmp_file):
-    importer = ECImporter(Constants.iban.value, 'Assets:DKB:EC')
+    importer = ECImporter(IBAN, 'Assets:DKB:EC')
 
     tmp_file.write(
         _format(
@@ -43,7 +43,7 @@ def test_identify_correct(tmp_file):
 
             {header};
             ''',
-            dict(iban=Constants.iban.value, header=Constants.header.value),
+            dict(iban=IBAN, header=HEADER),
         )
     )
 
@@ -52,7 +52,7 @@ def test_identify_correct(tmp_file):
 
 
 def test_identify_with_nonstandard_account_name(tmp_file):
-    importer = ECImporter(Constants.iban.value, 'Assets:DKB:EC')
+    importer = ECImporter(IBAN, 'Assets:DKB:EC')
 
     tmp_file.write(
         _format(
@@ -65,7 +65,7 @@ def test_identify_with_nonstandard_account_name(tmp_file):
 
             {header};
             ''',
-            dict(iban=Constants.iban.value, header=Constants.header.value),
+            dict(iban=IBAN, header=HEADER),
         )
     )
 
@@ -74,7 +74,7 @@ def test_identify_with_nonstandard_account_name(tmp_file):
 
 
 def test_identify_with_exotic_account_name(tmp_file):
-    importer = ECImporter(Constants.iban.value, 'Assets:DKB:EC')
+    importer = ECImporter(IBAN, 'Assets:DKB:EC')
 
     tmp_file.write(
         _format(
@@ -87,7 +87,7 @@ def test_identify_with_exotic_account_name(tmp_file):
 
             {header};
             ''',  # NOQA
-            dict(iban=Constants.iban.value, header=Constants.header.value),
+            dict(iban=IBAN, header=HEADER),
         )
     )
 
@@ -96,7 +96,7 @@ def test_identify_with_exotic_account_name(tmp_file):
 
 
 def test_identify_with_formatted_iban(tmp_file):
-    importer = ECImporter(Constants.formatted_iban.value, 'Assets:DKB:EC')
+    importer = ECImporter(FORMATTED_IBAN, 'Assets:DKB:EC')
 
     tmp_file.write(
         _format(
@@ -109,7 +109,7 @@ def test_identify_with_formatted_iban(tmp_file):
 
             {header};
             ''',
-            dict(iban=Constants.iban.value, header=Constants.header.value),
+            dict(iban=IBAN, header=HEADER),
         )
     )
 
@@ -131,7 +131,7 @@ def test_identify_invalid_iban(tmp_file):
 
             {header};
             ''',
-            dict(iban=Constants.iban.value, header=Constants.header.value),
+            dict(iban=IBAN, header=HEADER),
         )
     )
 
@@ -142,7 +142,7 @@ def test_identify_invalid_iban(tmp_file):
 
 
 def test_extract_no_transactions(tmp_file):
-    importer = ECImporter(Constants.iban.value, 'Assets:DKB:EC')
+    importer = ECImporter(IBAN, 'Assets:DKB:EC')
 
     tmp_file.write(
         _format(
@@ -155,7 +155,7 @@ def test_extract_no_transactions(tmp_file):
 
             {header};
             ''',
-            dict(iban=Constants.iban.value, header=Constants.header.value),
+            dict(iban=IBAN, header=HEADER),
         )
     )
 
@@ -182,13 +182,11 @@ def test_extract_transactions(tmp_file):
             "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
             "06.05.2020";"06.05.2020";"Gutschrift";"From Someone";"";"DE88700222000012345678";"FDDODEMMXXX";"1,00";"";"";"NOTPROVIDED";
             ''',  # NOQA
-            dict(iban=Constants.iban.value, header=Constants.header.value),
+            dict(iban=IBAN, header=HEADER),
         )
     )
 
-    importer = ECImporter(
-        Constants.iban.value, 'Assets:DKB:EC', file_encoding='utf-8'
-    )
+    importer = ECImporter(IBAN, 'Assets:DKB:EC', file_encoding='utf-8')
 
     with open(str(tmp_file.realpath())) as fd:
         transactions = importer.extract(fd)
@@ -226,13 +224,11 @@ def test_extract_sets_timestamps(tmp_file):
             {header};
             "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
             ''',  # NOQA
-            dict(iban=Constants.iban.value, header=Constants.header.value),
+            dict(iban=IBAN, header=HEADER),
         )
     )
 
-    importer = ECImporter(
-        Constants.iban.value, 'Assets:DKB:EC', file_encoding='utf-8'
-    )
+    importer = ECImporter(IBAN, 'Assets:DKB:EC', file_encoding='utf-8')
 
     assert not importer._date_from
     assert not importer._date_to
@@ -264,13 +260,11 @@ def test_tagessaldo_emits_balance_directive(tmp_file):
             {header};
             "20.01.2018";"";"";"";"Tagessaldo";"";"";"2.500,01";
             ''',
-            dict(iban=Constants.iban.value, header=Constants.header.value),
+            dict(iban=IBAN, header=HEADER),
         )
     )
 
-    importer = ECImporter(
-        Constants.iban.value, 'Assets:DKB:EC', file_encoding='utf-8'
-    )
+    importer = ECImporter(IBAN, 'Assets:DKB:EC', file_encoding='utf-8')
 
     with open(str(tmp_file.realpath())) as fd:
         transactions = importer.extract(fd)
@@ -294,13 +288,11 @@ def test_tagessaldo_with_empty_balance_does_not_crash(tmp_file):
             {header};
             "20.01.2018";"";"";"";"Tagessaldo";"";"";"";
             ''',
-            dict(iban=Constants.iban.value, header=Constants.header.value),
+            dict(iban=IBAN, header=HEADER),
         )
     )
 
-    importer = ECImporter(
-        Constants.iban.value, 'Assets:DKB:EC', file_encoding='utf-8'
-    )
+    importer = ECImporter(IBAN, 'Assets:DKB:EC', file_encoding='utf-8')
 
     with open(str(tmp_file.realpath())) as fd:
         transactions = importer.extract(fd)
@@ -324,13 +316,11 @@ def test_file_date_is_set_correctly(tmp_file):
             {header};
             "20.01.2018";"";"";"";"Tagessaldo";"";"";"2.500,01";
             ''',
-            dict(iban=Constants.iban.value, header=Constants.header.value),
+            dict(iban=IBAN, header=HEADER),
         )
     )
 
-    importer = ECImporter(
-        Constants.iban.value, 'Assets:DKB:EC', file_encoding='utf-8'
-    )
+    importer = ECImporter(IBAN, 'Assets:DKB:EC', file_encoding='utf-8')
 
     with open(str(tmp_file.realpath())) as fd:
         assert importer.file_date(fd) == datetime.date(2018, 1, 31)
@@ -349,13 +339,11 @@ def test_emits_closing_balance_directive(tmp_file):
             {header};
             "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
             ''',  # NOQA
-            dict(iban=Constants.iban.value, header=Constants.header.value),
+            dict(iban=IBAN, header=HEADER),
         )
     )
 
-    importer = ECImporter(
-        Constants.iban.value, 'Assets:DKB:EC', file_encoding='utf-8'
-    )
+    importer = ECImporter(IBAN, 'Assets:DKB:EC', file_encoding='utf-8')
 
     with open(str(tmp_file.realpath())) as fd:
         transactions = importer.extract(fd)
@@ -379,13 +367,11 @@ def test_mismatching_dates_in_meta(tmp_file):
             {header};
             "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
             ''',  # NOQA
-            dict(iban=Constants.iban.value, header=Constants.header.value),
+            dict(iban=IBAN, header=HEADER),
         )
     )
 
-    importer = ECImporter(
-        Constants.iban.value, 'Assets:DKB:EC', file_encoding='utf-8'
-    )
+    importer = ECImporter(IBAN, 'Assets:DKB:EC', file_encoding='utf-8')
 
     with open(str(tmp_file.realpath())) as fd:
         transactions = importer.extract(fd)
