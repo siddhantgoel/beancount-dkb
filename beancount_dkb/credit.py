@@ -6,7 +6,7 @@ from beancount.core.amount import Amount
 from beancount.core.number import Decimal
 from beancount.ingest import importer
 
-from ._common import fmt_number_de, InvalidFormatError
+from .helpers import fmt_number_de, InvalidFormatError
 
 FIELDS = (
     'Umsatz abgerechnet und nicht im Saldo enthalten',

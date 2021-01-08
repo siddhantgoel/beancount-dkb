@@ -1,5 +1,5 @@
 from beancount.core.number import Decimal
-from beancount_dkb._common import fmt_number_de
+from beancount_dkb.helpers import fmt_number_de
 
 
 def test_fmt_number_de():
