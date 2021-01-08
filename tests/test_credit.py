@@ -227,6 +227,43 @@ def test_extract_sets_timestamps(tmp_file):
     assert importer._balance_date == datetime.date(2018, 1, 31)
 
 
+def test_extract_with_zeitraum(tmp_file):
+    tmp_file.write(
+        _format(
+            '''
+            "Kreditkarte:";"{card_number} Kreditkarte";
+
+            "Zeitraum:";"seit der letzten Abrechnung";
+            "Saldo:";"5000.01 EUR";
+            "Datum:";"30.01.2018";
+
+            {header};
+            "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
+            ''',  # NOQA
+            dict(
+                card_number=Constants.card_number.value,
+                header=Constants.header.value,
+            ),
+        )
+    )
+
+    importer = CreditImporter(
+        Constants.card_number.value, 'Assets:DKB:Credit', file_encoding='utf-8'
+    )
+
+    assert not importer._date_from
+    assert not importer._date_to
+    assert not importer._balance_amount
+
+    with open(str(tmp_file.realpath())) as fd:
+        transactions = importer.extract(fd)
+
+    assert transactions
+    assert not importer._date_from
+    assert not importer._date_to
+    assert importer._balance_date == datetime.date(2018, 1, 31)
+
+
 def test_emits_closing_balance_directive(tmp_file):
     tmp_file.write(
         _format(

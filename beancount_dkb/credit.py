@@ -96,11 +96,16 @@ class CreditImporter(importer.ImporterProtocol):
             if line:
                 raise InvalidFormatError()
 
+            # Read metadata lines until the next empty line
+
+            lines = []
+
+            for line in fd:
+                if not line.strip():
+                    break
+                lines.append(line)
+
             # Meta
-            expected_keys = set(['Von:', 'Bis:', 'Saldo:', 'Datum:'])
-
-            lines = [fd.readline().strip() for _ in range(len(expected_keys))]
-
             reader = csv.reader(
                 lines, delimiter=';', quoting=csv.QUOTE_MINIMAL, quotechar='"'
             )
@@ -124,18 +129,6 @@ class CreditImporter(importer.ImporterProtocol):
                     self._balance_date = datetime.strptime(
                         value, '%d.%m.%Y'
                     ).date() + timedelta(days=1)
-
-                expected_keys.remove(key)
-
-            if expected_keys:
-                raise ValueError()
-
-            # Another empty line
-            line = fd.readline().strip()
-            line_index += 1
-
-            if line:
-                raise InvalidFormatError()
 
             # Data entries
             reader = csv.DictReader(
