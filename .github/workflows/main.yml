@@ -27,17 +27,13 @@ jobs:
         poetry run pip install --upgrade pip setuptools
 
     - name: Install dependencies
-      run: |
-        poetry install
+      run: poetry install
 
     - name: Lint with flake8
-      run: |
-        poetry run flake8 beancount_dkb/ tests/
+      run: make lint-flake8
 
     - name: Lint with black
-      run: |
-        poetry run black --check beancount_dkb/ tests/
+      run: make lint-black
 
     - name: Test with py.test
-      run: |
-        poetry run py.test tests/
+      run: make test-pytest
