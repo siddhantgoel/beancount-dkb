@@ -66,8 +66,8 @@ class CreditImporter(importer.ImporterProtocol):
         self.extract(file_)
 
         # in case the file contains start/end dates, return the end date
-        # if not, then the file was based on a time period (Zeitraum) instead of
-        # strict start/from dates, so we return the date of the export instead
+        # if not, then the file was based on a time period (Zeitraum), so we
+        # return the date of the export instead
 
         return self._date_to or self._file_date
 
