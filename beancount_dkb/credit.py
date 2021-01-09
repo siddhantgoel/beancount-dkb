@@ -128,7 +128,9 @@ class CreditImporter(importer.ImporterProtocol):
                     )
                     closing_balance_index = line_index
                 elif key.startswith('Datum'):
-                    self._file_date = datetime.strptime(value, '%d.%m.%Y').date()
+                    self._file_date = datetime.strptime(
+                        value, '%d.%m.%Y'
+                    ).date()
                     self._balance_date = self._file_date + timedelta(days=1)
 
             # Data entries
