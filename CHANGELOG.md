@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# v0.9.0
+
+- Support credit data exports containing "Zeitraum" instead of "Von"/"Bis" dates
+- Update `CreditImporter.file_date` return value (end date if the export
+  contains start/end dates, otherwise the date of the export itself)
+
 # v0.8.3
 
 - Enable support for Python 3.9
