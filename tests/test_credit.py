@@ -327,4 +327,4 @@ def test_file_date_is_set_correctly(tmp_file):
     )
 
     with open(str(tmp_file.realpath())) as fd:
-        assert importer.file_date(fd) == datetime.date(2018, 1, 30)
+        assert importer.file_date(fd) == datetime.date(2016, 1, 31)

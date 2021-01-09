@@ -65,7 +65,11 @@ class CreditImporter(importer.ImporterProtocol):
     def file_date(self, file_):
         self.extract(file_)
 
-        return self._file_date
+        # in case the file contains start/end dates, return the end date
+        # if not, then the file was based on a time period (Zeitraum) instead of
+        # strict start/from dates, so we return the date of the export instead
+
+        return self._date_to or self._file_date
 
     def is_valid_header(self, line):
         return any(
