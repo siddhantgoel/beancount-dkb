@@ -35,6 +35,8 @@ class CreditImporter(importer.ImporterProtocol):
         self._date_from = None
         self._date_to = None
 
+        self._file_date = None
+
         # The balance amount is picked from the "Saldo" meta entry, and
         # corresponds to the amount at the end of the date contained in the
         # "Datum" meta. From the data seen so far, this date is a few days
@@ -63,7 +65,7 @@ class CreditImporter(importer.ImporterProtocol):
     def file_date(self, file_):
         self.extract(file_)
 
-        return self._date_to
+        return self._file_date
 
     def is_valid_header(self, line):
         return any(
@@ -126,9 +128,8 @@ class CreditImporter(importer.ImporterProtocol):
                     )
                     closing_balance_index = line_index
                 elif key.startswith('Datum'):
-                    self._balance_date = datetime.strptime(
-                        value, '%d.%m.%Y'
-                    ).date() + timedelta(days=1)
+                    self._file_date = datetime.strptime(value, '%d.%m.%Y').date()
+                    self._balance_date = self._file_date + timedelta(days=1)
 
             # Data entries
             reader = csv.DictReader(
