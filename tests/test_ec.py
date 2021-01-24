@@ -17,12 +17,12 @@ HEADER = ';'.join('"{}"'.format(field) for field in FIELDS)
 
 
 def _format(string, kwargs):
-    return dedent(string).format(**kwargs).lstrip().encode('utf-8')
+    return dedent(string).format(**kwargs).lstrip()
 
 
 @pytest.fixture
-def tmp_file(tmpdir):
-    return tmpdir.join('{}.csv'.format(FORMATTED_IBAN))
+def tmp_file(tmp_path):
+    return tmp_path / f'{IBAN}.csv'
 
 
 def tmp_file_path(file_):
@@ -32,7 +32,7 @@ def tmp_file_path(file_):
 def test_identify_correct(tmp_file):
     importer = ECImporter(IBAN, 'Assets:DKB:EC')
 
-    tmp_file.write(
+    tmp_file.write_text(
         _format(
             '''
             "Kontonummer:";"{iban} / Girokonto";
@@ -47,14 +47,14 @@ def test_identify_correct(tmp_file):
         )
     )
 
-    with open(str(tmp_file.realpath())) as fd:
+    with tmp_file.open() as fd:
         assert importer.identify(fd)
 
 
 def test_identify_with_nonstandard_account_name(tmp_file):
     importer = ECImporter(IBAN, 'Assets:DKB:EC')
 
-    tmp_file.write(
+    tmp_file.write_text(
         _format(
             '''
             "Kontonummer:";"{iban} / My Custom Named Account";
@@ -69,14 +69,14 @@ def test_identify_with_nonstandard_account_name(tmp_file):
         )
     )
 
-    with open(str(tmp_file.realpath())) as fd:
+    with tmp_file.open() as fd:
         assert importer.identify(fd)
 
 
 def test_identify_with_exotic_account_name(tmp_file):
     importer = ECImporter(IBAN, 'Assets:DKB:EC')
 
-    tmp_file.write(
+    tmp_file.write_text(
         _format(
             '''
             "Kontonummer:";"{iban} / Girökóntô, Γιροκοντώ, 預金, حساب البنك";
@@ -91,14 +91,14 @@ def test_identify_with_exotic_account_name(tmp_file):
         )
     )
 
-    with open(str(tmp_file.realpath())) as fd:
+    with tmp_file.open() as fd:
         assert importer.identify(fd)
 
 
 def test_identify_with_formatted_iban(tmp_file):
     importer = ECImporter(FORMATTED_IBAN, 'Assets:DKB:EC')
 
-    tmp_file.write(
+    tmp_file.write_text(
         _format(
             '''
             "Kontonummer:";"{iban} / Girokonto";
@@ -113,14 +113,14 @@ def test_identify_with_formatted_iban(tmp_file):
         )
     )
 
-    with open(str(tmp_file.realpath())) as fd:
+    with tmp_file.open() as fd:
         assert importer.identify(fd)
 
 
 def test_identify_invalid_iban(tmp_file):
     other_iban = 'DE00000000000000000000'
 
-    tmp_file.write(
+    tmp_file.write_text(
         _format(
             '''
             "Kontonummer:";"{iban} / Girokonto";
@@ -137,14 +137,14 @@ def test_identify_invalid_iban(tmp_file):
 
     importer = ECImporter(other_iban, 'Assets:DKB:EC')
 
-    with open(str(tmp_file.realpath())) as fd:
+    with tmp_file.open() as fd:
         assert not importer.identify(fd)
 
 
 def test_extract_no_transactions(tmp_file):
     importer = ECImporter(IBAN, 'Assets:DKB:EC')
 
-    tmp_file.write(
+    tmp_file.write_text(
         _format(
             '''
             "Kontonummer:";"{iban} / Girokonto";
@@ -159,7 +159,7 @@ def test_extract_no_transactions(tmp_file):
         )
     )
 
-    with open(str(tmp_file.realpath())) as fd:
+    with tmp_file.open() as fd:
         transactions = importer.extract(fd)
 
     assert len(transactions) == 1
@@ -169,7 +169,7 @@ def test_extract_no_transactions(tmp_file):
 
 
 def test_extract_transactions(tmp_file):
-    tmp_file.write(
+    tmp_file.write_text(
         _format(
             '''
             "Kontonummer:";"{iban} / Girokonto";
@@ -188,7 +188,7 @@ def test_extract_transactions(tmp_file):
 
     importer = ECImporter(IBAN, 'Assets:DKB:EC', file_encoding='utf-8')
 
-    with open(str(tmp_file.realpath())) as fd:
+    with tmp_file.open() as fd:
         transactions = importer.extract(fd)
 
     assert len(transactions) == 3
@@ -212,7 +212,7 @@ def test_extract_transactions(tmp_file):
 
 
 def test_extract_sets_timestamps(tmp_file):
-    tmp_file.write(
+    tmp_file.write_text(
         _format(
             '''
             "Kontonummer:";"{iban} / Girokonto";
@@ -235,7 +235,7 @@ def test_extract_sets_timestamps(tmp_file):
     assert not importer._balance_amount
     assert not importer._balance_date
 
-    with open(str(tmp_file.realpath())) as fd:
+    with tmp_file.open() as fd:
         transactions = importer.extract(fd)
 
     assert transactions
@@ -248,7 +248,7 @@ def test_extract_sets_timestamps(tmp_file):
 
 
 def test_tagessaldo_emits_balance_directive(tmp_file):
-    tmp_file.write(
+    tmp_file.write_text(
         _format(
             '''
             "Kontonummer:";"{iban} / Girokonto";
@@ -266,7 +266,7 @@ def test_tagessaldo_emits_balance_directive(tmp_file):
 
     importer = ECImporter(IBAN, 'Assets:DKB:EC', file_encoding='utf-8')
 
-    with open(str(tmp_file.realpath())) as fd:
+    with tmp_file.open() as fd:
         transactions = importer.extract(fd)
 
     assert len(transactions) == 2
@@ -276,7 +276,7 @@ def test_tagessaldo_emits_balance_directive(tmp_file):
 
 
 def test_tagessaldo_with_empty_balance_does_not_crash(tmp_file):
-    tmp_file.write(
+    tmp_file.write_text(
         _format(
             '''
             "Kontonummer:";"{iban} / Girokonto";
@@ -294,7 +294,7 @@ def test_tagessaldo_with_empty_balance_does_not_crash(tmp_file):
 
     importer = ECImporter(IBAN, 'Assets:DKB:EC', file_encoding='utf-8')
 
-    with open(str(tmp_file.realpath())) as fd:
+    with tmp_file.open() as fd:
         transactions = importer.extract(fd)
 
     assert len(transactions) == 1
@@ -304,7 +304,7 @@ def test_tagessaldo_with_empty_balance_does_not_crash(tmp_file):
 
 
 def test_file_date_is_set_correctly(tmp_file):
-    tmp_file.write(
+    tmp_file.write_text(
         _format(
             '''
             "Kontonummer:";"{iban} / Girokonto";
@@ -322,12 +322,12 @@ def test_file_date_is_set_correctly(tmp_file):
 
     importer = ECImporter(IBAN, 'Assets:DKB:EC', file_encoding='utf-8')
 
-    with open(str(tmp_file.realpath())) as fd:
+    with tmp_file.open() as fd:
         assert importer.file_date(fd) == datetime.date(2018, 1, 31)
 
 
 def test_emits_closing_balance_directive(tmp_file):
-    tmp_file.write(
+    tmp_file.write_text(
         _format(
             '''
             "Kontonummer:";"{iban} / Girokonto";
@@ -345,7 +345,7 @@ def test_emits_closing_balance_directive(tmp_file):
 
     importer = ECImporter(IBAN, 'Assets:DKB:EC', file_encoding='utf-8')
 
-    with open(str(tmp_file.realpath())) as fd:
+    with tmp_file.open() as fd:
         transactions = importer.extract(fd)
 
     assert len(transactions) == 2
@@ -355,7 +355,7 @@ def test_emits_closing_balance_directive(tmp_file):
 
 
 def test_mismatching_dates_in_meta(tmp_file):
-    tmp_file.write(
+    tmp_file.write_text(
         _format(
             '''
             "Kontonummer:";"{iban} / Girokonto";
@@ -373,7 +373,7 @@ def test_mismatching_dates_in_meta(tmp_file):
 
     importer = ECImporter(IBAN, 'Assets:DKB:EC', file_encoding='utf-8')
 
-    with open(str(tmp_file.realpath())) as fd:
+    with tmp_file.open() as fd:
         transactions = importer.extract(fd)
 
     assert len(transactions) == 2

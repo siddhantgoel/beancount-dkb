@@ -14,12 +14,12 @@ HEADER = ';'.join('"{}"'.format(field) for field in FIELDS)
 
 
 def _format(string, kwargs):
-    return dedent(string).format(**kwargs).lstrip().encode('utf-8')
+    return dedent(string).format(**kwargs).lstrip()
 
 
 @pytest.fixture
-def tmp_file(tmpdir):
-    return tmpdir.join('{}.csv'.format(CARD_NUMBER))
+def tmp_file(tmp_path):
+    return tmp_path / f'{CARD_NUMBER}.csv'
 
 
 def test_multiple_headers(tmp_file):
@@ -33,7 +33,7 @@ def test_multiple_headers(tmp_file):
     '''
 
     # previous header format
-    tmp_file.write(
+    tmp_file.write_text(
         _format(
             '''
             "Kreditkarte:";"{card_number} Kreditkarte";
@@ -45,11 +45,11 @@ def test_multiple_headers(tmp_file):
         )
     )
 
-    with open(str(tmp_file.realpath())) as fd:
+    with tmp_file.open() as fd:
         assert importer.identify(fd)
 
     # latest header format
-    tmp_file.write(
+    tmp_file.write_text(
         _format(
             '''
             "Kreditkarte:";"{card_number}";
@@ -61,14 +61,14 @@ def test_multiple_headers(tmp_file):
         )
     )
 
-    with open(str(tmp_file.realpath())) as fd:
+    with tmp_file.open() as fd:
         assert importer.identify(fd)
 
 
 def test_identify_correct(tmp_file):
     importer = CreditImporter(CARD_NUMBER, 'Assets:DKB:Credit')
 
-    tmp_file.write(
+    tmp_file.write_text(
         _format(
             '''
             "Kreditkarte:";"{card_number} Kreditkarte";
@@ -84,14 +84,14 @@ def test_identify_correct(tmp_file):
         )
     )
 
-    with open(str(tmp_file.realpath())) as fd:
+    with tmp_file.open() as fd:
         assert importer.identify(fd)
 
 
 def test_identify_invalid_iban(tmp_file):
     other_iban = '5678********1234'
 
-    tmp_file.write(
+    tmp_file.write_text(
         _format(
             '''
             "Kreditkarte:";"{card_number} Kreditkarte";
@@ -109,14 +109,14 @@ def test_identify_invalid_iban(tmp_file):
 
     importer = CreditImporter(other_iban, 'Assets:DKB:Credit')
 
-    with open(str(tmp_file.realpath())) as fd:
+    with tmp_file.open() as fd:
         assert not importer.identify(fd)
 
 
 def test_extract_no_transactions(tmp_file):
     importer = CreditImporter(CARD_NUMBER, 'Assets:DKB:Credit')
 
-    tmp_file.write(
+    tmp_file.write_text(
         _format(
             '''
             "Kreditkarte:";"{card_number} Kreditkarte";
@@ -132,7 +132,7 @@ def test_extract_no_transactions(tmp_file):
         )
     )
 
-    with open(str(tmp_file.realpath())) as fd:
+    with tmp_file.open() as fd:
         transactions = importer.extract(fd)
 
     assert len(transactions) == 1
@@ -142,7 +142,7 @@ def test_extract_no_transactions(tmp_file):
 
 
 def test_extract_transactions(tmp_file):
-    tmp_file.write(
+    tmp_file.write_text(
         _format(
             '''
             "Kreditkarte:";"{card_number} Kreditkarte";
@@ -163,7 +163,7 @@ def test_extract_transactions(tmp_file):
         CARD_NUMBER, 'Assets:DKB:Credit', file_encoding='utf-8'
     )
 
-    with open(str(tmp_file.realpath())) as fd:
+    with tmp_file.open() as fd:
         transactions = importer.extract(fd)
 
     assert len(transactions) == 2
@@ -176,7 +176,7 @@ def test_extract_transactions(tmp_file):
 
 
 def test_extract_sets_timestamps(tmp_file):
-    tmp_file.write(
+    tmp_file.write_text(
         _format(
             '''
             "Kreditkarte:";"{card_number} Kreditkarte";
@@ -201,7 +201,7 @@ def test_extract_sets_timestamps(tmp_file):
     assert not importer._date_to
     assert not importer._balance_amount
 
-    with open(str(tmp_file.realpath())) as fd:
+    with tmp_file.open() as fd:
         transactions = importer.extract(fd)
 
     assert transactions
@@ -211,7 +211,7 @@ def test_extract_sets_timestamps(tmp_file):
 
 
 def test_extract_with_zeitraum(tmp_file):
-    tmp_file.write(
+    tmp_file.write_text(
         _format(
             '''
             "Kreditkarte:";"{card_number} Kreditkarte";
@@ -235,7 +235,7 @@ def test_extract_with_zeitraum(tmp_file):
     assert not importer._date_to
     assert not importer._balance_amount
 
-    with open(str(tmp_file.realpath())) as fd:
+    with tmp_file.open() as fd:
         transactions = importer.extract(fd)
 
     assert transactions
@@ -245,7 +245,7 @@ def test_extract_with_zeitraum(tmp_file):
 
 
 def test_file_date_with_zeitraum(tmp_file):
-    tmp_file.write(
+    tmp_file.write_text(
         _format(
             '''
             "Kreditkarte:";"{card_number} Kreditkarte";
@@ -269,12 +269,12 @@ def test_file_date_with_zeitraum(tmp_file):
     assert not importer._date_to
     assert not importer._balance_amount
 
-    with open(str(tmp_file.realpath())) as fd:
+    with tmp_file.open() as fd:
         assert importer.file_date(fd) == datetime.date(2018, 1, 30)
 
 
 def test_emits_closing_balance_directive(tmp_file):
-    tmp_file.write(
+    tmp_file.write_text(
         _format(
             '''
             "Kreditkarte:";"{card_number} Kreditkarte";
@@ -295,7 +295,7 @@ def test_emits_closing_balance_directive(tmp_file):
         CARD_NUMBER, 'Assets:DKB:Credit', file_encoding='utf-8'
     )
 
-    with open(str(tmp_file.realpath())) as fd:
+    with tmp_file.open() as fd:
         transactions = importer.extract(fd)
 
     assert len(transactions) == 2
@@ -305,7 +305,7 @@ def test_emits_closing_balance_directive(tmp_file):
 
 
 def test_file_date_is_set_correctly(tmp_file):
-    tmp_file.write(
+    tmp_file.write_text(
         _format(
             '''
             "Kreditkarte:";"{card_number} Kreditkarte";
@@ -326,5 +326,5 @@ def test_file_date_is_set_correctly(tmp_file):
         CARD_NUMBER, 'Assets:DKB:Credit', file_encoding='utf-8'
     )
 
-    with open(str(tmp_file.realpath())) as fd:
+    with tmp_file.open() as fd:
         assert importer.file_date(fd) == datetime.date(2016, 1, 31)
