@@ -25,10 +25,6 @@ def tmp_file(tmp_path):
     return tmp_path / f'{IBAN}.csv'
 
 
-def tmp_file_path(file_):
-    return str(file_.realpath)
-
-
 def test_identify_correct(tmp_file):
     importer = ECImporter(IBAN, 'Assets:DKB:EC')
 
