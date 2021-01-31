@@ -156,12 +156,12 @@ def test_extract_no_transactions(tmp_file):
     )
 
     with tmp_file.open() as fd:
-        transactions = importer.extract(fd)
+        directives = importer.extract(fd)
 
-    assert len(transactions) == 1
-    assert isinstance(transactions[0], Balance)
-    assert transactions[0].date == datetime.date(2018, 2, 1)
-    assert transactions[0].amount == Amount(Decimal('5000.01'), currency='EUR')
+    assert len(directives) == 1
+    assert isinstance(directives[0], Balance)
+    assert directives[0].date == datetime.date(2018, 2, 1)
+    assert directives[0].amount == Amount(Decimal('5000.01'), currency='EUR')
 
 
 def test_extract_transactions(tmp_file):
@@ -185,26 +185,26 @@ def test_extract_transactions(tmp_file):
     importer = ECImporter(IBAN, 'Assets:DKB:EC', file_encoding='utf-8')
 
     with tmp_file.open() as fd:
-        transactions = importer.extract(fd)
+        directives = importer.extract(fd)
 
-    assert len(transactions) == 3
-    assert transactions[0].date == datetime.date(2018, 1, 16)
-    assert transactions[0].payee == 'REWE Filialen Voll'
-    assert transactions[0].narration == 'Lastschrift REWE SAGT DANKE.'
+    assert len(directives) == 3
+    assert directives[0].date == datetime.date(2018, 1, 16)
+    assert directives[0].payee == 'REWE Filialen Voll'
+    assert directives[0].narration == 'Lastschrift REWE SAGT DANKE.'
 
-    assert len(transactions[0].postings) == 1
-    assert transactions[0].postings[0].account == 'Assets:DKB:EC'
-    assert transactions[0].postings[0].units.currency == 'EUR'
-    assert transactions[0].postings[0].units.number == Decimal('-15.37')
+    assert len(directives[0].postings) == 1
+    assert directives[0].postings[0].account == 'Assets:DKB:EC'
+    assert directives[0].postings[0].units.currency == 'EUR'
+    assert directives[0].postings[0].units.number == Decimal('-15.37')
 
-    assert transactions[1].date == datetime.date(2020, 5, 6)
-    assert transactions[1].payee == 'From Someone'
-    assert transactions[1].narration == 'Gutschrift DE88700222000012345678'
+    assert directives[1].date == datetime.date(2020, 5, 6)
+    assert directives[1].payee == 'From Someone'
+    assert directives[1].narration == 'Gutschrift DE88700222000012345678'
 
-    assert len(transactions[1].postings) == 1
-    assert transactions[1].postings[0].account == 'Assets:DKB:EC'
-    assert transactions[1].postings[0].units.currency == 'EUR'
-    assert transactions[1].postings[0].units.number == Decimal('1.00')
+    assert len(directives[1].postings) == 1
+    assert directives[1].postings[0].account == 'Assets:DKB:EC'
+    assert directives[1].postings[0].units.currency == 'EUR'
+    assert directives[1].postings[0].units.number == Decimal('1.00')
 
 
 def test_extract_sets_timestamps(tmp_file):
@@ -232,9 +232,9 @@ def test_extract_sets_timestamps(tmp_file):
     assert not importer._balance_date
 
     with tmp_file.open() as fd:
-        transactions = importer.extract(fd)
+        directives = importer.extract(fd)
 
-    assert transactions
+    assert directives
     assert importer._date_from == datetime.date(2018, 1, 1)
     assert importer._date_to == datetime.date(2018, 1, 31)
     assert importer._balance_amount == Amount(
@@ -263,12 +263,12 @@ def test_tagessaldo_emits_balance_directive(tmp_file):
     importer = ECImporter(IBAN, 'Assets:DKB:EC', file_encoding='utf-8')
 
     with tmp_file.open() as fd:
-        transactions = importer.extract(fd)
+        directives = importer.extract(fd)
 
-    assert len(transactions) == 2
-    assert isinstance(transactions[0], Balance)
-    assert transactions[0].date == datetime.date(2018, 1, 21)
-    assert transactions[0].amount == Amount(Decimal('2500.01'), currency='EUR')
+    assert len(directives) == 2
+    assert isinstance(directives[0], Balance)
+    assert directives[0].date == datetime.date(2018, 1, 21)
+    assert directives[0].amount == Amount(Decimal('2500.01'), currency='EUR')
 
 
 def test_tagessaldo_with_empty_balance_does_not_crash(tmp_file):
@@ -291,12 +291,12 @@ def test_tagessaldo_with_empty_balance_does_not_crash(tmp_file):
     importer = ECImporter(IBAN, 'Assets:DKB:EC', file_encoding='utf-8')
 
     with tmp_file.open() as fd:
-        transactions = importer.extract(fd)
+        directives = importer.extract(fd)
 
-    assert len(transactions) == 1
-    assert isinstance(transactions[0], Balance)
-    assert transactions[0].date == datetime.date(2018, 2, 1)
-    assert transactions[0].amount == Amount(Decimal('5000.01'), currency='EUR')
+    assert len(directives) == 1
+    assert isinstance(directives[0], Balance)
+    assert directives[0].date == datetime.date(2018, 2, 1)
+    assert directives[0].amount == Amount(Decimal('5000.01'), currency='EUR')
 
 
 def test_file_date_is_set_correctly(tmp_file):
@@ -342,12 +342,12 @@ def test_emits_closing_balance_directive(tmp_file):
     importer = ECImporter(IBAN, 'Assets:DKB:EC', file_encoding='utf-8')
 
     with tmp_file.open() as fd:
-        transactions = importer.extract(fd)
+        directives = importer.extract(fd)
 
-    assert len(transactions) == 2
-    assert isinstance(transactions[1], Balance)
-    assert transactions[1].date == datetime.date(2018, 2, 1)
-    assert transactions[1].amount == Amount(Decimal('5000.01'), currency='EUR')
+    assert len(directives) == 2
+    assert isinstance(directives[1], Balance)
+    assert directives[1].date == datetime.date(2018, 2, 1)
+    assert directives[1].amount == Amount(Decimal('5000.01'), currency='EUR')
 
 
 def test_mismatching_dates_in_meta(tmp_file):
@@ -370,9 +370,9 @@ def test_mismatching_dates_in_meta(tmp_file):
     importer = ECImporter(IBAN, 'Assets:DKB:EC', file_encoding='utf-8')
 
     with tmp_file.open() as fd:
-        transactions = importer.extract(fd)
+        directives = importer.extract(fd)
 
-    assert len(transactions) == 2
-    assert isinstance(transactions[1], Balance)
-    assert transactions[1].date == datetime.date(2019, 2, 1)
-    assert transactions[1].amount == Amount(Decimal('5000.01'), currency='EUR')
+    assert len(directives) == 2
+    assert isinstance(directives[1], Balance)
+    assert directives[1].date == datetime.date(2019, 2, 1)
+    assert directives[1].amount == Amount(Decimal('5000.01'), currency='EUR')

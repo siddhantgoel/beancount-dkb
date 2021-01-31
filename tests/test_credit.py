@@ -133,12 +133,12 @@ def test_extract_no_transactions(tmp_file):
     )
 
     with tmp_file.open() as fd:
-        transactions = importer.extract(fd)
+        directives = importer.extract(fd)
 
-    assert len(transactions) == 1
-    assert isinstance(transactions[0], Balance)
-    assert transactions[0].date == datetime.date(2018, 1, 31)
-    assert transactions[0].amount == Amount(Decimal('5000.01'), currency='EUR')
+    assert len(directives) == 1
+    assert isinstance(directives[0], Balance)
+    assert directives[0].date == datetime.date(2018, 1, 31)
+    assert directives[0].amount == Amount(Decimal('5000.01'), currency='EUR')
 
 
 def test_extract_transactions(tmp_file):
@@ -164,15 +164,15 @@ def test_extract_transactions(tmp_file):
     )
 
     with tmp_file.open() as fd:
-        transactions = importer.extract(fd)
+        directives = importer.extract(fd)
 
-    assert len(transactions) == 2
-    assert transactions[0].date == datetime.date(2018, 1, 15)
+    assert len(directives) == 2
+    assert directives[0].date == datetime.date(2018, 1, 15)
 
-    assert len(transactions[0].postings) == 1
-    assert transactions[0].postings[0].account == 'Assets:DKB:Credit'
-    assert transactions[0].postings[0].units.currency == 'EUR'
-    assert transactions[0].postings[0].units.number == Decimal('-10.80')
+    assert len(directives[0].postings) == 1
+    assert directives[0].postings[0].account == 'Assets:DKB:Credit'
+    assert directives[0].postings[0].units.currency == 'EUR'
+    assert directives[0].postings[0].units.number == Decimal('-10.80')
 
 
 def test_extract_sets_timestamps(tmp_file):
@@ -202,9 +202,9 @@ def test_extract_sets_timestamps(tmp_file):
     assert not importer._balance_amount
 
     with tmp_file.open() as fd:
-        transactions = importer.extract(fd)
+        directives = importer.extract(fd)
 
-    assert transactions
+    assert directives
     assert importer._date_from == datetime.date(2018, 1, 1)
     assert importer._date_to == datetime.date(2018, 1, 31)
     assert importer._balance_date == datetime.date(2018, 1, 31)
@@ -236,9 +236,9 @@ def test_extract_with_zeitraum(tmp_file):
     assert not importer._balance_amount
 
     with tmp_file.open() as fd:
-        transactions = importer.extract(fd)
+        directives = importer.extract(fd)
 
-    assert transactions
+    assert directives
     assert not importer._date_from
     assert not importer._date_to
     assert importer._balance_date == datetime.date(2018, 1, 31)
@@ -296,12 +296,12 @@ def test_emits_closing_balance_directive(tmp_file):
     )
 
     with tmp_file.open() as fd:
-        transactions = importer.extract(fd)
+        directives = importer.extract(fd)
 
-    assert len(transactions) == 2
-    assert isinstance(transactions[1], Balance)
-    assert transactions[1].date == datetime.date(2018, 1, 31)
-    assert transactions[1].amount == Amount(Decimal('5000.01'), currency='EUR')
+    assert len(directives) == 2
+    assert isinstance(directives[1], Balance)
+    assert directives[1].date == datetime.date(2018, 1, 31)
+    assert directives[1].amount == Amount(Decimal('5000.01'), currency='EUR')
 
 
 def test_file_date_is_set_correctly(tmp_file):
