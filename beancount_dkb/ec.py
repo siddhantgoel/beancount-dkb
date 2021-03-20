@@ -24,7 +24,8 @@ FIELDS = (
 
 
 class ECImporter(importer.ImporterProtocol):
-    def __init__(self, iban, account, currency='EUR', file_encoding='utf-8', meta_code=None):
+    def __init__(self, iban, account, currency='EUR', file_encoding='utf-8',
+                 meta_code=None):
         self.account = account
         self.currency = currency
         self.file_encoding = file_encoding
