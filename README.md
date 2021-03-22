@@ -62,6 +62,41 @@ line to extract the transactions and pipe all of them into your Beancount file.
 $ bean-extract /path/to/config.py transaction.csv >> you.beancount
 ```
 
+### Transaction Codes as Meta Tags
+
+By default, the ECImporter prepends the transaction code ("Buchungstext") to the transaction description. To achieve shorter descriptions and use meta tags to query for certain transaction codes, the importer may be configured to store the transaction code in a user provided meta tag.
+
+The following configuration instructs the importer to use a meta tag `code` to store transaction codes:
+
+```python
+...
+CONFIG = [
+    ECImporter(
+        IBAN_NUMBER,
+        'Assets:DKB:EC',
+        currency='EUR',
+        meta_code='code',
+    ),
+...
+
+```
+
+This is how an example transaction looks without the option:
+
+```beancount
+2021-03-01 * "Kartenzahlung" "XY Supermarket"
+    Assets:DKB:EC                        -133.72 EUR
+```
+
+And this is the resulting transaction using `meta_code='code'`
+
+```beancount
+2021-03-01 * "XY Supermarket"
+    code: Kartenzahlung
+    Assets:DKB:EC                        -133.72 EUR
+```
+
+
 ## FAQ
 
 ```sh
