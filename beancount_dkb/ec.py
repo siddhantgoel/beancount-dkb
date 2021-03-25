@@ -7,6 +7,7 @@ from beancount.core.amount import Amount
 from beancount.ingest import importer
 
 from .helpers import fmt_number_de, InvalidFormatError
+from .categorizer import DefaultCategorizer
 
 FIELDS = (
     'Buchungstag',
@@ -31,11 +32,13 @@ class ECImporter(importer.ImporterProtocol):
         currency='EUR',
         file_encoding='utf-8',
         meta_code=None,
+        categorizer=DefaultCategorizer(),
     ):
         self.account = account
         self.currency = currency
         self.file_encoding = file_encoding
         self.meta_code = meta_code
+        self.categorizer = categorizer
 
         self._expected_header_regex = re.compile(
             r'^"Kontonummer:";"'
@@ -175,15 +178,17 @@ class ECImporter(importer.ImporterProtocol):
                     ]
 
                     entries.append(
-                        data.Transaction(
-                            meta,
-                            date,
-                            self.FLAG,
-                            line['Auftraggeber / Begünstigter'],
-                            description,
-                            data.EMPTY_SET,
-                            data.EMPTY_SET,
-                            postings,
+                        self.categorizer.categorize(
+                            data.Transaction(
+                                meta,
+                                date,
+                                self.FLAG,
+                                line['Auftraggeber / Begünstigter'],
+                                description,
+                                data.EMPTY_SET,
+                                data.EMPTY_SET,
+                                postings,
+                            )
                         )
                     )
 

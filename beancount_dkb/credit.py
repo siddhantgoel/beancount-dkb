@@ -7,6 +7,7 @@ from beancount.core.number import Decimal
 from beancount.ingest import importer
 
 from .helpers import fmt_number_de, InvalidFormatError
+from .categorizer import DefaultCategorizer
 
 FIELDS = (
     'Umsatz abgerechnet und nicht im Saldo enthalten',
@@ -20,12 +21,18 @@ FIELDS = (
 
 class CreditImporter(importer.ImporterProtocol):
     def __init__(
-        self, card_number, account, currency='EUR', file_encoding='utf-8'
+        self,
+        card_number,
+        account,
+        currency='EUR',
+        file_encoding='utf-8',
+        categorizer=DefaultCategorizer(),
     ):
         self.card_number = card_number
         self.account = account
         self.currency = currency
         self.file_encoding = file_encoding
+        self.categorizer = categorizer
 
         self._expected_headers = (
             '"Kreditkarte:";"{} Kreditkarte";'.format(self.card_number),
@@ -158,15 +165,17 @@ class CreditImporter(importer.ImporterProtocol):
                 ]
 
                 entries.append(
-                    data.Transaction(
-                        meta,
-                        date,
-                        self.FLAG,
-                        None,
-                        description,
-                        data.EMPTY_SET,
-                        data.EMPTY_SET,
-                        postings,
+                    self.categorizer.categorize(
+                        data.Transaction(
+                            meta,
+                            date,
+                            self.FLAG,
+                            None,
+                            description,
+                            data.EMPTY_SET,
+                            data.EMPTY_SET,
+                            postings,
+                        )
                     )
                 )
 

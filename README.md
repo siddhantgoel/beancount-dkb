@@ -96,6 +96,44 @@ And this is the resulting transaction using `meta_code='code'`
     Assets:DKB:EC                        -133.72 EUR
 ```
 
+### Automatic Categorization
+
+The DKB importer supports automatic categorization of transactions by a user provided configuration. Any `Categorizer` that implements the `CategorizerProtocol` can be provided to both `ECImporter` and `Creditimporter` through the main configuration file.
+
+This package provides the `PayeeCategorizer` implementation. It is instantiated with a dictionary that configures what payee will be categorized to which account. Each account may have multiple payees, where any transaction matched agains one of the payees will be categorized to the account.
+
+The following example configuration makes use of the `PayeeCategorizer`:
+
+```python
+categorizer = PayeeCategorizer(
+    [{"account": "Expenses:Food:Groceries", "payees": ["^SUPERMARKET XY", "^MY DELI"]}]
+)
+...
+CONFIG = [
+    ECImporter(
+        IBAN_NUMBER,
+        'Assets:DKB:EC',
+        currency='EUR',
+        categorizer=categorizer,
+    ),
+...
+
+```
+
+CSV entries matching the payee regex will produce transactions such as the following:
+
+```beancount
+2021-03-01 * "SUPERMARKET XY SAGT DANKE"
+    Assets:DKB:EC                  -84.72 EUR
+    Expenses:Food:Groceries
+
+2021-03-01 * "MY DELI //LEIPZIG"
+    Assets:DKB:EC                  -15.72 EUR
+    Expenses:Food:Groceries
+```
+
+*Note*: When the `CreditImporter` is used, the payee field is not populated. Thus, the `PayeeCategorizer` will check against the narration field if no payee is present for a transaction.
+
 
 ## FAQ
 
