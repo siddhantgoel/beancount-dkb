@@ -13,12 +13,10 @@ class PayeeCategorizer(CategorizerProtocol):
 
     def categorize(self, entry):
         for category in self.categories:
-            for payee in category['payees']:
+            for payee in self.categories[category]:
                 if re.match(payee, (entry.payee or entry.narration)):
                     entry.postings.append(
-                        data.Posting(
-                            category['account'], None, None, None, None, None,
-                        )
+                        data.Posting(category, None, None, None, None, None,)
                     )
                     return entry
         return entry

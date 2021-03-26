@@ -78,7 +78,6 @@ CONFIG = [
         meta_code='code',
     ),
 ...
-
 ```
 
 This is how an example transaction looks without the option:
@@ -105,10 +104,11 @@ This package provides the `PayeeCategorizer` implementation. It is instantiated 
 The following example configuration makes use of the `PayeeCategorizer`:
 
 ```python
-categorizer = PayeeCategorizer(
-    [{"account": "Expenses:Food:Groceries", "payees": ["^SUPERMARKET XY", "^MY DELI"]}]
-)
 ...
+categorizer = PayeeCategorizer(
+    {"Expenses:Food:Groceries": ["^SUPERMARKET XY", "^MY DELI"]}
+)
+
 CONFIG = [
     ECImporter(
         IBAN_NUMBER,
@@ -117,7 +117,6 @@ CONFIG = [
         categorizer=categorizer,
     ),
 ...
-
 ```
 
 CSV entries matching the payee regex will produce transactions such as the following:
