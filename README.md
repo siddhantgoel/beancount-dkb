@@ -99,14 +99,14 @@ And this is the resulting transaction using `meta_code='code'`
 
 The DKB importer supports automatic categorization of transactions by a user provided configuration. Any `Categorizer` that implements the `CategorizerProtocol` can be provided to both `ECImporter` and `Creditimporter` through the main configuration file.
 
-This package provides the `PayeeCategorizer` implementation. It is instantiated with a dictionary that configures what payee will be categorized to which account. Each account may have multiple payees, where any transaction matched agains one of the payees will be categorized to the account.
+This package provides the `PayeeCategorizer` implementation. It is instantiated with a dictionary that configures what payee will be categorized to which account. Each account may have multiple payee regexes, where any transaction matched against one of the payee regexes will be categorized to the account.
 
 The following example configuration makes use of the `PayeeCategorizer`:
 
 ```python
 ...
 categorizer = PayeeCategorizer(
-    {"Expenses:Food:Groceries": ["^SUPERMARKET XY", "^MY DELI"]}
+    {"Expenses:Food:Groceries": ["^(SUPERMARKET XY|MY DELI)"]}
 )
 
 CONFIG = [
@@ -119,7 +119,7 @@ CONFIG = [
 ...
 ```
 
-CSV entries matching the payee regex will produce transactions such as the following:
+Matching CSV entries will produce transactions such as the following:
 
 ```beancount
 2021-03-01 * "SUPERMARKET XY SAGT DANKE"
