@@ -7,6 +7,7 @@ authors = ["Siddhant Goel <me@sgoel.dev>"]
 license = "MIT"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
     "Environment :: Plugins",
     "Intended Audience :: End Users/Desktop",
     "Intended Audience :: Financial and Insurance Industry",
