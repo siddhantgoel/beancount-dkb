@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# v0.10.0
+
+- Add `meta_code` parameter to `ECImporter` (thanks [@bratekarate])
+
 # v0.9.0
 
 - Support credit data exports containing "Zeitraum" instead of "Von"/"Bis" dates
@@ -101,6 +105,7 @@
 - Added ECImporter to import CSV exports of EC accounts
 
 
+[@bratekarate]: https://githun.com/bratekarate
 [@dmerkert]: https://github.com/dmerkert
 [@niels]: https://github.com/niels
 [@tbm]: https://github.com/tbm
