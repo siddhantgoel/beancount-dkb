@@ -376,3 +376,32 @@ def test_mismatching_dates_in_meta(tmp_file):
     assert isinstance(directives[1], Balance)
     assert directives[1].date == datetime.date(2019, 2, 1)
     assert directives[1].amount == Amount(Decimal('5000.01'), currency='EUR')
+
+
+def test_meta_code_is_added(tmp_file):
+    tmp_file.write_text(
+        _format(
+            '''
+            "Kontonummer:";"{iban} / Girokonto";
+
+            "Von:";"01.01.2018";
+            "Bis:";"31.01.2018";
+            "Kontostand vom 31.01.2018:";"5.000,01 EUR";
+
+            {header};
+            "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
+            ''',  # NOQA
+            dict(iban=IBAN, header=HEADER),
+        )
+    )
+
+    importer = ECImporter(IBAN, 'Assets:DKB:EC', file_encoding='utf-8', meta_code='code')
+
+    with tmp_file.open() as fd:
+        directives = importer.extract(fd)
+
+    assert len(directives) == 2
+    assert directives[0].date == datetime.date(2018, 1, 16)
+    assert directives[0].payee == 'REWE Filialen Voll'
+    assert directives[0].narration == 'REWE SAGT DANKE.'
+    assert directives[0].meta['code'] == 'Lastschrift'

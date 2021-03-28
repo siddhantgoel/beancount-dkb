@@ -64,9 +64,13 @@ $ bean-extract /path/to/config.py transaction.csv >> you.beancount
 
 ### Transaction Codes as Meta Tags
 
-By default, the ECImporter prepends the transaction code ("Buchungstext") to the transaction description. To achieve shorter descriptions and use meta tags to query for certain transaction codes, the importer may be configured to store the transaction code in a user provided meta tag.
+By default, the ECImporter prepends the transaction code ("Buchungstext") to the
+transaction description. To achieve shorter descriptions and use meta tags to
+query for certain transaction codes, the importer may be configured to store the
+transaction code in a user provided meta tag.
 
-The following configuration instructs the importer to use a meta tag `code` to store transaction codes:
+The following configuration instructs the importer to use a meta tag `code` to
+store transaction codes:
 
 ```python
 ...
