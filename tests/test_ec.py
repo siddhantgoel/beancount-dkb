@@ -395,7 +395,9 @@ def test_meta_code_is_added(tmp_file):
         )
     )
 
-    importer = ECImporter(IBAN, 'Assets:DKB:EC', file_encoding='utf-8', meta_code='code')
+    importer = ECImporter(
+        IBAN, 'Assets:DKB:EC', file_encoding='utf-8', meta_code='code'
+    )
 
     with tmp_file.open() as fd:
         directives = importer.extract(fd)

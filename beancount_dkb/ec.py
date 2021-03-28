@@ -165,7 +165,8 @@ class ECImporter(importer.ImporterProtocol):
                         description = verwendungszweck
                     else:
                         description = '{} {}'.format(
-                            buchungstext, verwendungszweck,
+                            buchungstext,
+                            verwendungszweck,
                         )
 
                     postings = [
