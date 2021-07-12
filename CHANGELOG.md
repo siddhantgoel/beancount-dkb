@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# v0.11.0
+
+- Use "Wertstellung" instead of "Belegdatum" for transaction dates in
+  `CreditImporter` (thanks [@nils-werner])
+
 # v0.10.0
 
 - Add `meta_code` parameter to `ECImporter` (thanks [@bratekarate])
@@ -108,4 +113,5 @@
 [@bratekarate]: https://githun.com/bratekarate
 [@dmerkert]: https://github.com/dmerkert
 [@niels]: https://github.com/niels
+[@nils-werner]: https://github.com/nils-werner
 [@tbm]: https://github.com/tbm
