@@ -149,7 +149,9 @@ class CreditImporter(importer.ImporterProtocol):
                     fmt_number_de(line['Betrag (EUR)']), self.currency
                 )
 
-                date = datetime.strptime(line['Belegdatum'], '%d.%m.%Y').date()
+                date = datetime.strptime(
+                    line['Wertstellung'], '%d.%m.%Y'
+                ).date()
 
                 description = line['Beschreibung']
 
