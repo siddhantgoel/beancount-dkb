@@ -30,7 +30,7 @@ class CreditImporter(importer.ImporterProtocol):
         self._expected_headers = (
             '"Kreditkarte:";"{} Kreditkarte";'.format(self.card_number),
             '"Kreditkarte:";"{}";'.format(self.card_number),
-            f'"Kreditkarte:";"{card_number[:4]}********{card_number[-4:]}";'
+            f'"Kreditkarte:";"{card_number[:4]}********{card_number[-4:]}";',
         )
 
         self._date_from = None
