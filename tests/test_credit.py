@@ -88,6 +88,32 @@ def test_identify_correct(tmp_file):
         assert importer.identify(fd)
 
 
+def test_identify_prefixes(tmp_file):
+    importer = CreditImporter(CARD_NUMBER, 'Assets:DKB:Credit')
+
+    prefix = CARD_NUMBER[:4]
+    suffix = CARD_NUMBER[-4:]
+
+    tmp_file.write_text(
+        _format(
+            '''
+            "Kreditkarte:";"{prefix}********{suffix}";
+
+            "Von:";"01.01.2018";
+            "Bis:";"31.01.2018";
+            "Saldo:";"5000.01 EUR";
+            "Datum:";"30.01.2018";
+
+            {header};
+            ''',
+            dict(prefix=prefix, suffix=suffix, header=HEADER),
+        )
+    )
+
+    with tmp_file.open() as fd:
+        assert importer.identify(fd)
+
+
 def test_identify_invalid_iban(tmp_file):
     other_iban = '5678********1234'
 
