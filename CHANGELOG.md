@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# v0.12.0
+
+- Support additional credit card expected header format (thanks [Dr-Nuke])
+
 # v0.11.0
 
 - Use "Wertstellung" instead of "Belegdatum" for transaction dates in
@@ -112,6 +116,7 @@
 
 [@bratekarate]: https://githun.com/bratekarate
 [@dmerkert]: https://github.com/dmerkert
+[@Dr-Nuke]: https://github.com/Dr-Nuke
 [@niels]: https://github.com/niels
 [@nils-werner]: https://github.com/nils-werner
 [@tbm]: https://github.com/tbm
