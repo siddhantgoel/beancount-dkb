@@ -1,8 +1,10 @@
 import datetime
+import io
 from decimal import Decimal
 from textwrap import dedent
 
 from beancount.core.data import Amount, Balance
+from beancount.ingest import extract
 import pytest
 
 from beancount_dkb import ECImporter
@@ -19,6 +21,11 @@ HEADER = ';'.join('"{}"'.format(field) for field in FIELDS)
 def _format(string, kwargs):
     return dedent(string).format(**kwargs).lstrip()
 
+
+def _stringify_directives(directives):
+    f = io.StringIO()
+    extract.print_extracted_entries(directives, f)
+    return f.getvalue()
 
 @pytest.fixture
 def tmp_file(tmp_path):
@@ -158,10 +165,9 @@ def test_extract_no_transactions(tmp_file):
     with tmp_file.open() as fd:
         directives = importer.extract(fd)
 
-    assert len(directives) == 1
-    assert isinstance(directives[0], Balance)
-    assert directives[0].date == datetime.date(2018, 2, 1)
-    assert directives[0].amount == Amount(Decimal('5000.01'), currency='EUR')
+    assert _format("""
+        2018-02-01 balance Assets:DKB:EC                                   5000.01 EUR
+        """.rstrip(), {}) == _stringify_directives(directives).strip()
 
 
 def test_extract_transactions(tmp_file):
@@ -187,24 +193,15 @@ def test_extract_transactions(tmp_file):
     with tmp_file.open() as fd:
         directives = importer.extract(fd)
 
-    assert len(directives) == 3
-    assert directives[0].date == datetime.date(2018, 1, 16)
-    assert directives[0].payee == 'REWE Filialen Voll'
-    assert directives[0].narration == 'Lastschrift REWE SAGT DANKE.'
+    assert _format("""
+        2018-01-16 * "REWE Filialen Voll" "Lastschrift REWE SAGT DANKE."
+          Assets:DKB:EC  -15.37 EUR
 
-    assert len(directives[0].postings) == 1
-    assert directives[0].postings[0].account == 'Assets:DKB:EC'
-    assert directives[0].postings[0].units.currency == 'EUR'
-    assert directives[0].postings[0].units.number == Decimal('-15.37')
+        2020-05-06 * "From Someone" "Gutschrift DE88700222000012345678"
+          Assets:DKB:EC  1.00 EUR
 
-    assert directives[1].date == datetime.date(2020, 5, 6)
-    assert directives[1].payee == 'From Someone'
-    assert directives[1].narration == 'Gutschrift DE88700222000012345678'
-
-    assert len(directives[1].postings) == 1
-    assert directives[1].postings[0].account == 'Assets:DKB:EC'
-    assert directives[1].postings[0].units.currency == 'EUR'
-    assert directives[1].postings[0].units.number == Decimal('1.00')
+        2018-02-01 balance Assets:DKB:EC                                   5000.01 EUR
+        """.rstrip(), {}) == _stringify_directives(directives).strip()
 
 
 def test_extract_sets_timestamps(tmp_file):
