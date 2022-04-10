@@ -26,14 +26,14 @@ repository = "https://github.com/siddhantgoel/beancount-dkb"
 keywords = ["banking", "beancount", "cli-accounting", "finance"]
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.7"
 
 [tool.poetry.dev-dependencies]
-beancount = "^2.2"
-flake8 = "^3.7"
-isort = "^5.8"
-pytest = "^6.2"
-black = {version = "^20.8b1",python = "^3.6"}
+beancount = "^2.3"
+flake8 = "^4.0"
+isort = "^5.10"
+pytest = "^7.1"
+black = "^22.3"
 
 [tool.black]
 line-length = 79
