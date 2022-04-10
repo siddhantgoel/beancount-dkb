@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# v0.13.0
+
+- Enable support for Python 3.10
+- Drop support for Python 3.6
+
 # v0.12.0
 
 - Support additional credit card expected header format (thanks [Dr-Nuke])
