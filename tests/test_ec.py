@@ -443,4 +443,4 @@ def test_extract_with_payee_patterns(tmp_file):
     assert directives[0].postings[0].units.number == Decimal('-15.37')
 
     assert directives[0].postings[1].account == 'Expenses:Supermarket:REWE'
-    assert directives[0].postings[1].units == None
+    assert directives[0].postings[1].units is None
