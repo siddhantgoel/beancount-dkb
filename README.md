@@ -100,6 +100,52 @@ And this is the resulting transaction using `meta_code='code'`
     Assets:DKB:EC                        -133.72 EUR
 ```
 
+### Pattern-matching Transactions
+
+It's possible to give the importer classes hints if you'd like them to include a
+second posting based on specific characteristics of the original transaction.
+
+For instance, if the payee or the description in a transaction always matches a
+certain value, it's possible to tell the `ECImporter` or `CreditImporter` to
+automatically place a second posting in the returned lits of transactions.
+
+#### `ECImporter`
+
+`ECImporter` accepts a `payee_patterns` argument, which should be a list of
+`(pattern, account)` tuples.
+
+```python
+CONFIG = [
+    ECImporter(
+        IBAN_NUMBER,
+        'Assets:DKB:EC',
+        currency='EUR',
+        file_encoding='utf-8',
+        payee_patterns=[
+            ('REWE Filialen', 'Expenses:Supermarket:REWE'),
+            ('NETFLIX', 'Expenses:Online:Netflix'),
+        ],
+    ),
+```
+
+#### `CreditImporter`
+
+`CreditImporter` accepts a `description_patterns` argument, which should be a
+list of `(pattern, account)` tuples.
+
+```python
+CONFIG = [
+    CreditImporter(
+        CARD_NUMBER,
+        'Assets:DKB:Credit',
+        currency='EUR',
+        file_encoding='utf-8',
+        description_patterns=[
+            ('REWE sagt Danke', 'Expenses:Supermarket:REWE'),
+            ('NETFLIX', 'Expenses:Online:Netflix'),
+        ],
+    )
+```
 
 ## FAQ
 
