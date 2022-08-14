@@ -6,7 +6,7 @@ from beancount.core import data
 from beancount.core.amount import Amount
 from beancount.ingest import importer
 
-from .helpers import fmt_number_de, InvalidFormatError
+from .helpers import AccountMatcher, fmt_number_de, InvalidFormatError
 
 FIELDS = (
     'Buchungstag',
@@ -37,13 +37,7 @@ class ECImporter(importer.ImporterProtocol):
         self.currency = currency
         self.file_encoding = file_encoding
         self.meta_code = meta_code
-
-        self.payee_patterns = []
-        if payee_patterns is not None:
-            self.payee_patterns = [
-                (re.compile(regex), account)
-                for (regex, account) in payee_patterns
-            ]
+        self.payee_matcher = AccountMatcher(payee_patterns)
 
         self._expected_header_regex = re.compile(
             r'^"Kontonummer:";"'
@@ -172,13 +166,17 @@ class ECImporter(importer.ImporterProtocol):
                         )
                     ]
 
-                    for (pattern, account) in self.payee_patterns:
-                        if re.search(pattern, payee):
-                            postings.append(
-                                data.Posting(
-                                    account, None, None, None, None, None
-                                )
+                    if self.payee_matcher.account_matches(payee):
+                        postings.append(
+                            data.Posting(
+                                self.payee_matcher.account_for(payee),
+                                None,
+                                None,
+                                None,
+                                None,
+                                None,
                             )
+                        )
 
                     entries.append(
                         data.Transaction(

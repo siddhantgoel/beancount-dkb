@@ -7,7 +7,7 @@ from beancount.core.amount import Amount
 from beancount.core.number import Decimal
 from beancount.ingest import importer
 
-from .helpers import fmt_number_de, InvalidFormatError
+from .helpers import AccountMatcher, fmt_number_de, InvalidFormatError
 
 FIELDS = (
     'Umsatz abgerechnet und nicht im Saldo enthalten',
@@ -32,13 +32,7 @@ class CreditImporter(importer.ImporterProtocol):
         self.account = account
         self.currency = currency
         self.file_encoding = file_encoding
-
-        self.description_patterns = []
-        if description_patterns is not None:
-            self.description_patterns = [
-                (re.compile(regex), account)
-                for (regex, account) in description_patterns
-            ]
+        self.description_matcher = AccountMatcher(description_patterns)
 
         self._expected_headers = (
             '"Kreditkarte:";"{} Kreditkarte";'.format(self.card_number),
@@ -164,11 +158,17 @@ class CreditImporter(importer.ImporterProtocol):
                     data.Posting(self.account, amount, None, None, None, None)
                 ]
 
-                for (pattern, account) in self.description_patterns:
-                    if re.search(pattern, description):
-                        postings.append(
-                            data.Posting(account, None, None, None, None, None)
+                if self.description_matcher.account_matches(description):
+                    postings.append(
+                        data.Posting(
+                            self.description_matcher.account_for(description),
+                            None,
+                            None,
+                            None,
+                            None,
+                            None,
                         )
+                    )
 
                 entries.append(
                     data.Transaction(
