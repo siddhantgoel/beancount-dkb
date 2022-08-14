@@ -1,4 +1,5 @@
 import csv
+import re
 from datetime import datetime, timedelta
 
 from beancount.core import data
@@ -20,12 +21,24 @@ FIELDS = (
 
 class CreditImporter(importer.ImporterProtocol):
     def __init__(
-        self, card_number, account, currency='EUR', file_encoding='utf-8'
+        self,
+        card_number,
+        account,
+        currency='EUR',
+        file_encoding='utf-8',
+        description_patterns=None,
     ):
         self.card_number = card_number
         self.account = account
         self.currency = currency
         self.file_encoding = file_encoding
+
+        self.description_patterns = []
+        if description_patterns is not None:
+            self.description_patterns = [
+                (re.compile(regex), account)
+                for (regex, account) in description_patterns
+            ]
 
         self._expected_headers = (
             '"Kreditkarte:";"{} Kreditkarte";'.format(self.card_number),
@@ -150,6 +163,12 @@ class CreditImporter(importer.ImporterProtocol):
                 postings = [
                     data.Posting(self.account, amount, None, None, None, None)
                 ]
+
+                for (pattern, account) in self.description_patterns:
+                    if re.search(pattern, description):
+                        postings.append(
+                            data.Posting(account, None, None, None, None, None)
+                        )
 
                 entries.append(
                     data.Transaction(

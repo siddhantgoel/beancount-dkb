@@ -354,3 +354,40 @@ def test_file_date_is_set_correctly(tmp_file):
 
     with tmp_file.open() as fd:
         assert importer.file_date(fd) == datetime.date(2016, 1, 31)
+
+
+def test_extract_with_description_patterns(tmp_file):
+    tmp_file.write_text(
+        _format(
+            '''
+            "Kreditkarte:";"{card_number} Kreditkarte";
+
+            "Von:";"01.01.2018";
+            "Bis:";"31.01.2018";
+            "Saldo:";"5000.01 EUR";
+            "Datum:";"30.01.2018";
+
+            {header};
+            "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
+            ''',  # NOQA
+            dict(card_number=CARD_NUMBER, header=HEADER),
+        )
+    )
+
+    importer = CreditImporter(
+        CARD_NUMBER,
+        'Assets:DKB:Credit',
+        file_encoding='utf-8',
+        description_patterns=[('REWE Filiale', 'Expenses:Supermarket:REWE')],
+    )
+    with tmp_file.open() as fd:
+        directives = importer.extract(fd)
+
+    assert len(directives) == 2
+    assert len(directives[0].postings) == 2
+    assert directives[0].postings[0].account == 'Assets:DKB:Credit'
+    assert directives[0].postings[0].units.currency == 'EUR'
+    assert directives[0].postings[0].units.number == Decimal('-10.80')
+
+    assert directives[0].postings[1].account == 'Expenses:Supermarket:REWE'
+    assert directives[0].postings[1].units == None
