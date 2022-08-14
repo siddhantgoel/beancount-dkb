@@ -89,22 +89,13 @@ class CreditImporter(importer.ImporterProtocol):
         closing_balance_index = -1
 
         with open(file_.name, encoding=self.file_encoding) as fd:
-            # Header
-            line = fd.readline().strip()
+            self._extract_header(fd)
             line_index += 1
 
-            if not self.is_valid_header(line):
-                raise InvalidFormatError()
-
-            # Empty line
-            line = fd.readline().strip()
+            self._extract_empty_line(fd)
             line_index += 1
-
-            if line:
-                raise InvalidFormatError()
 
             # Read metadata lines until the next empty line
-
             lines = []
 
             for line in fd:
@@ -187,3 +178,15 @@ class CreditImporter(importer.ImporterProtocol):
             )
 
         return entries
+
+    def _extract_header(self, fd):
+        line = fd.readline().strip()
+
+        if not self.is_valid_header(line):
+            raise InvalidFormatError()
+
+    def _extract_empty_line(self, fd):
+        line = fd.readline().strip()
+
+        if line:
+            raise InvalidFormatError()
