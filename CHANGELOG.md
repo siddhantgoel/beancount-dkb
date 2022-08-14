@@ -1,5 +1,11 @@
 # CHANGELOG
 
+# v0.14.0
+
+- Allow pattern-matching transactions in:
+  - `ECImporter` (against payee strings) and,
+  - `CreditImporter` (against description strings)
+
 # v0.13.0
 
 - Enable support for Python 3.10
