@@ -1,5 +1,4 @@
 import csv
-import re
 from datetime import datetime, timedelta
 
 from beancount.core import data
