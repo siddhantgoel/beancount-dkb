@@ -31,11 +31,19 @@ class ECImporter(importer.ImporterProtocol):
         currency='EUR',
         file_encoding='utf-8',
         meta_code=None,
+        payee_patterns=None,
     ):
         self.account = account
         self.currency = currency
         self.file_encoding = file_encoding
         self.meta_code = meta_code
+
+        self.payee_patterns = []
+        if payee_patterns is not None:
+            self.payee_patterns = [
+                (re.compile(regex), account)
+                for (regex, account) in payee_patterns
+            ]
 
         self._expected_header_regex = re.compile(
             r'^"Kontonummer:";"'
@@ -147,6 +155,7 @@ class ECImporter(importer.ImporterProtocol):
                         line['Verwendungszweck'] or line['Kontonummer']
                     )
                     buchungstext = line['Buchungstext']
+                    payee = line['Auftraggeber / Begünstigter']
 
                     if self.meta_code:
                         meta[self.meta_code] = buchungstext
@@ -163,12 +172,18 @@ class ECImporter(importer.ImporterProtocol):
                         )
                     ]
 
+                    for (pattern, account) in self.payee_patterns:
+                        if re.search(pattern, payee):
+                            postings.append(
+                                data.Posting(account, None, None, None, None, None)
+                            )
+
                     entries.append(
                         data.Transaction(
                             meta,
                             date,
                             self.FLAG,
-                            line['Auftraggeber / Begünstigter'],
+                            payee,
                             description,
                             data.EMPTY_SET,
                             data.EMPTY_SET,

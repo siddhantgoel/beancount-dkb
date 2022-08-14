@@ -407,3 +407,40 @@ def test_meta_code_is_added(tmp_file):
     assert directives[0].payee == 'REWE Filialen Voll'
     assert directives[0].narration == 'REWE SAGT DANKE.'
     assert directives[0].meta['code'] == 'Lastschrift'
+
+
+def test_extract_with_payee_patterns(tmp_file):
+    tmp_file.write_text(
+        _format(
+            '''
+            "Kontonummer:";"{iban} / Girokonto";
+
+            "Von:";"01.01.2018";
+            "Bis:";"31.01.2018";
+            "Kontostand vom 31.01.2018:";"5.000,01 EUR";
+
+            {header};
+            "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
+            ''',  # NOQA
+            dict(iban=IBAN, header=HEADER),
+        )
+    )
+
+    importer = ECImporter(
+        IBAN,
+        'Assets:DKB:EC',
+        file_encoding='utf-8',
+        payee_patterns=[('REWE Filialen', 'Expenses:Supermarket:REWE')]
+    )
+
+    with tmp_file.open() as fd:
+        directives = importer.extract(fd)
+
+    assert len(directives) == 2
+    assert len(directives[0].postings) == 2
+    assert directives[0].postings[0].account == 'Assets:DKB:EC'
+    assert directives[0].postings[0].units.currency == 'EUR'
+    assert directives[0].postings[0].units.number == Decimal('-15.37')
+
+    assert directives[0].postings[1].account == 'Expenses:Supermarket:REWE'
+    assert directives[0].postings[1].units == None
