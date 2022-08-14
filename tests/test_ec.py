@@ -430,7 +430,7 @@ def test_extract_with_payee_patterns(tmp_file):
         IBAN,
         'Assets:DKB:EC',
         file_encoding='utf-8',
-        payee_patterns=[('REWE Filialen', 'Expenses:Supermarket:REWE')]
+        payee_patterns=[('REWE Filialen', 'Expenses:Supermarket:REWE')],
     )
 
     with tmp_file.open() as fd:

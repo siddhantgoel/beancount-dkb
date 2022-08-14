@@ -175,7 +175,9 @@ class ECImporter(importer.ImporterProtocol):
                     for (pattern, account) in self.payee_patterns:
                         if re.search(pattern, payee):
                             postings.append(
-                                data.Posting(account, None, None, None, None, None)
+                                data.Posting(
+                                    account, None, None, None, None, None
+                                )
                             )
 
                     entries.append(
