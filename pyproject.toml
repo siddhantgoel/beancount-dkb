@@ -33,7 +33,7 @@ beancount = "^2.3"
 flake8 = "^5.0"
 isort = "^5.10"
 pytest = "^7.1"
-black = "^22.3"
+black = "^22.10"
 
 [tool.black]
 line-length = 79
