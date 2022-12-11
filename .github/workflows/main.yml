@@ -19,7 +19,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt update --yes
-        sudo apt install --yes libxml2-dev libxslt1-dev python-dev
+        sudo apt install --yes libxml2-dev libxslt1-dev python3-dev
 
     - name: Set up poetry
       run: |
