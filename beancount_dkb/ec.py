@@ -1,6 +1,7 @@
 import csv
 import re
 from datetime import datetime, timedelta
+from typing import Optional, Sequence
 
 from beancount.core import data
 from beancount.core.amount import Amount
@@ -26,12 +27,12 @@ FIELDS = (
 class ECImporter(importer.ImporterProtocol):
     def __init__(
         self,
-        iban,
-        account,
-        currency='EUR',
-        file_encoding='utf-8',
-        meta_code=None,
-        payee_patterns=None,
+        iban: str,
+        account: str,
+        currency: str = 'EUR',
+        file_encoding: str = 'utf-8',
+        meta_code: Optional[str] = None,
+        payee_patterns: Optional[Sequence] = None,
     ):
         self.account = account
         self.currency = currency
