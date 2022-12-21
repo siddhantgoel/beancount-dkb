@@ -2,12 +2,15 @@ import csv
 import re
 from datetime import datetime, timedelta
 from typing import Optional, Sequence
+from functools import partial
+import warnings
 
 from beancount.core import data
 from beancount.core.amount import Amount
 from beancount.ingest import importer
 
 from .helpers import AccountMatcher, fmt_number_de, InvalidFormatError
+
 
 FIELDS = (
     'Buchungstag',
@@ -24,6 +27,11 @@ FIELDS = (
 )
 
 
+new_posting = partial(
+    data.Posting, units=None, cost=None, price=None, flag=None, meta=None
+)
+
+
 class ECImporter(importer.ImporterProtocol):
     def __init__(
         self,
@@ -33,12 +41,14 @@ class ECImporter(importer.ImporterProtocol):
         file_encoding: str = 'utf-8',
         meta_code: Optional[str] = None,
         payee_patterns: Optional[Sequence] = None,
+        description_patterns: Optional[Sequence] = None,
     ):
         self.account = account
         self.currency = currency
         self.file_encoding = file_encoding
         self.meta_code = meta_code
         self.payee_matcher = AccountMatcher(payee_patterns)
+        self.description_matcher = AccountMatcher(description_patterns)
 
         self._expected_header_regex = re.compile(
             r'^"Kontonummer:";"'
@@ -122,6 +132,8 @@ class ECImporter(importer.ImporterProtocol):
             )
 
             for line in reader:
+                line_index += 1
+
                 meta = data.new_metadata(file_.name, line_index)
 
                 amount = None
@@ -167,15 +179,25 @@ class ECImporter(importer.ImporterProtocol):
                         )
                     ]
 
-                    if self.payee_matcher.account_matches(payee):
+                    payee_match = self.payee_matcher.account_matches(payee)
+                    description_match = self.description_matcher.account_matches(description)
+
+                    if payee_match and description_match:
+                        warnings.warn(
+                            f"Line {line_index + 1} matches both payee_patterns and "
+                            "description_patterns. Picking payee_pattern.",
+                        )
                         postings.append(
-                            data.Posting(
-                                self.payee_matcher.account_for(payee),
-                                None,
-                                None,
-                                None,
-                                None,
-                                None,
+                            new_posting(account=self.payee_matcher.account_for(payee))
+                        )
+                    elif payee_match:
+                        postings.append(
+                            new_posting(account=self.payee_matcher.account_for(payee))
+                        )
+                    elif description_match:
+                        postings.append(
+                            new_posting(
+                                account=self.description_matcher.account_for(description)
                             )
                         )
 
@@ -191,8 +213,6 @@ class ECImporter(importer.ImporterProtocol):
                             postings,
                         )
                     )
-
-                line_index += 1
 
             # Closing Balance
             meta = data.new_metadata(file_.name, closing_balance_index)
