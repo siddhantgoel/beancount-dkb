@@ -28,7 +28,7 @@ FIELDS = (
 
 
 new_posting = partial(
-    data.Posting, units=None, cost=None, price=None, flag=None, meta=None
+    data.Posting, cost=None, price=None, flag=None, meta=None
 )
 
 
@@ -174,9 +174,7 @@ class ECImporter(importer.ImporterProtocol):
                         )
 
                     postings = [
-                        data.Posting(
-                            self.account, amount, None, None, None, None
-                        )
+                        new_posting(account=self.account, units=amount),
                     ]
 
                     payee_match = self.payee_matcher.account_matches(payee)
@@ -188,16 +186,21 @@ class ECImporter(importer.ImporterProtocol):
                             "description_patterns. Picking payee_pattern.",
                         )
                         postings.append(
-                            new_posting(account=self.payee_matcher.account_for(payee))
+                            new_posting(
+                                account=self.payee_matcher.account_for(payee), units=None
+                            )
                         )
                     elif payee_match:
                         postings.append(
-                            new_posting(account=self.payee_matcher.account_for(payee))
+                            new_posting(
+                                account=self.payee_matcher.account_for(payee), units=None
+                            )
                         )
                     elif description_match:
                         postings.append(
                             new_posting(
-                                account=self.description_matcher.account_for(description)
+                                account=self.description_matcher.account_for(description),
+                                units=None,
                             )
                         )
 
