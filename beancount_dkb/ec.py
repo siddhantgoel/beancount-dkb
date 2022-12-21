@@ -178,28 +178,35 @@ class ECImporter(importer.ImporterProtocol):
                     ]
 
                     payee_match = self.payee_matcher.account_matches(payee)
-                    description_match = self.description_matcher.account_matches(description)
+                    description_match = (
+                        self.description_matcher.account_matches(description)
+                    )
 
                     if payee_match and description_match:
                         warnings.warn(
-                            f"Line {line_index + 1} matches both payee_patterns and "
-                            "description_patterns. Picking payee_pattern.",
+                            f"Line {line_index + 1} matches both "
+                            "payee_patterns and description_patterns. "
+                            "Picking payee_pattern.",
                         )
                         postings.append(
                             new_posting(
-                                account=self.payee_matcher.account_for(payee), units=None
+                                account=self.payee_matcher.account_for(payee),
+                                units=None,
                             )
                         )
                     elif payee_match:
                         postings.append(
                             new_posting(
-                                account=self.payee_matcher.account_for(payee), units=None
+                                account=self.payee_matcher.account_for(payee),
+                                units=None,
                             )
                         )
                     elif description_match:
                         postings.append(
                             new_posting(
-                                account=self.description_matcher.account_for(description),
+                                account=self.description_matcher.account_for(
+                                    description
+                                ),
                                 units=None,
                             )
                         )
