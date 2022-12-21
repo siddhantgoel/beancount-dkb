@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# v0.15.0
+
+- Allow pattern-matching transactions in `ECImporter` against description strings
+- Enable support for Python 3.11
+
 # v0.14.0
 
 - Allow pattern-matching transactions in:
