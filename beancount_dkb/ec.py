@@ -31,6 +31,8 @@ new_posting = partial(
     data.Posting, cost=None, price=None, flag=None, meta=None
 )
 
+META_LINE_COUNT = 3
+
 
 class ECImporter(importer.ImporterProtocol):
     def __init__(
@@ -60,6 +62,7 @@ class ECImporter(importer.ImporterProtocol):
         self._date_to = None
         self._balance_amount = None
         self._balance_date = None
+        self._closing_balance_index = -1
 
     def name(self):
         return 'DKB {}'.format(self.__class__.__name__)
@@ -81,7 +84,6 @@ class ECImporter(importer.ImporterProtocol):
     def extract(self, file_, existing_entries=None):
         entries = []
         line_index = 0
-        closing_balance_index = -1
 
         with open(file_.name, encoding=self.file_encoding) as fd:
             self._extract_header(fd)
@@ -90,38 +92,8 @@ class ECImporter(importer.ImporterProtocol):
             self._extract_empty_line(fd)
             line_index += 1
 
-            # Meta
-            lines = [fd.readline().strip() for _ in range(3)]
-
-            reader = csv.reader(
-                lines, delimiter=';', quoting=csv.QUOTE_MINIMAL, quotechar='"'
-            )
-
-            for line in reader:
-                key, value, _ = line
-                line_index += 1
-
-                if key.startswith('Von'):
-                    self._date_from = datetime.strptime(
-                        value, '%d.%m.%Y'
-                    ).date()
-                elif key.startswith('Bis'):
-                    self._date_to = datetime.strptime(value, '%d.%m.%Y').date()
-                elif key.startswith('Kontostand vom'):
-                    # Beancount expects the balance amount to be from the
-                    # beginning of the day, while the Tagessaldo entries in
-                    # the DKB exports seem to be from the end of the day.
-                    # So when setting the balance date, we add a timedelta
-                    # of 1 day to the original value to make the balance
-                    # assertions work.
-
-                    self._balance_amount = Amount(
-                        fmt_number_de(value.rstrip(' EUR')), self.currency
-                    )
-                    self._balance_date = datetime.strptime(
-                        key.lstrip('Kontostand vom ').rstrip(':'), '%d.%m.%Y'
-                    ).date() + timedelta(days=1)
-                    closing_balance_index = line_index
+            self._extract_meta(fd, line_index)
+            line_index += META_LINE_COUNT
 
             self._extract_empty_line(fd)
             line_index += 1
@@ -225,10 +197,9 @@ class ECImporter(importer.ImporterProtocol):
                     )
 
             # Closing Balance
-            meta = data.new_metadata(file_.name, closing_balance_index)
             entries.append(
                 data.Balance(
-                    meta,
+                    data.new_metadata(file_.name, self._closing_balance_index),
                     self._balance_date,
                     self.account,
                     self._balance_amount,
@@ -250,3 +221,33 @@ class ECImporter(importer.ImporterProtocol):
 
         if line:
             raise InvalidFormatError()
+
+    def _extract_meta(self, fd, line_index):
+        lines = [fd.readline().strip() for _ in range(META_LINE_COUNT)]
+
+        reader = csv.reader(
+            lines, delimiter=';', quoting=csv.QUOTE_MINIMAL, quotechar='"'
+        )
+
+        for index, line in enumerate(reader):
+            key, value, _ = line
+
+            if key.startswith('Von'):
+                self._date_from = datetime.strptime(value, '%d.%m.%Y').date()
+            elif key.startswith('Bis'):
+                self._date_to = datetime.strptime(value, '%d.%m.%Y').date()
+            elif key.startswith('Kontostand vom'):
+                # Beancount expects the balance amount to be from the
+                # beginning of the day, while the Tagessaldo entries in
+                # the DKB exports seem to be from the end of the day.
+                # So when setting the balance date, we add a timedelta
+                # of 1 day to the original value to make the balance
+                # assertions work.
+
+                self._balance_amount = Amount(
+                    fmt_number_de(value.rstrip(' EUR')), self.currency
+                )
+                self._balance_date = datetime.strptime(
+                    key.lstrip('Kontostand vom ').rstrip(':'), '%d.%m.%Y'
+                ).date() + timedelta(days=1)
+                self._closing_balance_index = index + line_index

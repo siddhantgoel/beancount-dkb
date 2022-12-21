@@ -348,6 +348,7 @@ def test_emits_closing_balance_directive(tmp_file):
     assert isinstance(directives[1], Balance)
     assert directives[1].date == datetime.date(2018, 2, 1)
     assert directives[1].amount == Amount(Decimal('5000.01'), currency='EUR')
+    assert directives[1].meta["lineno"] == 4
 
 
 def test_mismatching_dates_in_meta(tmp_file):
