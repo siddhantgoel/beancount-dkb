@@ -24,14 +24,14 @@ class AccountMatcher:
         self.patterns = []
 
         if patterns is not None:
-            for (regex, account) in patterns:
+            for regex, account in patterns:
                 self.add(regex, account)
 
     def add(self, regex: str, account: str) -> None:
         self.patterns.append(_MatcherEntry(re.compile(regex), account))
 
     def account_for(self, string: str) -> Optional[str]:
-        for (pattern, account) in self.patterns:
+        for pattern, account in self.patterns:
             if re.search(pattern, string):
                 return account
 
