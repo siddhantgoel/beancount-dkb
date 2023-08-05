@@ -10,13 +10,13 @@ class InvalidFormatError(Exception):
 
 
 def fmt_number_de(value: str) -> Decimal:
-    thousands_sep = '.'
-    decimal_sep = ','
+    thousands_sep = "."
+    decimal_sep = ","
 
-    return Decimal(value.replace(thousands_sep, '').replace(decimal_sep, '.'))
+    return Decimal(value.replace(thousands_sep, "").replace(decimal_sep, "."))
 
 
-_MatcherEntry = namedtuple('_MatcherEntry', ['pattern', 'account'])
+_MatcherEntry = namedtuple("_MatcherEntry", ["pattern", "account"])
 
 
 class AccountMatcher:
