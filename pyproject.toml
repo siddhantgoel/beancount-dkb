@@ -36,6 +36,19 @@ isort = "^5.11"
 pytest = "^7.4"
 black = "^23.3"
 
+[tool.poetry.group.dev.dependencies]
+taskipy = "^1.12.0"
+
+[tool.taskipy.tasks]
+fmt-black = "black beancount_dkb/ tests/"
+
+lint-black  = "black --check beancount_dkb/ tests/"
+lint-flake8 = "flake8 beancount_dkb/ tests/"
+lint = "task lint-black && task lint-flake8"
+
+test-pytest = "pytest tests/"
+test = "task test-pytest"
+
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
