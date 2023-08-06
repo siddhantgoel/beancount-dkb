@@ -6,14 +6,14 @@ from beancount.core.data import Amount, Balance
 import pytest
 
 from beancount_dkb import ECImporter
-from beancount_dkb.ec import FIELDS
+from beancount_dkb.ec import V1Extractor
 
 
 FORMATTED_IBAN = "DE99 9999 9999 9999 9999 99"
 
 IBAN = FORMATTED_IBAN.replace(" ", "")
 
-HEADER = ";".join('"{}"'.format(field) for field in FIELDS)
+HEADER = ";".join('"{}"'.format(field) for field in V1Extractor.FIELDS)
 
 
 def _format(string, kwargs):

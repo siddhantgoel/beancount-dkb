@@ -1,7 +1,7 @@
 import csv
 import re
 from datetime import datetime, timedelta
-from typing import Optional, Sequence
+from typing import Optional, Sequence, IO
 from functools import partial
 import warnings
 
@@ -10,21 +10,7 @@ from beancount.core.amount import Amount
 from beancount.ingest import importer
 
 from .helpers import AccountMatcher, fmt_number_de, InvalidFormatError
-
-
-FIELDS = (
-    "Buchungstag",
-    "Wertstellung",
-    "Buchungstext",
-    "Auftraggeber / Begünstigter",
-    "Verwendungszweck",
-    "Kontonummer",
-    "BLZ",
-    "Betrag (EUR)",
-    "Gläubiger-ID",
-    "Mandatsreferenz",
-    "Kundenreferenz",
-)
+from .extractors import V1Extractor, V2Extractor
 
 
 new_posting = partial(data.Posting, cost=None, price=None, flag=None, meta=None)
@@ -41,6 +27,7 @@ class ECImporter(importer.ImporterProtocol):
         payee_patterns: Optional[Sequence] = None,
         description_patterns: Optional[Sequence] = None,
     ):
+        self.iban = iban
         self.account = account
         self.currency = currency
         self.file_encoding = file_encoding
@@ -48,12 +35,9 @@ class ECImporter(importer.ImporterProtocol):
         self.payee_matcher = AccountMatcher(payee_patterns)
         self.description_matcher = AccountMatcher(description_patterns)
 
-        self._expected_header_regex = re.compile(
-            r'^"Kontonummer:";"'
-            + re.escape(re.sub(r"\s+", "", iban, flags=re.UNICODE))
-            + r"\s",
-            re.IGNORECASE,
-        )
+        self._v1_extractor = V1Extractor(iban, meta_code)
+        self._v2_extractor = V2Extractor(iban, meta_code)
+
         self._date_from = None
         self._date_to = None
         self._balance_amount = None
@@ -66,32 +50,59 @@ class ECImporter(importer.ImporterProtocol):
     def file_account(self, _):
         return self.account
 
-    def file_date(self, file_):
-        self.extract(file_)
+    def file_date(self, file):
+        self.extract(file)
 
         return self._date_to
 
-    def identify(self, file_):
-        with open(file_.name, encoding=self.file_encoding) as fd:
+    def identify(self, file):
+        with open(file.name, encoding=self.file_encoding) as fd:
             line = fd.readline().strip()
 
-        return self._expected_header_regex.match(line)
+        return self._v1_extractor.matches_header(
+            line
+        ) or self._v2_extractor.matches_header(line)
 
-    def extract(self, file_, existing_entries=None):
+    def extract(self, file, existing_entries=None):
         entries = []
         line_index = 0
 
-        with open(file_.name, encoding=self.file_encoding) as fd:
-            self._extract_header(fd)
+        with open(file.name, encoding=self.file_encoding) as fd:
+            extractor = self._get_extractor(fd.readline().strip())
+
             line_index += 1
 
-            self._extract_empty_line(fd)
+            # empty line
+
+            extractor.extract_empty_line(fd)
             line_index += 1
 
             # Read metadata lines until the next empty line
 
-            line_index += self._extract_meta(fd, line_index)
-            line_index += 1
+            meta = extractor.extract_meta(fd, line_index)
+
+            for key, value in meta.items():
+                if key.startswith("Von"):
+                    self._date_from = datetime.strptime(value.value, "%d.%m.%Y").date()
+                elif key.startswith("Bis"):
+                    self._date_to = datetime.strptime(value.value, "%d.%m.%Y").date()
+                elif key.startswith("Kontostand vom"):
+                    # Beancount expects the balance amount to be from the
+                    # beginning of the day, while the Tagessaldo entries in
+                    # the DKB exports seem to be from the end of the day.
+                    # So when setting the balance date, we add a timedelta
+                    # of 1 day to the original value to make the balance
+                    # assertions work.
+
+                    self._balance_amount = Amount(
+                        fmt_number_de(value.value.rstrip(" EUR")), self.currency
+                    )
+                    self._balance_date = datetime.strptime(
+                        key.lstrip("Kontostand vom ").rstrip(":"), "%d.%m.%Y"
+                    ).date() + timedelta(days=1)
+                    self._closing_balance_index = value.line_index
+
+            line_index += 1 + len(meta)
 
             # Data entries
             reader = csv.DictReader(
@@ -101,14 +112,19 @@ class ECImporter(importer.ImporterProtocol):
             for line in reader:
                 line_index += 1
 
-                meta = data.new_metadata(file_.name, line_index)
+                meta = data.new_metadata(file.name, line_index)
 
                 amount = None
-                if line["Betrag (EUR)"]:
-                    amount = Amount(fmt_number_de(line["Betrag (EUR)"]), self.currency)
-                date = datetime.strptime(line["Buchungstag"], "%d.%m.%Y").date()
+                if extractor.parse_amount(line):
+                    amount = Amount(
+                        fmt_number_de(extractor.parse_amount(line)), self.currency
+                    )
 
-                if line["Verwendungszweck"] == "Tagessaldo":
+                date = datetime.strptime(
+                    extractor.parse_booking_date(line), "%d.%m.%Y"
+                ).date()
+
+                if extractor.parse_purpose(line) == "Tagessaldo":
                     if amount:
                         entries.append(
                             data.Balance(
@@ -121,18 +137,11 @@ class ECImporter(importer.ImporterProtocol):
                             )
                         )
                 else:
-                    verwendungszweck = line["Verwendungszweck"] or line["Kontonummer"]
-                    buchungstext = line["Buchungstext"]
-                    payee = line["Auftraggeber / Begünstigter"]
-
                     if self.meta_code:
-                        meta[self.meta_code] = buchungstext
-                        description = verwendungszweck
-                    else:
-                        description = "{} {}".format(
-                            buchungstext,
-                            verwendungszweck,
-                        )
+                        meta[self.meta_code] = extractor.parse_booking_text(line)
+
+                    description = extractor.parse_description(line)
+                    payee = extractor.parse_payee(line)
 
                     postings = [
                         new_posting(account=self.account, units=amount),
@@ -188,7 +197,7 @@ class ECImporter(importer.ImporterProtocol):
             # Closing Balance
             entries.append(
                 data.Balance(
-                    data.new_metadata(file_.name, self._closing_balance_index),
+                    data.new_metadata(file.name, self._closing_balance_index),
                     self._balance_date,
                     self.account,
                     self._balance_amount,
@@ -199,51 +208,10 @@ class ECImporter(importer.ImporterProtocol):
 
         return entries
 
-    def _extract_header(self, fd):
-        line = fd.readline().strip()
+    def _get_extractor(self, line: str):
+        if self._v1_extractor.matches_header(line):
+            return self._v1_extractor
+        elif self._v2_extractor.matches_header(line):
+            return self._v2_extractor
 
-        if not self._expected_header_regex.match(line):
-            raise InvalidFormatError()
-
-    def _extract_empty_line(self, fd):
-        line = fd.readline().strip()
-
-        if line:
-            raise InvalidFormatError()
-
-    def _extract_meta(self, fd, line_index) -> int:
-        lines = []
-
-        for line in fd:
-            if not line.strip():
-                break
-            lines.append(line)
-
-        reader = csv.reader(
-            lines, delimiter=";", quoting=csv.QUOTE_MINIMAL, quotechar='"'
-        )
-
-        for index, line in enumerate(reader):
-            key, value, _ = line
-
-            if key.startswith("Von"):
-                self._date_from = datetime.strptime(value, "%d.%m.%Y").date()
-            elif key.startswith("Bis"):
-                self._date_to = datetime.strptime(value, "%d.%m.%Y").date()
-            elif key.startswith("Kontostand vom"):
-                # Beancount expects the balance amount to be from the
-                # beginning of the day, while the Tagessaldo entries in
-                # the DKB exports seem to be from the end of the day.
-                # So when setting the balance date, we add a timedelta
-                # of 1 day to the original value to make the balance
-                # assertions work.
-
-                self._balance_amount = Amount(
-                    fmt_number_de(value.rstrip(" EUR")), self.currency
-                )
-                self._balance_date = datetime.strptime(
-                    key.lstrip("Kontostand vom ").rstrip(":"), "%d.%m.%Y"
-                ).date() + timedelta(days=1)
-                self._closing_balance_index = index + line_index
-
-        return len(lines)
+        raise InvalidFormatError()
