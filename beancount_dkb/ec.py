@@ -29,8 +29,6 @@ FIELDS = (
 
 new_posting = partial(data.Posting, cost=None, price=None, flag=None, meta=None)
 
-META_LINE_COUNT = 3
-
 
 class ECImporter(importer.ImporterProtocol):
     def __init__(
@@ -90,10 +88,9 @@ class ECImporter(importer.ImporterProtocol):
             self._extract_empty_line(fd)
             line_index += 1
 
-            self._extract_meta(fd, line_index)
-            line_index += META_LINE_COUNT
+            # Read metadata lines until the next empty line
 
-            self._extract_empty_line(fd)
+            line_index += self._extract_meta(fd, line_index)
             line_index += 1
 
             # Data entries
@@ -214,8 +211,13 @@ class ECImporter(importer.ImporterProtocol):
         if line:
             raise InvalidFormatError()
 
-    def _extract_meta(self, fd, line_index):
-        lines = [fd.readline().strip() for _ in range(META_LINE_COUNT)]
+    def _extract_meta(self, fd, line_index) -> int:
+        lines = []
+
+        for line in fd:
+            if not line.strip():
+                break
+            lines.append(line)
 
         reader = csv.reader(
             lines, delimiter=";", quoting=csv.QUOTE_MINIMAL, quotechar='"'
@@ -243,3 +245,5 @@ class ECImporter(importer.ImporterProtocol):
                     key.lstrip("Kontostand vom ").rstrip(":"), "%d.%m.%Y"
                 ).date() + timedelta(days=1)
                 self._closing_balance_index = index + line_index
+
+        return len(lines)
