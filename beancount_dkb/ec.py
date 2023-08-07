@@ -1,6 +1,6 @@
 import csv
 from datetime import datetime, timedelta
-from typing import Optional, Sequence
+from typing import Optional, Sequence, Dict
 from functools import partial
 import warnings
 
@@ -194,7 +194,7 @@ class ECImporter(importer.ImporterProtocol):
 
         raise InvalidFormatError()
 
-    def _update_meta(self, meta: dict[str, str]):
+    def _update_meta(self, meta: Dict[str, str]):
         for key, value in meta.items():
             if key.startswith("Von"):
                 self._date_from = datetime.strptime(value.value, "%d.%m.%Y").date()

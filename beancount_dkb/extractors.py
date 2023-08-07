@@ -1,7 +1,7 @@
 import csv
 from collections import namedtuple
 import re
-from typing import Optional, IO
+from typing import Optional, IO, Dict
 
 from .helpers import InvalidFormatError
 
@@ -16,7 +16,7 @@ class BaseExtractor:
     def is_empty_line(self, fd: IO) -> bool:
         raise NotImplementedError()
 
-    def parse_amount(self, line: dict[str, str]) -> str:
+    def parse_amount(self, line: Dict[str, str]) -> str:
         raise NotImplementedError()
 
     def extract_header(self, fd: IO):
@@ -31,7 +31,7 @@ class BaseExtractor:
         if not self.is_empty_line(line):
             raise InvalidFormatError("Expected empty line")
 
-    def extract_meta(self, fd: IO, line_index: int) -> dict[str, str]:
+    def extract_meta(self, fd: IO, line_index: int) -> Dict[str, str]:
         lines = []
 
         for line in fd:
@@ -84,28 +84,28 @@ class V1Extractor(BaseExtractor):
     def is_empty_line(self, line: str) -> bool:
         return line == ""
 
-    def parse_amount(self, line: dict[str, str]) -> str:
+    def parse_amount(self, line: Dict[str, str]) -> str:
         return line["Betrag (EUR)"]
 
-    def parse_purpose(self, line: dict[str, str]) -> str:
+    def parse_purpose(self, line: Dict[str, str]) -> str:
         return line["Verwendungszweck"]
 
-    def parse_account_number(self, line: dict[str, str]) -> str:
+    def parse_account_number(self, line: Dict[str, str]) -> str:
         return line["Kontonummer"]
 
-    def parse_booking_text(self, line: dict[str, str]) -> str:
+    def parse_booking_text(self, line: Dict[str, str]) -> str:
         return line["Buchungstext"]
 
-    def parse_booking_date(self, line: dict[str, str]) -> str:
+    def parse_booking_date(self, line: Dict[str, str]) -> str:
         return line["Buchungstag"]
 
-    def parse_description(self, line: dict[str, str]) -> str:
+    def parse_description(self, line: Dict[str, str]) -> str:
         purpose = self.parse_purpose(line) or self.parse_account_number(line)
         booking_text = self.parse_booking_text(line)
 
         return f"{booking_text} {purpose}" if not self.meta_code else purpose
 
-    def parse_payee(self, line: dict[str, str]) -> str:
+    def parse_payee(self, line: Dict[str, str]) -> str:
         return line["Auftraggeber / Begünstigter"]
 
 
