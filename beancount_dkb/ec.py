@@ -80,28 +80,7 @@ class ECImporter(importer.ImporterProtocol):
             # Read metadata lines until the next empty line
 
             meta = extractor.extract_meta(fd, line_index)
-
-            for key, value in meta.items():
-                if key.startswith("Von"):
-                    self._date_from = datetime.strptime(value.value, "%d.%m.%Y").date()
-                elif key.startswith("Bis"):
-                    self._date_to = datetime.strptime(value.value, "%d.%m.%Y").date()
-                elif key.startswith("Kontostand vom"):
-                    # Beancount expects the balance amount to be from the
-                    # beginning of the day, while the Tagessaldo entries in
-                    # the DKB exports seem to be from the end of the day.
-                    # So when setting the balance date, we add a timedelta
-                    # of 1 day to the original value to make the balance
-                    # assertions work.
-
-                    self._balance_amount = Amount(
-                        fmt_number_de(value.value.rstrip(" EUR")), self.currency
-                    )
-                    self._balance_date = datetime.strptime(
-                        key.lstrip("Kontostand vom ").rstrip(":"), "%d.%m.%Y"
-                    ).date() + timedelta(days=1)
-                    self._closing_balance_index = value.line_index
-
+            self._update_meta(meta)
             line_index += 1 + len(meta)
 
             # Data entries
@@ -215,3 +194,25 @@ class ECImporter(importer.ImporterProtocol):
             return self._v2_extractor
 
         raise InvalidFormatError()
+
+    def _update_meta(self, meta: dict[str, str]):
+        for key, value in meta.items():
+            if key.startswith("Von"):
+                self._date_from = datetime.strptime(value.value, "%d.%m.%Y").date()
+            elif key.startswith("Bis"):
+                self._date_to = datetime.strptime(value.value, "%d.%m.%Y").date()
+            elif key.startswith("Kontostand vom"):
+                # Beancount expects the balance amount to be from the
+                # beginning of the day, while the Tagessaldo entries in
+                # the DKB exports seem to be from the end of the day.
+                # So when setting the balance date, we add a timedelta
+                # of 1 day to the original value to make the balance
+                # assertions work.
+
+                self._balance_amount = Amount(
+                    fmt_number_de(value.value.rstrip(" EUR")), self.currency
+                )
+                self._balance_date = datetime.strptime(
+                    key.lstrip("Kontostand vom ").rstrip(":"), "%d.%m.%Y"
+                ).date() + timedelta(days=1)
+                self._closing_balance_index = value.line_index
