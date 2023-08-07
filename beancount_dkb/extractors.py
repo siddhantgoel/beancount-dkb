@@ -3,6 +3,8 @@ from collections import namedtuple
 import re
 from typing import Optional, IO
 
+from .helpers import InvalidFormatError
+
 
 Meta = namedtuple("Meta", ["value", "line_index"])
 

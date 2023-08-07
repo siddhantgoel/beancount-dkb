@@ -1,7 +1,6 @@
 import csv
-import re
 from datetime import datetime, timedelta
-from typing import Optional, Sequence, IO
+from typing import Optional, Sequence
 from functools import partial
 import warnings
 
