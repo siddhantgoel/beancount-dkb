@@ -80,7 +80,7 @@ class ECImporter(importer.ImporterProtocol):
 
             meta = extractor.extract_meta(fd, line_index)
             self._update_meta(meta)
-            line_index += 1 + len(meta)
+            line_index += len(meta) + 1
 
             # Data entries
             reader = csv.DictReader(
@@ -93,16 +93,14 @@ class ECImporter(importer.ImporterProtocol):
                 meta = data.new_metadata(file.name, line_index)
 
                 amount = None
-                if extractor.parse_amount(line):
+                if extractor.get_amount(line):
                     amount = Amount(
-                        fmt_number_de(extractor.parse_amount(line)), self.currency
+                        fmt_number_de(extractor.get_amount(line)), self.currency
                     )
 
-                date = datetime.strptime(
-                    extractor.parse_booking_date(line), "%d.%m.%Y"
-                ).date()
+                date = extractor.get_booking_date(line)
 
-                if extractor.parse_purpose(line) == "Tagessaldo":
+                if extractor.get_purpose(line) == "Tagessaldo":
                     if amount:
                         entries.append(
                             data.Balance(
@@ -116,10 +114,10 @@ class ECImporter(importer.ImporterProtocol):
                         )
                 else:
                     if self.meta_code:
-                        meta[self.meta_code] = extractor.parse_booking_text(line)
+                        meta[self.meta_code] = extractor.get_booking_text(line)
 
-                    description = extractor.parse_description(line)
-                    payee = extractor.parse_payee(line)
+                    description = extractor.get_description(line)
+                    payee = extractor.get_payee(line)
 
                     postings = [
                         new_posting(account=self.account, units=amount),
