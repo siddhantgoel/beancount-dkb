@@ -9,7 +9,7 @@ from beancount.core.amount import Amount
 from beancount.ingest import importer
 
 from .helpers import AccountMatcher, fmt_number_de, InvalidFormatError
-from .extractors import V1Extractor, V2Extractor
+from .extractors.ec import V1Extractor, V2Extractor
 
 
 new_posting = partial(data.Posting, cost=None, price=None, flag=None, meta=None)

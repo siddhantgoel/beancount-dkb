@@ -4,7 +4,7 @@ from collections import namedtuple
 import re
 from typing import Optional, IO, Dict
 
-from .helpers import InvalidFormatError
+from ..helpers import InvalidFormatError
 
 
 Meta = namedtuple("Meta", ["value", "line_index"])
