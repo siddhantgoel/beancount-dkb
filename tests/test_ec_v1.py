@@ -6,7 +6,7 @@ from beancount.core.data import Amount, Balance
 import pytest
 
 from beancount_dkb import ECImporter
-from beancount_dkb.ec import V1Extractor
+from beancount_dkb.extractors.ec import V1Extractor
 
 
 FORMATTED_IBAN = "DE99 9999 9999 9999 9999 99"

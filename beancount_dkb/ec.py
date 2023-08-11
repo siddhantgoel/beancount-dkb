@@ -8,7 +8,8 @@ from beancount.core import data
 from beancount.core.amount import Amount
 from beancount.ingest import importer
 
-from .helpers import AccountMatcher, fmt_number_de, InvalidFormatError
+from .exceptions import InvalidFormatError
+from .helpers import AccountMatcher, fmt_number_de
 from .extractors.ec import V1Extractor, V2Extractor
 
 

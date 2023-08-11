@@ -4,7 +4,7 @@ from collections import namedtuple
 import re
 from typing import Optional, IO, Dict
 
-from ..helpers import InvalidFormatError
+from ..exceptions import InvalidFormatError
 
 
 Meta = namedtuple("Meta", ["value", "line_index"])
@@ -16,7 +16,7 @@ class BaseExtractor:
 
         raise NotImplementedError()
 
-    def is_empty_line(self, fd: IO) -> bool:
+    def is_empty_line(self, line: str) -> bool:
         """Return true if the line is an empty line"""
 
         raise NotImplementedError()
@@ -33,7 +33,7 @@ class BaseExtractor:
         if not self.is_empty_line(line):
             raise InvalidFormatError("Expected empty line")
 
-    def extract_meta(self, fd: IO, line_index: int) -> Dict[str, str]:
+    def extract_meta(self, fd: IO, line_index: int) -> Dict[str, Meta]:
         lines = []
 
         for line in fd:
