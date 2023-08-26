@@ -53,6 +53,7 @@ class CreditImporter(importer.ImporterProtocol):
 
         self._balance_date = None
         self._balance_amount = None
+        self._closing_balance_index = -1
 
     def name(self):
         return "DKB {}".format(self.__class__.__name__)
@@ -80,7 +81,6 @@ class CreditImporter(importer.ImporterProtocol):
     def extract(self, file, existing_entries=None):
         entries = []
         line_index = 0
-        closing_balance_index = -1
 
         with open(file.name, encoding=self.file_encoding) as fd:
             extractor = self._get_extractor(fd.readline().strip())
@@ -140,7 +140,7 @@ class CreditImporter(importer.ImporterProtocol):
                 )
 
             # Closing Balance
-            meta = data.new_metadata(file.name, closing_balance_index)
+            meta = data.new_metadata(file.name, self._closing_balance_index)
             entries.append(
                 data.Balance(
                     meta,
@@ -172,7 +172,7 @@ class CreditImporter(importer.ImporterProtocol):
                 self._balance_amount = Amount(
                     Decimal(value.value.rstrip(" EUR")), self.currency
                 )
-                closing_balance_index = value.line_index
+                self._closing_balance_index = value.line_index
                 if key.startswith("Saldo vom"):
                     self._balance_date = datetime.strptime(
                         key.replace("Saldo vom ", "").replace(":", ""),
