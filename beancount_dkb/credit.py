@@ -8,7 +8,7 @@ from beancount.core.number import Decimal
 from beancount.ingest import importer
 
 from .exceptions import InvalidFormatError
-from .extractors.credit import V1Extractor
+from .extractors.credit import V1Extractor, V2Extractor
 from .helpers import AccountMatcher, fmt_number_de
 
 
@@ -28,6 +28,7 @@ class CreditImporter(importer.ImporterProtocol):
         self.description_matcher = AccountMatcher(description_patterns)
 
         self._v1_extractor = V1Extractor(self.card_number)
+        self._v2_extractor = V2Extractor(self.card_number)
 
         self._date_from = None
         self._date_to = None
@@ -72,7 +73,9 @@ class CreditImporter(importer.ImporterProtocol):
         with open(file.name, encoding=self.file_encoding) as fd:
             line = fd.readline().strip()
 
-        return self._v1_extractor.matches_header(line)
+        return self._v1_extractor.matches_header(
+            line
+        ) or self._v2_extractor.matches_header(line)
 
     def extract(self, file, existing_entries=None):
         entries = []
@@ -105,9 +108,7 @@ class CreditImporter(importer.ImporterProtocol):
                     fmt_number_de(extractor.get_amount(line)), self.currency
                 )
 
-                date = datetime.strptime(
-                    extractor.get_valuation_date(line), "%d.%m.%Y"
-                ).date()
+                date = extractor.get_valuation_date(line)
 
                 description = extractor.get_description(line)
 
@@ -156,6 +157,8 @@ class CreditImporter(importer.ImporterProtocol):
     def _get_extractor(self, line: str):
         if self._v1_extractor.matches_header(line):
             return self._v1_extractor
+        elif self._v2_extractor.matches_header(line):
+            return self._v2_extractor
 
         raise InvalidFormatError()
 
@@ -170,6 +173,11 @@ class CreditImporter(importer.ImporterProtocol):
                     Decimal(value.value.rstrip(" EUR")), self.currency
                 )
                 closing_balance_index = value.line_index
+                if key.startswith("Saldo vom"):
+                    self._balance_date = datetime.strptime(
+                        key.replace("Saldo vom ", "").replace(":", ""),
+                        "%d.%m.%Y",
+                    ).date()
             elif key.startswith("Datum"):
                 self._file_date = datetime.strptime(value.value, "%d.%m.%Y").date()
                 self._balance_date = self._file_date + timedelta(days=1)

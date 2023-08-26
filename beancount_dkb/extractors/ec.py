@@ -59,7 +59,7 @@ class BaseExtractor:
     def get_amount(self, line: Dict[str, str]) -> str:
         raise NotImplementedError()
 
-    def get_booking_date(self, line: Dict[str, str]) -> str:
+    def get_booking_date(self, line: Dict[str, str]) -> date:
         raise NotImplementedError()
 
     def get_booking_text(self, line: Dict[str, str]) -> str:
