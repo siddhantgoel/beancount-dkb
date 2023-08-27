@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# v0.16.0
+
+- Support CSV files from new online banking interface
+- Drop support for Python 3.7
+
 # v0.15.0
 
 - Allow pattern-matching transactions in `ECImporter` against description strings
