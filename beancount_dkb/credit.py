@@ -1,4 +1,5 @@
 import csv
+from typing import Dict
 from datetime import datetime, timedelta
 
 from beancount.core import data
@@ -6,16 +7,9 @@ from beancount.core.amount import Amount
 from beancount.core.number import Decimal
 from beancount.ingest import importer
 
-from .helpers import AccountMatcher, fmt_number_de, InvalidFormatError
-
-FIELDS = (
-    "Umsatz abgerechnet und nicht im Saldo enthalten",
-    "Wertstellung",
-    "Belegdatum",
-    "Beschreibung",
-    "Betrag (EUR)",
-    "Ursprünglicher Betrag",
-)
+from .exceptions import InvalidFormatError
+from .extractors.credit import V1Extractor, V2Extractor
+from .helpers import AccountMatcher, fmt_number_de
 
 
 class CreditImporter(importer.ImporterProtocol):
@@ -33,11 +27,8 @@ class CreditImporter(importer.ImporterProtocol):
         self.file_encoding = file_encoding
         self.description_matcher = AccountMatcher(description_patterns)
 
-        self._expected_headers = (
-            '"Kreditkarte:";"{} Kreditkarte";'.format(self.card_number),
-            '"Kreditkarte:";"{}";'.format(self.card_number),
-            f'"Kreditkarte:";"{card_number[:4]}********{card_number[-4:]}";',
-        )
+        self._v1_extractor = V1Extractor(self.card_number)
+        self._v2_extractor = V2Extractor(self.card_number)
 
         self._date_from = None
         self._date_to = None
@@ -62,6 +53,7 @@ class CreditImporter(importer.ImporterProtocol):
 
         self._balance_date = None
         self._balance_amount = None
+        self._closing_balance_index = -1
 
     def name(self):
         return "DKB {}".format(self.__class__.__name__)
@@ -69,8 +61,8 @@ class CreditImporter(importer.ImporterProtocol):
     def file_account(self, _):
         return self.account
 
-    def file_date(self, file_):
-        self.extract(file_)
+    def file_date(self, file):
+        self.extract(file)
 
         # in case the file contains start/end dates, return the end date
         # if not, then the file was based on a time period (Zeitraum), so we
@@ -78,56 +70,31 @@ class CreditImporter(importer.ImporterProtocol):
 
         return self._date_to or self._file_date
 
-    def is_valid_header(self, line):
-        return any(line.startswith(header) for header in self._expected_headers)
-
-    def identify(self, file_):
-        with open(file_.name, encoding=self.file_encoding) as fd:
+    def identify(self, file):
+        with open(file.name, encoding=self.file_encoding) as fd:
             line = fd.readline().strip()
 
-        return self.is_valid_header(line)
+        return self._v1_extractor.matches_header(
+            line
+        ) or self._v2_extractor.matches_header(line)
 
-    def extract(self, file_, existing_entries=None):
+    def extract(self, file, existing_entries=None):
         entries = []
         line_index = 0
-        closing_balance_index = -1
 
-        with open(file_.name, encoding=self.file_encoding) as fd:
-            self._extract_header(fd)
+        with open(file.name, encoding=self.file_encoding) as fd:
+            extractor = self._get_extractor(fd.readline().strip())
+
             line_index += 1
 
-            self._extract_empty_line(fd)
+            extractor.extract_empty_line(fd)
             line_index += 1
 
             # Read metadata lines until the next empty line
-            lines = []
 
-            for line in fd:
-                if not line.strip():
-                    break
-                lines.append(line)
-
-            # Meta
-            reader = csv.reader(
-                lines, delimiter=";", quoting=csv.QUOTE_MINIMAL, quotechar='"'
-            )
-
-            for line in reader:
-                key, value, _ = line
-                line_index += 1
-
-                if key.startswith("Von"):
-                    self._date_from = datetime.strptime(value, "%d.%m.%Y").date()
-                elif key.startswith("Bis"):
-                    self._date_to = datetime.strptime(value, "%d.%m.%Y").date()
-                elif key.startswith("Saldo"):
-                    self._balance_amount = Amount(
-                        Decimal(value.rstrip(" EUR")), self.currency
-                    )
-                    closing_balance_index = line_index
-                elif key.startswith("Datum"):
-                    self._file_date = datetime.strptime(value, "%d.%m.%Y").date()
-                    self._balance_date = self._file_date + timedelta(days=1)
+            meta = extractor.extract_meta(fd, line_index)
+            self._update_meta(meta)
+            line_index += len(meta) + 1
 
             # Data entries
             reader = csv.DictReader(
@@ -135,13 +102,15 @@ class CreditImporter(importer.ImporterProtocol):
             )
 
             for index, line in enumerate(reader):
-                meta = data.new_metadata(file_.name, index)
+                meta = data.new_metadata(file.name, index)
 
-                amount = Amount(fmt_number_de(line["Betrag (EUR)"]), self.currency)
+                amount = Amount(
+                    fmt_number_de(extractor.get_amount(line)), self.currency
+                )
 
-                date = datetime.strptime(line["Wertstellung"], "%d.%m.%Y").date()
+                date = extractor.get_valuation_date(line)
 
-                description = line["Beschreibung"]
+                description = extractor.get_description(line)
 
                 postings = [data.Posting(self.account, amount, None, None, None, None)]
 
@@ -171,7 +140,7 @@ class CreditImporter(importer.ImporterProtocol):
                 )
 
             # Closing Balance
-            meta = data.new_metadata(file_.name, closing_balance_index)
+            meta = data.new_metadata(file.name, self._closing_balance_index)
             entries.append(
                 data.Balance(
                     meta,
@@ -185,14 +154,30 @@ class CreditImporter(importer.ImporterProtocol):
 
         return entries
 
-    def _extract_header(self, fd):
-        line = fd.readline().strip()
+    def _get_extractor(self, line: str):
+        if self._v1_extractor.matches_header(line):
+            return self._v1_extractor
+        elif self._v2_extractor.matches_header(line):
+            return self._v2_extractor
 
-        if not self.is_valid_header(line):
-            raise InvalidFormatError()
+        raise InvalidFormatError()
 
-    def _extract_empty_line(self, fd):
-        line = fd.readline().strip()
-
-        if line:
-            raise InvalidFormatError()
+    def _update_meta(self, meta: Dict[str, str]):
+        for key, value in meta.items():
+            if key.startswith("Von"):
+                self._date_from = datetime.strptime(value.value, "%d.%m.%Y").date()
+            elif key.startswith("Bis"):
+                self._date_to = datetime.strptime(value.value, "%d.%m.%Y").date()
+            elif key.startswith("Saldo"):
+                self._balance_amount = Amount(
+                    Decimal(value.value.rstrip(" EUR")), self.currency
+                )
+                self._closing_balance_index = value.line_index
+                if key.startswith("Saldo vom"):
+                    self._balance_date = datetime.strptime(
+                        key.replace("Saldo vom ", "").replace(":", ""),
+                        "%d.%m.%Y",
+                    ).date()
+            elif key.startswith("Datum"):
+                self._file_date = datetime.strptime(value.value, "%d.%m.%Y").date()
+                self._balance_date = self._file_date + timedelta(days=1)

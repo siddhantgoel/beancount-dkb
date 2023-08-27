@@ -6,11 +6,11 @@ from beancount.core.data import Amount, Balance
 import pytest
 
 from beancount_dkb import CreditImporter
-from beancount_dkb.credit import FIELDS
+from beancount_dkb.extractors.credit import V1Extractor
 
 CARD_NUMBER = "1234********5678"
 
-HEADER = ";".join('"{}"'.format(field) for field in FIELDS)
+HEADER = ";".join('"{}"'.format(field) for field in V1Extractor.FIELDS)
 
 
 def _format(string, kwargs):
