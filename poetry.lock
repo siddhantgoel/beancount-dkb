@@ -2,20 +2,47 @@
 
 [[package]]
 name = "beancount"
-version = "2.3.5"
+version = "2.3.6"
 description = "Command-line Double-Entry Accounting"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.7"
 files = [
-    {file = "beancount-2.3.5-cp36-cp36m-macosx_10_14_x86_64.whl", hash = "sha256:c633fb96dedfb7b0473f1a79d49c43c90501163bee5263acc8d6b26d43161a1b"},
-    {file = "beancount-2.3.5-cp36-cp36m-win_amd64.whl", hash = "sha256:4f7138db409a142583a481f23855029680284bef57fad3f2ed65c737014de834"},
-    {file = "beancount-2.3.5-cp37-cp37m-macosx_10_14_x86_64.whl", hash = "sha256:09b735db1a6bf56094243c4aada6e102f0fac0a29adf3222f67a2e995ec24adb"},
-    {file = "beancount-2.3.5-cp37-cp37m-win_amd64.whl", hash = "sha256:ce967f1b32b48e31eac1d669072ef788813ef7edcd62651c6247f71b4bbf891f"},
-    {file = "beancount-2.3.5-cp38-cp38-macosx_10_14_x86_64.whl", hash = "sha256:3fb45bffd2ec846dba78476dde670979ff26de725d5b3fb3ea9222583aa0763b"},
-    {file = "beancount-2.3.5-cp38-cp38-win_amd64.whl", hash = "sha256:14631f3599778bca51af496223d44c82983eef40e90cd60a6046bd1d01b9a66f"},
-    {file = "beancount-2.3.5-cp39-cp39-macosx_10_15_x86_64.whl", hash = "sha256:66949af8cbe0035e6e08e1a66715ac210b36a7a2e7f24e59b91c163315962899"},
-    {file = "beancount-2.3.5-cp39-cp39-win_amd64.whl", hash = "sha256:bf41641339ea68af5edf434bda74bd694947cb8dfd4436d7f28da0e4de6683f2"},
-    {file = "beancount-2.3.5.tar.gz", hash = "sha256:14e35625a2e9cbd43cae6178da08cb3f1224f6261e541ca6726df35d98e9c36a"},
+    {file = "beancount-2.3.6-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:d82809301de412e4a41bb9fc741ff4f1da8ac65d7f31a9948d89ccc162f0598f"},
+    {file = "beancount-2.3.6-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:974c687e604a1fc164dfaf73cf5e5a3001a649da95cadd34de11d8324a150c40"},
+    {file = "beancount-2.3.6-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:dd2d512f929ee89faae60e0cb777afd013fceff35873bf58f946af0b9777b9f5"},
+    {file = "beancount-2.3.6-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:4bb50339e987ef2cca6da0dec3156a1555a8b6ace3c4ad25b834c634b88d86fa"},
+    {file = "beancount-2.3.6-cp310-cp310-win32.whl", hash = "sha256:d883d0028e1a8d9c7c830e8f527a50229c217a417fcd3e9fb01cdb8a43c62038"},
+    {file = "beancount-2.3.6-cp310-cp310-win_amd64.whl", hash = "sha256:dc54ec7d0fabdb62c737e9e1e7b1c9701dfd95a444b604b74632253d06f01c29"},
+    {file = "beancount-2.3.6-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:32717b9e95f41cbd41feb5d132d330bff767015c01199be833a409c6f503f4ce"},
+    {file = "beancount-2.3.6-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:eb4c916b42b5c15f2da6b6c84dd2a137221f47d84269ea12c635dbeade929e50"},
+    {file = "beancount-2.3.6-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:81ef8abef1a7fb7914e5e96baf927f9ef00841d3cd3b9e7f6ef5351d9a30c58b"},
+    {file = "beancount-2.3.6-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:bca45b3baf889789786c6daca8b2cb0cdd4a9de2451076d7750f4321cb121798"},
+    {file = "beancount-2.3.6-cp311-cp311-win32.whl", hash = "sha256:147beb06cb52b6cd12fa5dd2595b8d6a3f5b7212ad634256ac7dd4b84441a285"},
+    {file = "beancount-2.3.6-cp311-cp311-win_amd64.whl", hash = "sha256:1ed8815576f1525b362601d3bd6f526d8fb8d34f83afe0ac34e7ddc6132f9df6"},
+    {file = "beancount-2.3.6-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:989af650715fee84e0966d1b7109d2d774d2227686434bb19c1653dfbcd9b076"},
+    {file = "beancount-2.3.6-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:50ef6c0f3035f44b8fc1b70b8999c12ea6ea7825e2a67c66660456aac3ed2f37"},
+    {file = "beancount-2.3.6-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:1f39cbb0ca36b2e764badabfbf88ff53a07dd2b60895bda621ea35facf29303d"},
+    {file = "beancount-2.3.6-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:3ab028f40727a6348d1bb282de05e02ddef76ede5d83a67e15033371c8edaec0"},
+    {file = "beancount-2.3.6-cp312-cp312-win32.whl", hash = "sha256:dac48134124089f0c0c75840e69d522fb14e2a8e8e4b4950ec4d29fc55e9d48f"},
+    {file = "beancount-2.3.6-cp312-cp312-win_amd64.whl", hash = "sha256:f60a84cc9c730b1e8f3f7f32b5b4e21b9324256ead054f053dc480ee3da7d520"},
+    {file = "beancount-2.3.6-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:8d457a9a8495d456a8c36754769ed26f45726c736c01beec69963929e7423e8f"},
+    {file = "beancount-2.3.6-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:42b7ac1c1656232f7bc179723f626a63e91337928cc03335fddcc9de36055f77"},
+    {file = "beancount-2.3.6-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:204db0ea166e124fd17ead37f1dab20b9eee048c01c24b9dc0bb1c342e70b9e1"},
+    {file = "beancount-2.3.6-cp37-cp37m-win32.whl", hash = "sha256:c99ddec92145bfb029066395ed9815833b60f5a627feb1051a19912d3c8a26d2"},
+    {file = "beancount-2.3.6-cp37-cp37m-win_amd64.whl", hash = "sha256:e438209f95c3bc6f277251952bf0f4cdbfd2426faed5f18962c20ad9b89fdf72"},
+    {file = "beancount-2.3.6-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:fc494a82962842215dede97b32b4e1c169d19ea075be6525d05c51cdbf984ebf"},
+    {file = "beancount-2.3.6-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:d23ecda2893cf295e17705ae65d04add422dffe3979cb891395fedfa1eb573d8"},
+    {file = "beancount-2.3.6-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:cd5fcd9f3dcc5ebf8dd1c092367c24d7e12b78778492285b24902aeb92b396f6"},
+    {file = "beancount-2.3.6-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:8ed8540d44476272b76ecc221af0d83e913d578430cbd9a1c67b981d93513962"},
+    {file = "beancount-2.3.6-cp38-cp38-win32.whl", hash = "sha256:0246569208883042d14f35112af31b1ca4ac1477db2050e3e0dd0f718887cab1"},
+    {file = "beancount-2.3.6-cp38-cp38-win_amd64.whl", hash = "sha256:1273e97b2a642917f4dad078fd42e23fcfbb6ffc89e987f07f664103305e9df6"},
+    {file = "beancount-2.3.6-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:8dc71b4b529be4034e26c16541c70a64cb43c20720776db3ff995403466108f3"},
+    {file = "beancount-2.3.6-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:3b8889e287674938c6ff953f77affc8e550c636e630f6b26157634fdb98ac412"},
+    {file = "beancount-2.3.6-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:8f8300a45e0ecf2230f3f10c584bed41422db261b9421714173e2c31ece16695"},
+    {file = "beancount-2.3.6-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:83108e60f697cd2b67d3b21731cf803d85a2419a54307a2ec8f20fbddb41e7c6"},
+    {file = "beancount-2.3.6-cp39-cp39-win32.whl", hash = "sha256:374ec294a07b8381aa34067749b145591f323da09e0f6c35685d573b23422aa6"},
+    {file = "beancount-2.3.6-cp39-cp39-win_amd64.whl", hash = "sha256:bf6eeacf27bb7681c28e868e4f3c99f5b738d3376519d2aab9200063d14167a7"},
+    {file = "beancount-2.3.6.tar.gz", hash = "sha256:801f93bed6b57d2e22436688c489d5a1bf1f76e210f3ced18680757e60d3475a"},
 ]
 
 [package.dependencies]
@@ -24,6 +51,7 @@ bottle = "*"
 chardet = "*"
 google-api-python-client = "*"
 lxml = "*"
+pdfminer2 = "*"
 ply = "*"
 pytest = "*"
 python-dateutil = "*"
@@ -573,6 +601,22 @@ files = [
     {file = "pathspec-0.11.0-py3-none-any.whl", hash = "sha256:3a66eb970cbac598f9e5ccb5b2cf58930cd8e3ed86d393d541eaf2d8b1705229"},
     {file = "pathspec-0.11.0.tar.gz", hash = "sha256:64d338d4e0914e91c1792321e6907b5a593f1ab1851de7fc269557a21b30ebbc"},
 ]
+
+[[package]]
+name = "pdfminer2"
+version = "20151206"
+description = "PDF parser and analyzer"
+optional = false
+python-versions = "*"
+files = [
+    {file = "pdfminer2-20151206-py2-none-any.whl", hash = "sha256:92fb0639d8d4619be3b87147c89c2170602a8fefc9ef1933241822d3c3aff6e7"},
+    {file = "pdfminer2-20151206-py2.py3-none-any.whl", hash = "sha256:e068619af33a3d323093a4dde56ae9e2b1bb344d3ecbc3110e448ba8042acc3e"},
+    {file = "pdfminer2-20151206.macosx-10.10-x86_64.tar.gz", hash = "sha256:9c0599bfde105a8d58e3f679c31ab84871dc9bd3debf1be6511e1abaa4db867f"},
+    {file = "pdfminer2-20151206.tar.gz", hash = "sha256:7d05aa3dd1e779080fef13aef454501b51a3f7649d7f18e78c640bdbd34e1e77"},
+]
+
+[package.dependencies]
+six = "*"
 
 [[package]]
 name = "platformdirs"
