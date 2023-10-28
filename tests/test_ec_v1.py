@@ -47,6 +47,28 @@ def test_identify_correct(tmp_file):
         assert importer.identify(fd)
 
 
+def test_identify_tagesgeld(tmp_file):
+    importer = ECImporter(IBAN, "Assets:DKB:EC")
+
+    tmp_file.write_text(
+        _format(
+            """
+            "Kontonummer:";"{iban} / Tagesgeld";
+
+            "Von:";"01.01.2018";
+            "Bis:";"31.01.2018";
+            "Kontostand vom 31.01.2018:";"5.000,01 EUR";
+
+            {header};
+            """,
+            dict(iban=IBAN, header=HEADER),
+        )
+    )
+
+    with tmp_file.open() as fd:
+        assert importer.identify(fd)
+
+
 def test_identify_with_nonstandard_account_name(tmp_file):
     importer = ECImporter(IBAN, "Assets:DKB:EC")
 
@@ -169,6 +191,49 @@ def test_extract_transactions(tmp_file):
         _format(
             """
             "Kontonummer:";"{iban} / Girokonto";
+
+            "Von:";"01.01.2018";
+            "Bis:";"31.01.2018";
+            "Kontostand vom 31.01.2018:";"5.000,01 EUR";
+
+            {header};
+            "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
+            "06.05.2020";"06.05.2020";"Gutschrift";"From Someone";"";"DE88700222000012345678";"FDDODEMMXXX";"1,00";"";"";"NOTPROVIDED";
+            """,  # NOQA
+            dict(iban=IBAN, header=HEADER),
+        )
+    )
+
+    importer = ECImporter(IBAN, "Assets:DKB:EC", file_encoding="utf-8")
+
+    with tmp_file.open() as fd:
+        directives = importer.extract(fd)
+
+    assert len(directives) == 3
+    assert directives[0].date == datetime.date(2018, 1, 16)
+    assert directives[0].payee == "REWE Filialen Voll"
+    assert directives[0].narration == "Lastschrift REWE SAGT DANKE."
+
+    assert len(directives[0].postings) == 1
+    assert directives[0].postings[0].account == "Assets:DKB:EC"
+    assert directives[0].postings[0].units.currency == "EUR"
+    assert directives[0].postings[0].units.number == Decimal("-15.37")
+
+    assert directives[1].date == datetime.date(2020, 5, 6)
+    assert directives[1].payee == "From Someone"
+    assert directives[1].narration == "Gutschrift DE88700222000012345678"
+
+    assert len(directives[1].postings) == 1
+    assert directives[1].postings[0].account == "Assets:DKB:EC"
+    assert directives[1].postings[0].units.currency == "EUR"
+    assert directives[1].postings[0].units.number == Decimal("1.00")
+
+
+def test_extract_tagesgeld(tmp_file):
+    tmp_file.write_text(
+        _format(
+            """
+            "Kontonummer:";"{iban} / Tagesgeld";
 
             "Von:";"01.01.2018";
             "Bis:";"31.01.2018";

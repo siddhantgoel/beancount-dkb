@@ -48,6 +48,29 @@ def test_identify_correct(tmp_file):
         assert importer.identify(fd)
 
 
+def test_identify_tagesgeld(tmp_file):
+    importer = ECImporter(IBAN, "Assets:DKB:EC")
+
+    tmp_file.write_text(
+        _format(
+            """
+            "Konto";"Tagesgeld {iban}";
+            ""
+            "Von:";"01.01.2023";
+            "Bis:";"31.01.2023";
+            "Kontostand vom 31.01.2023:";"5.000,01 EUR";
+            ""
+            {header};
+            "15.01.23";"15.01.23";"Gebucht";"ISSUER";"EDEKA//MUENCHEN/DE";"2023-01-15T10:10";"Ausgang";"-9,56 €";"DE0000000000000000";"";"00000000000000000000000000"
+            """,  # NOQA
+            dict(iban=IBAN, header=HEADER),
+        )
+    )
+
+    with tmp_file.open() as fd:
+        assert importer.identify(fd)
+
+
 def test_identify_with_nonstandard_account_name(tmp_file):
     importer = ECImporter(IBAN, "Assets:DKB:EC")
 
@@ -148,6 +171,52 @@ def test_extract_transactions(tmp_file):
         _format(
             """
             "Konto";"Girokonto {iban}"
+            ""
+            "Kontostand vom 31.01.2023:";"5001,01 EUR"
+            ""
+            {header}
+            "15.01.23";"15.01.23";"Gebucht";"ISSUER";"EDEKA//MUENCHEN/DE";"EDEKA SAGT DANKE";"Ausgang";"-9,56 €";"DE0000000000000000";"";"00000000000000000000000000"
+            "20.01.23";"20.01.23";"Gebucht";"COMPANY INC";"MAX MUSTERMANN";"Money";"Eingang";"100,00 €";"";"";""
+            """,  # NOQA
+            dict(iban=IBAN, header=HEADER),
+        )
+    )
+
+    importer = ECImporter(IBAN, "Assets:DKB:EC", file_encoding="utf-8")
+
+    with tmp_file.open() as fd:
+        directives = importer.extract(fd)
+
+    assert len(directives) == 3
+
+    # first directive
+
+    assert directives[0].date == datetime.date(2023, 1, 15)
+    assert directives[0].payee == "EDEKA//MUENCHEN/DE"
+    assert directives[0].narration == "EDEKA SAGT DANKE"
+
+    assert len(directives[0].postings) == 1
+    assert directives[0].postings[0].account == "Assets:DKB:EC"
+    assert directives[0].postings[0].units.currency == "EUR"
+    assert directives[0].postings[0].units.number == Decimal("-9.56")
+
+    # second directive
+
+    assert directives[1].date == datetime.date(2023, 1, 20)
+    assert directives[1].payee == "COMPANY INC"
+    assert directives[1].narration == "Money"
+
+    assert len(directives[1].postings) == 1
+    assert directives[1].postings[0].account == "Assets:DKB:EC"
+    assert directives[1].postings[0].units.currency == "EUR"
+    assert directives[1].postings[0].units.number == Decimal("100.00")
+
+
+def test_extract_tagesgeld(tmp_file):
+    tmp_file.write_text(
+        _format(
+            """
+            "Konto";"Tagesgeld {iban}"
             ""
             "Kontostand vom 31.01.2023:";"5001,01 EUR"
             ""
