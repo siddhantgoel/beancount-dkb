@@ -1,5 +1,9 @@
 # CHANGELOG
 
+# v0.17.0
+
+- Support Tagesgeld accounts
+
 # v0.16.0
 
 - Support CSV files from new online banking interface
