@@ -151,7 +151,7 @@ class V2Extractor(BaseExtractor):
 
     def __init__(self, iban: str, meta_code: Optional[str] = None):
         self._expected_header_regex = re.compile(
-            r'^"Konto";"Girokonto '
+            r'^"Konto";"(Girokonto|Tagesgeld) '
             + re.escape(re.sub(r"\s+", "", iban, flags=re.UNICODE)),
             re.IGNORECASE,
         )
