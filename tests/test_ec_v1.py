@@ -525,3 +525,29 @@ def test_extract_with_payee_and_description_patterns(tmp_file):
         "Line 8 matches both payee_patterns and description_patterns. "
         "Picking payee_pattern."
     )
+
+
+def test_extract_multiple_transactions(tmp_file):
+    # https://github.com/siddhantgoel/beancount-dkb/issues/123#issuecomment-1755167563
+    tmp_file.write_text(
+        _format(
+            """
+            "Kontonummer:";"{iban} / Girokonto";
+
+            "Von:";"03.08.2023";
+            "Bis:";"02.10.2023";
+            "Kontostand vom 02.10.2023:";"1.111,11 EUR";
+
+            {header}
+            "02.10.2023";"02.10.2023";"Kartenzahlung";"ALDI SUED";"2023-09-30      Debitk.11 VISA Debit";"11111111111111111111";"BYLADEM1001";"-16,45";"";"";"111111111111111";
+            """,
+            dict(iban=IBAN, header=HEADER),
+        )
+    )
+
+    importer = ECImporter(IBAN, "Assets:DKB:EC", file_encoding="utf-8")
+
+    with tmp_file.open() as fd:
+        directives = importer.extract(fd)
+
+    assert len(directives) == 2

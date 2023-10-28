@@ -379,3 +379,33 @@ def test_extract_with_description_patterns(tmp_file):
 
     assert directives[0].postings[1].account == "Expenses:Supermarket:REWE"
     assert directives[0].postings[1].units is None
+
+
+def test_extract_multiple_transactions(tmp_file):
+    # https://github.com/siddhantgoel/beancount-dkb/issues/123#issuecomment-1755167563
+    prefix = CARD_NUMBER[:4]
+    suffix = CARD_NUMBER[-4:]
+
+    tmp_file.write_text(
+        _format(
+            """
+            "Kreditkarte:";"{prefix}********{suffix}";
+
+            "Zeitraum:";"letzten 60 Tage";
+            "Saldo:";"1111.11 EUR";
+            "Datum:";"29.09.2023";
+
+            {header}
+            "Ja";"23.09.2023";"22.09.2023";"HabenzinsenZ 000001111 T 030   0000";"1,11";"";
+            "Ja";"23.08.2023";"22.08.2023";"HabenzinsenZ 000001111 T 031   0000";"1,11";"";
+            """,
+            dict(prefix=prefix, suffix=suffix, header=HEADER),
+        )
+    )
+
+    importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
+
+    with tmp_file.open() as fd:
+        directives = importer.extract(fd)
+
+    assert len(directives) == 3
