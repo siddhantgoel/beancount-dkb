@@ -540,7 +540,7 @@ def test_extract_multiple_transactions(tmp_file):
 
             {header}
             "02.10.2023";"02.10.2023";"Kartenzahlung";"ALDI SUED";"2023-09-30      Debitk.11 VISA Debit";"11111111111111111111";"BYLADEM1001";"-16,45";"";"";"111111111111111";
-            """,
+            """,  # NOQA
             dict(iban=IBAN, header=HEADER),
         )
     )

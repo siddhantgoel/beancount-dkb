@@ -398,7 +398,7 @@ def test_extract_multiple_transactions(tmp_file):
             {header}
             "Ja";"23.09.2023";"22.09.2023";"HabenzinsenZ 000001111 T 030   0000";"1,11";"";
             "Ja";"23.08.2023";"22.08.2023";"HabenzinsenZ 000001111 T 031   0000";"1,11";"";
-            """,
+            """,  # NOQA
             dict(prefix=prefix, suffix=suffix, header=HEADER),
         )
     )
