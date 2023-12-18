@@ -33,7 +33,7 @@ beancount = "^2.3"
 flake8 = "^5.0"
 isort = "^5.13"
 pytest = "^7.4"
-black = "^23.11"
+black = "^23.12"
 
 [tool.poetry.group.dev.dependencies]
 taskipy = "^1.12.0"
