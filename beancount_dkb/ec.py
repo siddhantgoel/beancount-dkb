@@ -1,3 +1,4 @@
+from collections import namedtuple
 import csv
 from datetime import datetime, timedelta
 from typing import Optional, Sequence, Dict
@@ -12,8 +13,17 @@ from .exceptions import InvalidFormatError
 from .helpers import AccountMatcher, fmt_number_de
 from .extractors.ec import V1Extractor, V2Extractor
 
+Meta = namedtuple("Meta", ["value", "line_index"])
 
 new_posting = partial(data.Posting, cost=None, price=None, flag=None, meta=None)
+
+csv_reader = partial(
+    csv.reader, delimiter=";", quoting=csv.QUOTE_MINIMAL, quotechar='"'
+)
+
+csv_dict_reader = partial(
+    csv.DictReader, delimiter=";", quoting=csv.QUOTE_MINIMAL, quotechar='"'
+)
 
 
 class ECImporter(importer.ImporterProtocol):
@@ -22,7 +32,6 @@ class ECImporter(importer.ImporterProtocol):
         iban: str,
         account: str,
         currency: str = "EUR",
-        file_encoding: str = "utf-8",
         meta_code: Optional[str] = None,
         payee_patterns: Optional[Sequence] = None,
         description_patterns: Optional[Sequence] = None,
@@ -30,7 +39,6 @@ class ECImporter(importer.ImporterProtocol):
         self.iban = iban
         self.account = account
         self.currency = currency
-        self.file_encoding = file_encoding
         self.meta_code = meta_code
         self.payee_matcher = AccountMatcher(payee_patterns)
         self.description_matcher = AccountMatcher(description_patterns)
@@ -56,142 +64,146 @@ class ECImporter(importer.ImporterProtocol):
         return self._date_to
 
     def identify(self, file):
-        with open(file.name, encoding=self.file_encoding) as fd:
-            line = fd.readline().strip()
-
-        return self._v1_extractor.matches_header(
-            line
-        ) or self._v2_extractor.matches_header(line)
+        return self._v1_extractor.identify(file) or self._v2_extractor.identify(file)
 
     def extract(self, file, existing_entries=None):
+        extractor = None
+
+        if self._v1_extractor.identify(file):
+            extractor = self._v1_extractor
+        elif self._v2_extractor.identify(file):
+            extractor = self._v2_extractor
+        else:
+            raise InvalidFormatError()
+
+        return self._extract(file, extractor)
+
+    def _extract(self, file, extractor):
         entries = []
+
+        with open(file.name, encoding=extractor.file_encoding) as fd:
+            lines = [line.strip() for line in fd.readlines()]
+
         line_index = 0
+        header_index = lines.index(extractor.HEADER)
 
-        with open(file.name, encoding=self.file_encoding) as fd:
-            extractor = self._get_extractor(fd.readline().strip())
+        metadata_lines = lines[0:header_index]
+        transaction_lines = lines[header_index:]
 
+        # Metadata
+
+        metadata = {}
+        reader = csv_reader(metadata_lines)
+
+        for line in reader:
             line_index += 1
 
-            # empty line
+            if not line or line == [""]:
+                continue
 
-            extractor.extract_empty_line(fd)
+            key, value, *_ = line
+
+            metadata[key] = Meta(value, line_index)
+
+        self._update_meta(metadata)
+
+        # Transactions
+
+        reader = csv_dict_reader(transaction_lines)
+
+        for line in reader:
             line_index += 1
 
-            # Read metadata lines until the next empty line
+            meta = data.new_metadata(file.name, line_index)
 
-            meta = extractor.extract_meta(fd, line_index)
-            self._update_meta(meta)
-            line_index += len(meta) + 1
-
-            # Data entries
-            reader = csv.DictReader(
-                fd, delimiter=";", quoting=csv.QUOTE_MINIMAL, quotechar='"'
-            )
-
-            for line in reader:
-                line_index += 1
-
-                meta = data.new_metadata(file.name, line_index)
-
-                amount = None
-                if extractor.get_amount(line):
-                    amount = Amount(
-                        fmt_number_de(extractor.get_amount(line)), self.currency
-                    )
-
-                date = extractor.get_booking_date(line)
-
-                if extractor.get_purpose(line) == "Tagessaldo":
-                    if amount:
-                        entries.append(
-                            data.Balance(
-                                meta,
-                                date + timedelta(days=1),
-                                self.account,
-                                amount,
-                                None,
-                                None,
-                            )
-                        )
-                else:
-                    if self.meta_code:
-                        meta[self.meta_code] = extractor.get_booking_text(line)
-
-                    description = extractor.get_description(line)
-                    payee = extractor.get_payee(line)
-
-                    postings = [
-                        new_posting(account=self.account, units=amount),
-                    ]
-
-                    payee_match = self.payee_matcher.account_matches(payee)
-                    description_match = self.description_matcher.account_matches(
-                        description
-                    )
-
-                    if payee_match and description_match:
-                        warnings.warn(
-                            f"Line {line_index + 1} matches both "
-                            "payee_patterns and description_patterns. "
-                            "Picking payee_pattern.",
-                        )
-                        postings.append(
-                            new_posting(
-                                account=self.payee_matcher.account_for(payee),
-                                units=None,
-                            )
-                        )
-                    elif payee_match:
-                        postings.append(
-                            new_posting(
-                                account=self.payee_matcher.account_for(payee),
-                                units=None,
-                            )
-                        )
-                    elif description_match:
-                        postings.append(
-                            new_posting(
-                                account=self.description_matcher.account_for(
-                                    description
-                                ),
-                                units=None,
-                            )
-                        )
-
-                    entries.append(
-                        data.Transaction(
-                            meta,
-                            date,
-                            self.FLAG,
-                            payee,
-                            description,
-                            data.EMPTY_SET,
-                            data.EMPTY_SET,
-                            postings,
-                        )
-                    )
-
-            # Closing Balance
-            entries.append(
-                data.Balance(
-                    data.new_metadata(file.name, self._closing_balance_index),
-                    self._balance_date,
-                    self.account,
-                    self._balance_amount,
-                    None,
-                    None,
+            amount = None
+            if extractor.get_amount(line):
+                amount = Amount(
+                    fmt_number_de(extractor.get_amount(line)), self.currency
                 )
+
+            date = extractor.get_booking_date(line)
+
+            if extractor.get_purpose(line) == "Tagessaldo":
+                if amount:
+                    entries.append(
+                        data.Balance(
+                            meta,
+                            date + timedelta(days=1),
+                            self.account,
+                            amount,
+                            None,
+                            None,
+                        )
+                    )
+            else:
+                if self.meta_code:
+                    meta[self.meta_code] = extractor.get_booking_text(line)
+
+                description = extractor.get_description(line)
+                payee = extractor.get_payee(line)
+
+                postings = [
+                    new_posting(account=self.account, units=amount),
+                ]
+
+                payee_match = self.payee_matcher.account_matches(payee)
+                description_match = self.description_matcher.account_matches(
+                    description
+                )
+
+                if payee_match and description_match:
+                    warnings.warn(
+                        f"Line {line_index + 1} matches both payee_patterns and "
+                        "description_patterns. Picking payee_pattern.",
+                    )
+                    postings.append(
+                        new_posting(
+                            account=self.payee_matcher.account_for(payee),
+                            units=None,
+                        )
+                    )
+                elif payee_match:
+                    postings.append(
+                        new_posting(
+                            account=self.payee_matcher.account_for(payee),
+                            units=None,
+                        )
+                    )
+                elif description_match:
+                    postings.append(
+                        new_posting(
+                            account=self.description_matcher.account_for(description),
+                            units=None,
+                        )
+                    )
+
+                entries.append(
+                    data.Transaction(
+                        meta,
+                        date,
+                        self.FLAG,
+                        payee,
+                        description,
+                        data.EMPTY_SET,
+                        data.EMPTY_SET,
+                        postings,
+                    )
+                )
+
+        # Closing Balance
+        entries.append(
+            data.Balance(
+                data.new_metadata(file.name, self._closing_balance_index),
+                self._balance_date,
+                self.account,
+                self._balance_amount,
+                None,
+                None,
             )
+        )
 
         return entries
-
-    def _get_extractor(self, line: str):
-        if self._v1_extractor.matches_header(line):
-            return self._v1_extractor
-        elif self._v2_extractor.matches_header(line):
-            return self._v2_extractor
-
-        raise InvalidFormatError()
 
     def _update_meta(self, meta: Dict[str, str]):
         for key, value in meta.items():

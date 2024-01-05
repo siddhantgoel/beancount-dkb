@@ -1,8 +1,7 @@
 from datetime import date, datetime
-import csv
 from collections import namedtuple
 import re
-from typing import Optional, IO, Dict
+from typing import Optional, Dict
 
 from ..exceptions import InvalidFormatError
 
@@ -11,47 +10,12 @@ Meta = namedtuple("Meta", ["value", "line_index"])
 
 
 class BaseExtractor:
-    def matches_header(self, line: str) -> bool:
-        """Return true if the line matches the expected header for this extractor"""
+    def __init__(self, iban: str, meta_code: Optional[str] = None):
+        self.iban = iban
+        self.meta_code = meta_code
 
+    def identify(self, file) -> bool:
         raise NotImplementedError()
-
-    def is_empty_line(self, line: str) -> bool:
-        """Return true if the line is an empty line"""
-
-        raise NotImplementedError()
-
-    def extract_header(self, fd: IO):
-        line = fd.readline().strip()
-
-        if not self.matches_header(line):
-            raise InvalidFormatError()
-
-    def extract_empty_line(self, fd: IO):
-        line = fd.readline().strip()
-
-        if not self.is_empty_line(line):
-            raise InvalidFormatError("Expected empty line")
-
-    def extract_meta(self, fd: IO, line_index: int) -> Dict[str, Meta]:
-        lines = []
-
-        for line in fd:
-            if self.is_empty_line(line.strip()):
-                break
-            lines.append(line)
-
-        meta = {}
-        reader = csv.reader(
-            lines, delimiter=";", quoting=csv.QUOTE_MINIMAL, quotechar='"'
-        )
-
-        for index, line in enumerate(reader):
-            key, value, *_ = line
-
-            meta[key] = Meta(value, line_index + index)
-
-        return meta
 
     def get_account_number(self, line: Dict[str, str]) -> str:
         raise NotImplementedError()
@@ -92,20 +56,22 @@ class V1Extractor(BaseExtractor):
         "Kundenreferenz",
     )
 
-    def __init__(self, iban: str, meta_code: Optional[str] = None):
-        self._expected_header_regex = re.compile(
+    HEADER = ";".join(f'"{field}"' for field in FIELDS) + ";"
+
+    file_encoding = "ISO-8859-1"
+
+    def identify(self, file) -> bool:
+        regex = re.compile(
             r'^"Kontonummer:";"'
-            + re.escape(re.sub(r"\s+", "", iban, flags=re.UNICODE))
+            + re.escape(re.sub(r"\s+", "", self.iban, flags=re.UNICODE))
             + r"\s",
             re.IGNORECASE,
         )
-        self.meta_code = meta_code
 
-    def matches_header(self, line: str) -> bool:
-        return self._expected_header_regex.match(line)
+        with open(file.name, encoding=self.file_encoding) as fd:
+            line = fd.readline().strip()
 
-    def is_empty_line(self, line: str) -> bool:
-        return line == ""
+            return regex.match(line)
 
     def get_account_number(self, line: Dict[str, str]) -> str:
         return line["Kontonummer"]
@@ -143,31 +109,28 @@ class V2Extractor(BaseExtractor):
         "Zahlungsempfänger*in",
         "Verwendungszweck",
         "Umsatztyp",
-        "Betrag",
+        "IBAN",
+        "Betrag (€)",
         "Gläubiger-ID",
         "Mandatsreferenz",
         "Kundenreferenz",
     )
 
-    def __init__(self, iban: str, meta_code: Optional[str] = None):
-        self._expected_header_regex = re.compile(
-            r'^"Konto";"(Girokonto|Tagesgeld) '
-            + re.escape(re.sub(r"\s+", "", iban, flags=re.UNICODE)),
-            re.IGNORECASE,
-        )
-        self.meta_code = meta_code
+    HEADER = ";".join(f'"{field}"' for field in FIELDS)
 
-    def matches_header(self, line: str) -> bool:
-        return self._expected_header_regex.match(line)
+    file_encoding = "utf-8-sig"
 
-    def is_empty_line(self, line: str) -> bool:
-        return line == '""'
+    def identify(self, file) -> bool:
+        with open(file.name, encoding=self.file_encoding) as fd:
+            lines = [line.strip() for line in fd.readlines()]
+
+        return self.HEADER in lines
 
     def get_account_number(self, line: Dict[str, str]) -> str:
         return line["Gläubiger-ID"]
 
     def get_amount(self, line: Dict[str, str]) -> str:
-        return line["Betrag"].rstrip(" €")
+        return line["Betrag (€)"].rstrip(" €")
 
     def get_booking_date(self, line: Dict[str, str]) -> date:
         return datetime.strptime(line["Buchungsdatum"], "%d.%m.%y").date()
