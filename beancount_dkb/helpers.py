@@ -1,8 +1,20 @@
+import csv
 import re
 from collections import namedtuple
+from functools import partial
 from typing import Optional, Sequence
 
 from beancount.core.number import Decimal
+
+csv_reader = partial(
+    csv.reader, delimiter=";", quoting=csv.QUOTE_MINIMAL, quotechar='"'
+)
+
+csv_dict_reader = partial(
+    csv.DictReader, delimiter=";", quoting=csv.QUOTE_MINIMAL, quotechar='"'
+)
+
+_MatcherEntry = namedtuple("_MatcherEntry", ["pattern", "account"])
 
 
 def fmt_number_de(value: str) -> Decimal:
@@ -10,9 +22,6 @@ def fmt_number_de(value: str) -> Decimal:
     decimal_sep = ","
 
     return Decimal(value.replace(thousands_sep, "").replace(decimal_sep, "."))
-
-
-_MatcherEntry = namedtuple("_MatcherEntry", ["pattern", "account"])
 
 
 class AccountMatcher:

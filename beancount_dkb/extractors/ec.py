@@ -1,10 +1,9 @@
-from datetime import date, datetime
-from collections import namedtuple
 import re
-from typing import Optional, Dict
+from collections import namedtuple
+from datetime import date, datetime
+from typing import Dict, Optional
 
 from ..exceptions import InvalidFormatError
-
 
 Meta = namedtuple("Meta", ["value", "line_index"])
 
@@ -121,10 +120,13 @@ class V2Extractor(BaseExtractor):
     file_encoding = "utf-8-sig"
 
     def identify(self, file) -> bool:
-        with open(file.name, encoding=self.file_encoding) as fd:
-            lines = [line.strip() for line in fd.readlines()]
+        try:
+            with open(file.name, encoding=self.file_encoding) as fd:
+                lines = [line.strip() for line in fd.readlines()]
 
-        return self.HEADER in lines
+            return self.HEADER in lines
+        except UnicodeDecodeError:
+            return False
 
     def get_account_number(self, line: Dict[str, str]) -> str:
         return line["Gläubiger-ID"]

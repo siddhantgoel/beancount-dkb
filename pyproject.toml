@@ -43,7 +43,8 @@ fmt = "black beancount_dkb/ tests/"
 
 lint-black  = "black --check beancount_dkb/ tests/"
 lint-flake8 = "flake8 beancount_dkb/ tests/"
-lint = "task lint-black && task lint-flake8"
+lint-isort = "isort --check beancount_dkb/ tests/"
+lint = "task lint-black && task lint-flake8 && task lint-isort"
 
 test-pytest = "pytest tests/"
 test = "task test-pytest"

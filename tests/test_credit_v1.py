@@ -2,15 +2,17 @@ import datetime
 from decimal import Decimal
 from textwrap import dedent
 
-from beancount.core.data import Amount, Balance
 import pytest
+from beancount.core.data import Amount, Balance
 
 from beancount_dkb import CreditImporter
 from beancount_dkb.extractors.credit import V1Extractor
 
 CARD_NUMBER = "1234********5678"
 
-HEADER = ";".join('"{}"'.format(field) for field in V1Extractor.FIELDS)
+HEADER = V1Extractor.HEADER
+
+ENCODING = V1Extractor.file_encoding
 
 
 def _format(string, kwargs):
@@ -42,7 +44,8 @@ def test_multiple_headers(tmp_file):
 
             """,
             dict(card_number=CARD_NUMBER, common=common),
-        )
+        ),
+        encoding=ENCODING,
     )
 
     with tmp_file.open() as fd:
@@ -58,7 +61,8 @@ def test_multiple_headers(tmp_file):
 
             """,
             dict(card_number=CARD_NUMBER, common=common),
-        )
+        ),
+        encoding=ENCODING,
     )
 
     with tmp_file.open() as fd:
@@ -78,10 +82,11 @@ def test_identify_correct(tmp_file):
             "Saldo:";"5000.01 EUR";
             "Datum:";"30.01.2018";
 
-            {header};
+            {header}
             """,
             dict(card_number=CARD_NUMBER, header=HEADER),
-        )
+        ),
+        encoding=ENCODING,
     )
 
     with tmp_file.open() as fd:
@@ -104,10 +109,11 @@ def test_identify_prefixes(tmp_file):
             "Saldo:";"5000.01 EUR";
             "Datum:";"30.01.2018";
 
-            {header};
+            {header}
             """,
             dict(prefix=prefix, suffix=suffix, header=HEADER),
-        )
+        ),
+        encoding=ENCODING,
     )
 
     with tmp_file.open() as fd:
@@ -127,10 +133,11 @@ def test_identify_invalid_iban(tmp_file):
             "Saldo:";"5000.01 EUR";
             "Datum:";"30.01.2018";
 
-            {header};
+            {header}
             """,
             dict(card_number=CARD_NUMBER, header=HEADER),
-        )
+        ),
+        encoding=ENCODING,
     )
 
     importer = CreditImporter(other_iban, "Assets:DKB:Credit")
@@ -152,10 +159,11 @@ def test_extract_no_transactions(tmp_file):
             "Saldo:";"5000.01 EUR";
             "Datum:";"30.01.2018";
 
-            {header};
+            {header}
             """,
             dict(card_number=CARD_NUMBER, header=HEADER),
-        )
+        ),
+        encoding=ENCODING,
     )
 
     with tmp_file.open() as fd:
@@ -178,11 +186,12 @@ def test_extract_transactions(tmp_file):
             "Saldo:";"5000.01 EUR";
             "Datum:";"30.01.2018";
 
-            {header};
+            {header}
             "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
             """,  # NOQA
             dict(card_number=CARD_NUMBER, header=HEADER),
-        )
+        ),
+        encoding=ENCODING,
     )
 
     importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit", file_encoding="utf-8")
@@ -210,11 +219,12 @@ def test_extract_sets_timestamps(tmp_file):
             "Saldo:";"5000.01 EUR";
             "Datum:";"30.01.2018";
 
-            {header};
+            {header}
             "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
             """,  # NOQA
             dict(card_number=CARD_NUMBER, header=HEADER),
-        )
+        ),
+        encoding=ENCODING,
     )
 
     importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit", file_encoding="utf-8")
@@ -242,11 +252,12 @@ def test_extract_with_zeitraum(tmp_file):
             "Saldo:";"5000.01 EUR";
             "Datum:";"30.01.2018";
 
-            {header};
+            {header}
             "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
             """,  # NOQA
             dict(card_number=CARD_NUMBER, header=HEADER),
-        )
+        ),
+        encoding=ENCODING,
     )
 
     importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit", file_encoding="utf-8")
@@ -274,11 +285,12 @@ def test_file_date_with_zeitraum(tmp_file):
             "Saldo:";"5000.01 EUR";
             "Datum:";"30.01.2018";
 
-            {header};
+            {header}
             "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
             """,  # NOQA
             dict(card_number=CARD_NUMBER, header=HEADER),
-        )
+        ),
+        encoding=ENCODING,
     )
 
     importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit", file_encoding="utf-8")
@@ -302,11 +314,12 @@ def test_emits_closing_balance_directive(tmp_file):
             "Saldo:";"5000.01 EUR";
             "Datum:";"30.01.2018";
 
-            {header};
+            {header}
             "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
             """,  # NOQA
             dict(card_number=CARD_NUMBER, header=HEADER),
-        )
+        ),
+        encoding=ENCODING,
     )
 
     importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit", file_encoding="utf-8")
@@ -331,11 +344,12 @@ def test_file_date_is_set_correctly(tmp_file):
             "Saldo:";"5000.01 EUR";
             "Datum:";"30.01.2018";
 
-            {header};
+            {header}
             "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
             """,  # NOQA
             dict(card_number=CARD_NUMBER, header=HEADER),
-        )
+        ),
+        encoding=ENCODING,
     )
 
     importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit", file_encoding="utf-8")
@@ -355,11 +369,12 @@ def test_extract_with_description_patterns(tmp_file):
             "Saldo:";"5000.01 EUR";
             "Datum:";"30.01.2018";
 
-            {header};
+            {header}
             "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
             """,  # NOQA
             dict(card_number=CARD_NUMBER, header=HEADER),
-        )
+        ),
+        encoding=ENCODING,
     )
 
     importer = CreditImporter(
@@ -400,7 +415,8 @@ def test_extract_multiple_transactions(tmp_file):
             "Ja";"23.08.2023";"22.08.2023";"HabenzinsenZ 000001111 T 031   0000";"1,11";"";
             """,  # NOQA
             dict(prefix=prefix, suffix=suffix, header=HEADER),
-        )
+        ),
+        encoding=ENCODING,
     )
 
     importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")

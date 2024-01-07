@@ -2,12 +2,11 @@ import datetime
 from decimal import Decimal
 from textwrap import dedent
 
-from beancount.core.data import Amount, Balance
 import pytest
+from beancount.core.data import Amount, Balance
 
 from beancount_dkb import ECImporter
 from beancount_dkb.ec import V2Extractor
-
 
 FORMATTED_IBAN = "DE99 9999 9999 9999 9999 99"
 
