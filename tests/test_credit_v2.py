@@ -2,15 +2,15 @@ import datetime
 from decimal import Decimal
 from textwrap import dedent
 
-from beancount.core.data import Amount, Balance
 import pytest
+from beancount.core.data import Amount, Balance
 
 from beancount_dkb import CreditImporter
 from beancount_dkb.extractors.credit import V2Extractor
 
 CARD_NUMBER = "1234 •••• •••• 5678"
 
-HEADER = ";".join('"{}"'.format(field) for field in V2Extractor.FIELDS)
+HEADER = V2Extractor.HEADER
 
 
 def _format(string, kwargs):
@@ -30,9 +30,9 @@ def test_identify_correct(tmp_file):
             """
             "Karte";"Visa-Kreditkarte {card_number}"
             ""
-            "Saldo vom:";"5000.01 EUR"
+            "Saldo vom 31.01.2023:";"5000.01 EUR"
             ""
-            {header};
+            {header}
             """,
             dict(card_number=CARD_NUMBER, header=HEADER),
         )
@@ -53,9 +53,9 @@ def test_identify_prefixes(tmp_file):
             """
             "Karte";"Visa-Kreditkarte {prefix} •••• •••• {suffix}"
             ""
-            "Saldo:";"5000.01 EUR"
+            "Saldo vom 31.01.2023:";"5000.01 EUR"
             ""
-            {header};
+            {header}
             """,
             dict(prefix=prefix, suffix=suffix, header=HEADER),
         )
@@ -73,9 +73,9 @@ def test_identify_invalid_iban(tmp_file):
             """
             "Karte";"Visa-Kreditkarte {card_number}"
             ""
-            "Saldo:";"5000.01 EUR"
+            "Saldo vom 31.01.2023:";"5000.01 EUR"
             ""
-            {header};
+            {header}
             """,
             dict(card_number=CARD_NUMBER, header=HEADER),
         )
@@ -97,7 +97,7 @@ def test_extract_no_transactions(tmp_file):
             ""
             "Saldo vom 31.01.2023:";"5000.01 EUR"
             ""
-            {header};
+            {header}
             """,
             dict(card_number=CARD_NUMBER, header=HEADER),
         )
@@ -118,9 +118,9 @@ def test_extract_transactions(tmp_file):
             """
             "Karte";"Visa-Kreditkarte {card_number}"
             ""
-            "Saldo:";"5000.01 EUR"
+            "Saldo vom 31.01.2023:";"5000.01 EUR"
             ""
-            {header};
+            {header}
             "15.01.23";"15.01.23";"Gebucht";"REWE Filiale Muenchen";"Im Geschäft";"-10,80 €";""
             """,  # NOQA
             dict(card_number=CARD_NUMBER, header=HEADER),
@@ -149,7 +149,7 @@ def test_emits_closing_balance_directive(tmp_file):
             ""
             "Saldo vom 31.01.2023:";"5000.01 EUR"
             ""
-            {header};
+            {header}
             "15.01.23";"15.01.23";"Gebucht";"REWE Filiale Muenchen";"Im Geschäft";"-10,80 €";""
             """,  # NOQA
             dict(card_number=CARD_NUMBER, header=HEADER),
@@ -173,9 +173,9 @@ def test_extract_with_description_patterns(tmp_file):
             """
             "Karte";"Visa-Kreditkarte {card_number}";
             ""
-            "Saldo:";"5000.01 EUR";
+            "Saldo vom 31.01.2023:";"5000.01 EUR";
             ""
-            {header};
+            {header}
             "15.01.23";"15.01.23";"Gebucht";"REWE Filiale Muenchen";"Im Geschäft";"-10,80 €";""
             """,  # NOQA
             dict(card_number=CARD_NUMBER, header=HEADER),

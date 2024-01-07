@@ -1,29 +1,20 @@
-from collections import namedtuple
-import csv
-from datetime import datetime, timedelta
-from typing import Optional, Sequence, Dict
-from functools import partial
 import warnings
+from collections import namedtuple
+from datetime import datetime, timedelta
+from functools import partial
+from typing import Dict, Optional, Sequence
 
 from beancount.core import data
 from beancount.core.amount import Amount
 from beancount.ingest import importer
 
 from .exceptions import InvalidFormatError
-from .helpers import AccountMatcher, fmt_number_de
 from .extractors.ec import V1Extractor, V2Extractor
+from .helpers import AccountMatcher, csv_dict_reader, csv_reader, fmt_number_de
 
 Meta = namedtuple("Meta", ["value", "line_index"])
 
 new_posting = partial(data.Posting, cost=None, price=None, flag=None, meta=None)
-
-csv_reader = partial(
-    csv.reader, delimiter=";", quoting=csv.QUOTE_MINIMAL, quotechar='"'
-)
-
-csv_dict_reader = partial(
-    csv.DictReader, delimiter=";", quoting=csv.QUOTE_MINIMAL, quotechar='"'
-)
 
 
 class ECImporter(importer.ImporterProtocol):

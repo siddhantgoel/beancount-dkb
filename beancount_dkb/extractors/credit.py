@@ -1,23 +1,18 @@
-from datetime import date, datetime
-from collections import namedtuple
 import csv
-from typing import Dict, IO
+from collections import namedtuple
+from datetime import date, datetime
+from typing import IO, Dict
 
 from ..exceptions import InvalidFormatError
-
 
 Meta = namedtuple("Meta", ["value", "line_index"])
 
 
 class BaseExtractor:
-    def matches_header(self, line: str) -> bool:
-        """Return true if the line matches the expected header for this extractor"""
+    def __init__(self, card_number: str):
+        self.card_number = card_number
 
-        raise NotImplementedError()
-
-    def is_empty_line(self, fd: IO) -> bool:
-        """Return true if the line is an empty line"""
-
+    def identify(self, file) -> bool:
         raise NotImplementedError()
 
     def extract_header(self, fd: IO):
@@ -25,12 +20,6 @@ class BaseExtractor:
 
         if not self.matches_header(line):
             raise InvalidFormatError()
-
-    def extract_empty_line(self, fd: IO):
-        line = fd.readline().strip()
-
-        if not self.is_empty_line(line):
-            raise InvalidFormatError("Expected empty line")
 
     def extract_meta(self, fd: IO, line_index: int) -> Dict[str, Meta]:
         lines = []
@@ -74,18 +63,21 @@ class V1Extractor(BaseExtractor):
         "Ursprünglicher Betrag",
     )
 
-    def __init__(self, card_number: str):
-        self._expected_header_prefixes = (
-            '"Kreditkarte:";"{} Kreditkarte";'.format(card_number),
-            '"Kreditkarte:";"{}";'.format(card_number),
-            f'"Kreditkarte:";"{card_number[:4]}********{card_number[-4:]}";',
+    HEADER = ";".join(f'"{field}"' for field in FIELDS) + ";"
+
+    file_encoding = "ISO-8859-1"
+
+    def identify(self, file) -> bool:
+        expected_header_prefixes = (
+            f'"Kreditkarte:";"{self.card_number} Kreditkarte";',
+            f'"Kreditkarte:";"{self.card_number}";',
+            f'"Kreditkarte:";"{self.card_number[:4]}********{self.card_number[-4:]}";',
         )
 
-    def is_empty_line(self, line: str) -> bool:
-        return line == ""
+        with open(file.name, encoding=self.file_encoding) as fd:
+            line = fd.readline().strip()
 
-    def matches_header(self, line: str) -> bool:
-        return any(line.startswith(header) for header in self._expected_header_prefixes)
+            return any(line.startswith(header) for header in expected_header_prefixes)
 
     def get_amount(self, line: Dict[str, str]) -> str:
         return line["Betrag (EUR)"]
@@ -110,14 +102,20 @@ class V2Extractor(BaseExtractor):
         "Fremdwährungsbetrag",
     )
 
-    def __init__(self, card_number: str):
-        self._expected_header_prefix = f'"Karte";"Visa-Kreditkarte {card_number[:4]}'
+    HEADER = ";".join(f'"{field}"' for field in FIELDS)
 
-    def is_empty_line(self, line: str) -> bool:
-        return line == '""'
+    file_encoding = "utf-8-sig"
 
-    def matches_header(self, line: str) -> bool:
-        return line.startswith(self._expected_header_prefix)
+    def identify(self, file) -> bool:
+        expected_header_prefix = f'"Karte";"Visa-Kreditkarte {self.card_number[:4]}'
+
+        try:
+            with open(file.name, encoding=self.file_encoding) as fd:
+                line = fd.readline().strip()
+
+                return line.startswith(expected_header_prefix)
+        except UnicodeDecodeError:
+            return False
 
     def get_amount(self, line: Dict[str, str]) -> str:
         return line["Betrag"].rstrip(" €")

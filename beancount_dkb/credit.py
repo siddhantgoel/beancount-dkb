@@ -1,6 +1,6 @@
-import csv
-from typing import Dict
+from collections import namedtuple
 from datetime import datetime, timedelta
+from typing import Dict
 
 from beancount.core import data
 from beancount.core.amount import Amount
@@ -9,7 +9,9 @@ from beancount.ingest import importer
 
 from .exceptions import InvalidFormatError
 from .extractors.credit import V1Extractor, V2Extractor
-from .helpers import AccountMatcher, fmt_number_de
+from .helpers import AccountMatcher, csv_dict_reader, csv_reader, fmt_number_de
+
+Meta = namedtuple("Meta", ["value", "line_index"])
 
 
 class CreditImporter(importer.ImporterProtocol):
@@ -27,8 +29,8 @@ class CreditImporter(importer.ImporterProtocol):
         self.file_encoding = file_encoding
         self.description_matcher = AccountMatcher(description_patterns)
 
-        self._v1_extractor = V1Extractor(self.card_number)
-        self._v2_extractor = V2Extractor(self.card_number)
+        self._v1_extractor = V1Extractor(card_number)
+        self._v2_extractor = V2Extractor(card_number)
 
         self._date_from = None
         self._date_to = None
@@ -71,96 +73,105 @@ class CreditImporter(importer.ImporterProtocol):
         return self._date_to or self._file_date
 
     def identify(self, file):
-        with open(file.name, encoding=self.file_encoding) as fd:
-            line = fd.readline().strip()
-
-        return self._v1_extractor.matches_header(
-            line
-        ) or self._v2_extractor.matches_header(line)
+        return self._v1_extractor.identify(file) or self._v2_extractor.identify(file)
 
     def extract(self, file, existing_entries=None):
+        extractor = None
+
+        if self._v1_extractor.identify(file):
+            extractor = self._v1_extractor
+        elif self._v2_extractor.identify(file):
+            extractor = self._v2_extractor
+        else:
+            raise InvalidFormatError()
+
+        return self._extract(file, extractor)
+
+    def _extract(self, file, extractor):
         entries = []
+
+        with open(file.name, encoding=extractor.file_encoding) as fd:
+            lines = [line.strip() for line in fd.readlines()]
+
         line_index = 0
+        header_index = lines.index(extractor.HEADER)
 
-        with open(file.name, encoding=self.file_encoding) as fd:
-            extractor = self._get_extractor(fd.readline().strip())
+        metadata_lines = lines[0:header_index]
+        transaction_lines = lines[header_index:]
 
+        # Metadata
+
+        metadata = {}
+        reader = csv_reader(metadata_lines)
+
+        for line in reader:
             line_index += 1
 
-            extractor.extract_empty_line(fd)
+            if not line or line == [""]:
+                continue
+
+            key, value, *_ = line
+
+            metadata[key] = Meta(value, line_index)
+
+        self._update_meta(metadata)
+
+        # Transactions
+
+        reader = csv_dict_reader(transaction_lines)
+
+        for line in reader:
             line_index += 1
 
-            # Read metadata lines until the next empty line
+            meta = data.new_metadata(file.name, line_index)
 
-            meta = extractor.extract_meta(fd, line_index)
-            self._update_meta(meta)
-            line_index += len(meta) + 1
+            amount = Amount(fmt_number_de(extractor.get_amount(line)), self.currency)
 
-            # Data entries
-            reader = csv.DictReader(
-                fd, delimiter=";", quoting=csv.QUOTE_MINIMAL, quotechar='"'
-            )
+            date = extractor.get_valuation_date(line)
 
-            for index, line in enumerate(reader):
-                meta = data.new_metadata(file.name, index)
+            description = extractor.get_description(line)
 
-                amount = Amount(
-                    fmt_number_de(extractor.get_amount(line)), self.currency
-                )
+            postings = [data.Posting(self.account, amount, None, None, None, None)]
 
-                date = extractor.get_valuation_date(line)
-
-                description = extractor.get_description(line)
-
-                postings = [data.Posting(self.account, amount, None, None, None, None)]
-
-                if self.description_matcher.account_matches(description):
-                    postings.append(
-                        data.Posting(
-                            self.description_matcher.account_for(description),
-                            None,
-                            None,
-                            None,
-                            None,
-                            None,
-                        )
-                    )
-
-                entries.append(
-                    data.Transaction(
-                        meta,
-                        date,
-                        self.FLAG,
+            if self.description_matcher.account_matches(description):
+                postings.append(
+                    data.Posting(
+                        self.description_matcher.account_for(description),
                         None,
-                        description,
-                        data.EMPTY_SET,
-                        data.EMPTY_SET,
-                        postings,
+                        None,
+                        None,
+                        None,
+                        None,
                     )
                 )
 
-            # Closing Balance
-            meta = data.new_metadata(file.name, self._closing_balance_index)
             entries.append(
-                data.Balance(
+                data.Transaction(
                     meta,
-                    self._balance_date,
-                    self.account,
-                    self._balance_amount,
+                    date,
+                    self.FLAG,
                     None,
-                    None,
+                    description,
+                    data.EMPTY_SET,
+                    data.EMPTY_SET,
+                    postings,
                 )
             )
+
+        # Closing Balance
+        meta = data.new_metadata(file.name, self._closing_balance_index)
+        entries.append(
+            data.Balance(
+                meta,
+                self._balance_date,
+                self.account,
+                self._balance_amount,
+                None,
+                None,
+            )
+        )
 
         return entries
-
-    def _get_extractor(self, line: str):
-        if self._v1_extractor.matches_header(line):
-            return self._v1_extractor
-        elif self._v2_extractor.matches_header(line):
-            return self._v2_extractor
-
-        raise InvalidFormatError()
 
     def _update_meta(self, meta: Dict[str, str]):
         for key, value in meta.items():
