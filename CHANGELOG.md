@@ -1,50 +1,60 @@
 # CHANGELOG
 
-# v0.17.0
+## v0.18.0b1 (pre-release)
+
+- Support CSV exports from updated online banking interface introduced around the end of 2023
+- Simplify file parsing
+  - The importers now read all the lines in the file and treat the file contents before
+    the header as metadata and after the header as transactional data.
+- Remove `file_encoding` parmater
+  - The older exports are always ISO-8859-1 encoded while the newer ones are UTF-8
+    encoded (with a Byte-Order-Mark at the beginning).
+
+## v0.17.0
 
 - Support Tagesgeld accounts
 
-# v0.16.0
+## v0.16.0
 
 - Support CSV files from new online banking interface
 - Drop support for Python 3.7
 
-# v0.15.0
+## v0.15.0
 
 - Allow pattern-matching transactions in `ECImporter` against description strings
 - Enable support for Python 3.11
 
-# v0.14.0
+## v0.14.0
 
 - Allow pattern-matching transactions in:
   - `ECImporter` (against payee strings) and,
   - `CreditImporter` (against description strings)
 
-# v0.13.0
+## v0.13.0
 
 - Enable support for Python 3.10
 - Drop support for Python 3.6
 
-# v0.12.0
+## v0.12.0
 
 - Support additional credit card expected header format (thanks [Dr-Nuke])
 
-# v0.11.0
+## v0.11.0
 
 - Use "Wertstellung" instead of "Belegdatum" for transaction dates in
   `CreditImporter` (thanks [@nils-werner])
 
-# v0.10.0
+## v0.10.0
 
 - Add `meta_code` parameter to `ECImporter` (thanks [@bratekarate])
 
-# v0.9.0
+## v0.9.0
 
 - Support credit data exports containing "Zeitraum" instead of "Von"/"Bis" dates
 - Update `CreditImporter.file_date` return value (end date if the export
   contains start/end dates, otherwise the date of the export itself)
 
-# v0.8.3
+## v0.8.3
 
 - Enable support for Python 3.9
 - Drop support for Python 3.5
