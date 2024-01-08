@@ -24,6 +24,11 @@ def tmp_file(tmp_path):
     return tmp_path / f"{CARD_NUMBER}.csv"
 
 
+def test_file_encoding_raises_deprecation_warning():
+    with pytest.deprecated_call():
+        CreditImporter(CARD_NUMBER, "Assets:DKB:Credit", file_encoding="utf-8")
+
+
 def test_multiple_headers(tmp_file):
     importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
 
@@ -194,7 +199,7 @@ def test_extract_transactions(tmp_file):
         encoding=ENCODING,
     )
 
-    importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit", file_encoding="utf-8")
+    importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
 
     with tmp_file.open() as fd:
         directives = importer.extract(fd)
@@ -227,7 +232,7 @@ def test_extract_sets_timestamps(tmp_file):
         encoding=ENCODING,
     )
 
-    importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit", file_encoding="utf-8")
+    importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
 
     assert not importer._date_from
     assert not importer._date_to
@@ -260,7 +265,7 @@ def test_extract_with_zeitraum(tmp_file):
         encoding=ENCODING,
     )
 
-    importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit", file_encoding="utf-8")
+    importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
 
     assert not importer._date_from
     assert not importer._date_to
@@ -293,7 +298,7 @@ def test_file_date_with_zeitraum(tmp_file):
         encoding=ENCODING,
     )
 
-    importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit", file_encoding="utf-8")
+    importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
 
     assert not importer._date_from
     assert not importer._date_to
@@ -322,7 +327,7 @@ def test_emits_closing_balance_directive(tmp_file):
         encoding=ENCODING,
     )
 
-    importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit", file_encoding="utf-8")
+    importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
 
     with tmp_file.open() as fd:
         directives = importer.extract(fd)
@@ -352,7 +357,7 @@ def test_file_date_is_set_correctly(tmp_file):
         encoding=ENCODING,
     )
 
-    importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit", file_encoding="utf-8")
+    importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
 
     with tmp_file.open() as fd:
         assert importer.file_date(fd) == datetime.date(2016, 1, 31)
@@ -380,7 +385,6 @@ def test_extract_with_description_patterns(tmp_file):
     importer = CreditImporter(
         CARD_NUMBER,
         "Assets:DKB:Credit",
-        file_encoding="utf-8",
         description_patterns=[("REWE Filiale", "Expenses:Supermarket:REWE")],
     )
     with tmp_file.open() as fd:

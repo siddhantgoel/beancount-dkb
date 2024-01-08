@@ -26,6 +26,11 @@ def tmp_file(tmp_path):
     return tmp_path / f"{IBAN}.csv"
 
 
+def test_file_encoding_raises_deprecation_warning():
+    with pytest.deprecated_call():
+        ECImporter(IBAN, "Assets:DKB:EC", file_encoding="ISO-8859-1")
+
+
 def test_identify_correct(tmp_file):
     importer = ECImporter(IBAN, "Assets:DKB:EC")
 

@@ -127,7 +127,7 @@ def test_extract_transactions(tmp_file):
         )
     )
 
-    importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit", file_encoding="utf-8")
+    importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
 
     with tmp_file.open() as fd:
         directives = importer.extract(fd)
@@ -156,7 +156,7 @@ def test_emits_closing_balance_directive(tmp_file):
         )
     )
 
-    importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit", file_encoding="utf-8")
+    importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
 
     with tmp_file.open() as fd:
         directives = importer.extract(fd)
@@ -185,7 +185,6 @@ def test_extract_with_description_patterns(tmp_file):
     importer = CreditImporter(
         CARD_NUMBER,
         "Assets:DKB:Credit",
-        file_encoding="utf-8",
         description_patterns=[("REWE Filiale", "Expenses:Supermarket:REWE")],
     )
     with tmp_file.open() as fd:

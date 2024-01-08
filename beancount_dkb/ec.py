@@ -2,6 +2,7 @@ import warnings
 from collections import namedtuple
 from datetime import datetime, timedelta
 from functools import partial
+from textwrap import dedent
 from typing import Dict, Optional, Sequence
 
 from beancount.core import data
@@ -23,6 +24,7 @@ class ECImporter(importer.ImporterProtocol):
         iban: str,
         account: str,
         currency: str = "EUR",
+        file_encoding: Optional[str] = None,
         meta_code: Optional[str] = None,
         payee_patterns: Optional[Sequence] = None,
         description_patterns: Optional[Sequence] = None,
@@ -42,6 +44,17 @@ class ECImporter(importer.ImporterProtocol):
         self._balance_amount = None
         self._balance_date = None
         self._closing_balance_index = -1
+
+        if file_encoding is not None:
+            warnings.warn(
+                dedent(
+                    """
+                    The file_encoding parameter is no longer being used and will be
+                    removed in a future version.
+                    """
+                ),
+                DeprecationWarning,
+            )
 
     def name(self):
         return "DKB {}".format(self.__class__.__name__)

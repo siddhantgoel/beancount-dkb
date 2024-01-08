@@ -1,6 +1,8 @@
+import warnings
 from collections import namedtuple
 from datetime import datetime, timedelta
-from typing import Dict
+from textwrap import dedent
+from typing import Dict, Optional
 
 from beancount.core import data
 from beancount.core.amount import Amount
@@ -20,13 +22,12 @@ class CreditImporter(importer.ImporterProtocol):
         card_number,
         account,
         currency="EUR",
-        file_encoding="utf-8",
+        file_encoding: Optional[str] = None,
         description_patterns=None,
     ):
         self.card_number = card_number
         self.account = account
         self.currency = currency
-        self.file_encoding = file_encoding
         self.description_matcher = AccountMatcher(description_patterns)
 
         self._v1_extractor = V1Extractor(card_number)
@@ -56,6 +57,17 @@ class CreditImporter(importer.ImporterProtocol):
         self._balance_date = None
         self._balance_amount = None
         self._closing_balance_index = -1
+
+        if file_encoding is not None:
+            warnings.warn(
+                dedent(
+                    """
+                    The file_encoding parameter is no longer being used and will be
+                    removed in a future version.
+                    """
+                ),
+                DeprecationWarning,
+            )
 
     def name(self):
         return "DKB {}".format(self.__class__.__name__)
