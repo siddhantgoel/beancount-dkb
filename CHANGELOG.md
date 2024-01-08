@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.18.0b2 (pre-release)
+
+- Add back and deprecate `file_encoding` parameter for an easier transition
+
 ## v0.18.0b1 (pre-release)
 
 - Support CSV exports from updated online banking interface introduced towards the end
