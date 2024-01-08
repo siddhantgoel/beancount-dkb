@@ -2,13 +2,14 @@
 
 ## v0.18.0b1 (pre-release)
 
-- Support CSV exports from updated online banking interface introduced around the end of 2023
+- Support CSV exports from updated online banking interface introduced towards the end
+  of year 2023
 - Simplify file parsing
   - The importers now read all the lines in the file and treat the file contents before
     the header as metadata and after the header as transactional data.
-- Remove `file_encoding` parmater
+- Remove `file_encoding` parameter
   - The older exports are always ISO-8859-1 encoded while the newer ones are UTF-8
-    encoded (with a Byte-Order-Mark at the beginning).
+    encoded (with a Byte order mark at the beginning).
 
 ## v0.17.0
 
