@@ -43,14 +43,12 @@ CONFIG = [
         IBAN_NUMBER,
         'Assets:DKB:EC',
         currency='EUR',
-        file_encoding='utf-8',
     ),
 
     CreditImporter(
         CARD_NUMBER,
         'Assets:DKB:Credit',
         currency='EUR',
-        file_encoding='utf-8',
     )
 ]
 ```
@@ -120,7 +118,6 @@ CONFIG = [
         IBAN_NUMBER,
         'Assets:DKB:EC',
         currency='EUR',
-        file_encoding='utf-8',
         payee_patterns=[
             ('REWE Filialen', 'Expenses:Supermarket:REWE'),
             ('NETFLIX', 'Expenses:Online:Netflix'),
@@ -139,23 +136,12 @@ CONFIG = [
         CARD_NUMBER,
         'Assets:DKB:Credit',
         currency='EUR',
-        file_encoding='utf-8',
         description_patterns=[
             ('REWE sagt Danke', 'Expenses:Supermarket:REWE'),
             ('NETFLIX', 'Expenses:Online:Netflix'),
         ],
     )
 ```
-
-## FAQ
-
-```sh
-ERROR:root:Importer beancount_dkb.ec.ECImporter.identify() raised an unexpected error: 'utf-8' codec can't decode byte 0xf6 in position 17: invalid start byte
-```
-
-Change the `file_encoding` parameter. It seems like the CSV
-exports are `ISO-8859-1` encoded, but `utf-8`
-seems like a useful default.
 
 ## Contributing
 
