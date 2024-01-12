@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.18.0
+
+- Promote v0.18.b2
+
 ## v0.18.0b2 (pre-release)
 
 - Add back and deprecate `file_encoding` parameter for an easier transition
