@@ -224,7 +224,7 @@ class ECImporter(importer.ImporterProtocol):
                 # assertions work.
 
                 self._balance_amount = Amount(
-                    fmt_number_de(value.value.rstrip(" EUR")), self.currency
+                    fmt_number_de(value.value.split()[0]), self.currency
                 )
                 self._balance_date = datetime.strptime(
                     key.lstrip("Kontostand vom ").rstrip(":"), "%d.%m.%Y"

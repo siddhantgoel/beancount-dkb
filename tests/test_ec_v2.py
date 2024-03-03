@@ -77,6 +77,31 @@ def test_extract_no_transactions(tmp_file):
     assert directives[0].amount == Amount(Decimal("5000.01"), currency="EUR")
 
 
+def test_extract_no_transactions_euro_character(tmp_file):
+    importer = ECImporter(IBAN, "Assets:DKB:EC")
+
+    tmp_file.write_text(
+        _format(
+            """
+            ""
+            "Kontostand vom 01.03.2024:";"1.800,00 €";
+            ""
+            {header}
+            """,
+            dict(iban=IBAN, header=HEADER),
+        ),
+        encoding=ENCODING,
+    )
+
+    with tmp_file.open() as fd:
+        directives = importer.extract(fd)
+
+    assert len(directives) == 1
+    assert isinstance(directives[0], Balance)
+    assert directives[0].date == datetime.date(2024, 3, 2)
+    assert directives[0].amount == Amount(Decimal("1800.00"), currency="EUR")
+
+
 def test_extract_transactions(tmp_file):
     tmp_file.write_text(
         _format(
