@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.19.0
+
+- Allow "€" instead of "EUR" in balance amounts (thanks [@e11bits])
+
 ## v0.18.0
 
 - Promote v0.18.b2
@@ -158,9 +162,10 @@
 - Added ECImporter to import CSV exports of EC accounts
 
 
+[@Dr-Nuke]: https://github.com/Dr-Nuke
 [@bratekarate]: https://githun.com/bratekarate
 [@dmerkert]: https://github.com/dmerkert
-[@Dr-Nuke]: https://github.com/Dr-Nuke
+[@e11bits]: https://github.com/e11bits
 [@niels]: https://github.com/niels
 [@nils-werner]: https://github.com/nils-werner
 [@tbm]: https://github.com/tbm
