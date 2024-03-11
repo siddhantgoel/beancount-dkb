@@ -32,7 +32,7 @@ python = "^3.8"
 beancount = "^2.3"
 flake8 = "^5.0"
 isort = "^5.13"
-pytest = "^8.0"
+pytest = "^8.1"
 black = "^24.2"
 
 [tool.poetry.group.dev.dependencies]
