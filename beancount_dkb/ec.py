@@ -5,9 +5,9 @@ from functools import partial
 from textwrap import dedent
 from typing import Dict, Optional, Sequence
 
-from beancount.core import data
+from beancount.core import data, flags
 from beancount.core.amount import Amount
-from beancount.ingest import importer
+from beangulp.importer import Importer
 
 from .exceptions import InvalidFormatError
 from .extractors.ec import V1Extractor, V2Extractor
@@ -18,11 +18,11 @@ Meta = namedtuple("Meta", ["value", "line_index"])
 new_posting = partial(data.Posting, cost=None, price=None, flag=None, meta=None)
 
 
-class ECImporter(importer.ImporterProtocol):
+class ECImporter(Importer):
     def __init__(
         self,
         iban: str,
-        account: str,
+        account_name: str,
         currency: str = "EUR",
         file_encoding: Optional[str] = None,
         meta_code: Optional[str] = None,
@@ -30,7 +30,7 @@ class ECImporter(importer.ImporterProtocol):
         description_patterns: Optional[Sequence] = None,
     ):
         self.iban = iban
-        self.account = account
+        self.account_name = account_name
         self.currency = currency
         self.meta_code = meta_code
         self.payee_matcher = AccountMatcher(payee_patterns)
@@ -59,33 +59,35 @@ class ECImporter(importer.ImporterProtocol):
     def name(self):
         return "DKB {}".format(self.__class__.__name__)
 
-    def file_account(self, _):
-        return self.account
+    def account(self, filepath: str) -> data.Account:
+        return self.account_name
 
-    def file_date(self, file):
-        self.extract(file)
+    def date(self, filepath: str):
+        self.extract(filepath)
 
         return self._date_to
 
-    def identify(self, file):
-        return self._v1_extractor.identify(file) or self._v2_extractor.identify(file)
+    def identify(self, filepath: str):
+        return self._v1_extractor.identify(filepath) or self._v2_extractor.identify(
+            filepath
+        )
 
-    def extract(self, file, existing_entries=None):
+    def extract(self, filepath: str, existing_entries: Optional[data.Entries] = None):
         extractor = None
 
-        if self._v1_extractor.identify(file):
+        if self._v1_extractor.identify(filepath):
             extractor = self._v1_extractor
-        elif self._v2_extractor.identify(file):
+        elif self._v2_extractor.identify(filepath):
             extractor = self._v2_extractor
         else:
             raise InvalidFormatError()
 
-        return self._extract(file, extractor)
+        return self._extract(filepath, extractor)
 
-    def _extract(self, file, extractor):
+    def _extract(self, filepath, extractor):
         entries = []
 
-        with open(file.name, encoding=extractor.file_encoding) as fd:
+        with open(filepath, encoding=extractor.file_encoding) as fd:
             lines = [line.strip() for line in fd.readlines()]
 
         line_index = 0
@@ -118,7 +120,7 @@ class ECImporter(importer.ImporterProtocol):
         for line in reader:
             line_index += 1
 
-            meta = data.new_metadata(file.name, line_index)
+            meta = data.new_metadata(filepath, line_index)
 
             amount = None
             if extractor.get_amount(line):
@@ -134,7 +136,7 @@ class ECImporter(importer.ImporterProtocol):
                         data.Balance(
                             meta,
                             date + timedelta(days=1),
-                            self.account,
+                            self.account(filepath),
                             amount,
                             None,
                             None,
@@ -148,7 +150,7 @@ class ECImporter(importer.ImporterProtocol):
                 payee = extractor.get_payee(line)
 
                 postings = [
-                    new_posting(account=self.account, units=amount),
+                    new_posting(account=self.account(filepath), units=amount),
                 ]
 
                 payee_match = self.payee_matcher.account_matches(payee)
@@ -186,7 +188,7 @@ class ECImporter(importer.ImporterProtocol):
                     data.Transaction(
                         meta,
                         date,
-                        self.FLAG,
+                        flags.FLAG_OKAY,
                         payee,
                         description,
                         data.EMPTY_SET,
@@ -198,9 +200,9 @@ class ECImporter(importer.ImporterProtocol):
         # Closing Balance
         entries.append(
             data.Balance(
-                data.new_metadata(file.name, self._closing_balance_index),
+                data.new_metadata(filepath, self._closing_balance_index),
                 self._balance_date,
-                self.account,
+                self.account(filepath),
                 self._balance_amount,
                 None,
                 None,

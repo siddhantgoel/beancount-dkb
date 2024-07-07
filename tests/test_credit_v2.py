@@ -38,8 +38,7 @@ def test_identify_correct(tmp_file):
         )
     )
 
-    with tmp_file.open() as fd:
-        assert importer.identify(fd)
+    assert importer.identify(tmp_file)
 
 
 def test_identify_prefixes(tmp_file):
@@ -61,8 +60,7 @@ def test_identify_prefixes(tmp_file):
         )
     )
 
-    with tmp_file.open() as fd:
-        assert importer.identify(fd)
+    assert importer.identify(tmp_file)
 
 
 def test_identify_invalid_iban(tmp_file):
@@ -83,8 +81,7 @@ def test_identify_invalid_iban(tmp_file):
 
     importer = CreditImporter(other_iban, "Assets:DKB:Credit")
 
-    with tmp_file.open() as fd:
-        assert not importer.identify(fd)
+    assert not importer.identify(tmp_file)
 
 
 def test_extract_no_transactions(tmp_file):
@@ -103,8 +100,7 @@ def test_extract_no_transactions(tmp_file):
         )
     )
 
-    with tmp_file.open() as fd:
-        directives = importer.extract(fd)
+    directives = importer.extract(tmp_file)
 
     assert len(directives) == 1
     assert isinstance(directives[0], Balance)
@@ -129,8 +125,7 @@ def test_extract_transactions(tmp_file):
 
     importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
 
-    with tmp_file.open() as fd:
-        directives = importer.extract(fd)
+    directives = importer.extract(tmp_file)
 
     assert len(directives) == 2
     assert directives[0].date == datetime.date(2023, 1, 15)
@@ -158,8 +153,7 @@ def test_emits_closing_balance_directive(tmp_file):
 
     importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
 
-    with tmp_file.open() as fd:
-        directives = importer.extract(fd)
+    directives = importer.extract(tmp_file)
 
     assert len(directives) == 2
     assert isinstance(directives[1], Balance)
@@ -187,8 +181,7 @@ def test_extract_with_description_patterns(tmp_file):
         "Assets:DKB:Credit",
         description_patterns=[("REWE Filiale", "Expenses:Supermarket:REWE")],
     )
-    with tmp_file.open() as fd:
-        directives = importer.extract(fd)
+    directives = importer.extract(tmp_file)
 
     assert len(directives) == 2
     assert len(directives[0].postings) == 2

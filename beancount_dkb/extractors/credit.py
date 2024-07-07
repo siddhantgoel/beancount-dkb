@@ -12,7 +12,7 @@ class BaseExtractor:
     def __init__(self, card_number: str):
         self.card_number = card_number
 
-    def identify(self, file) -> bool:
+    def identify(self, filepath: str) -> bool:
         raise NotImplementedError()
 
     def extract_header(self, fd: IO):
@@ -67,14 +67,14 @@ class V1Extractor(BaseExtractor):
 
     file_encoding = "ISO-8859-1"
 
-    def identify(self, file) -> bool:
+    def identify(self, filepath: str) -> bool:
         expected_header_prefixes = (
             f'"Kreditkarte:";"{self.card_number} Kreditkarte";',
             f'"Kreditkarte:";"{self.card_number}";',
             f'"Kreditkarte:";"{self.card_number[:4]}********{self.card_number[-4:]}";',
         )
 
-        with open(file.name, encoding=self.file_encoding) as fd:
+        with open(filepath, encoding=self.file_encoding) as fd:
             line = fd.readline().strip()
 
             return any(line.startswith(header) for header in expected_header_prefixes)
@@ -106,11 +106,11 @@ class V2Extractor(BaseExtractor):
 
     file_encoding = "utf-8-sig"
 
-    def identify(self, file) -> bool:
+    def identify(self, filepath: str) -> bool:
         expected_header_prefix = f'"Karte";"Visa-Kreditkarte {self.card_number[:4]}'
 
         try:
-            with open(file.name, encoding=self.file_encoding) as fd:
+            with open(filepath, encoding=self.file_encoding) as fd:
                 line = fd.readline().strip()
 
                 return line.startswith(expected_header_prefix)

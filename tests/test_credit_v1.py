@@ -53,8 +53,7 @@ def test_multiple_headers(tmp_file):
         encoding=ENCODING,
     )
 
-    with tmp_file.open() as fd:
-        assert importer.identify(fd)
+    assert importer.identify(tmp_file)
 
     # latest header format
     tmp_file.write_text(
@@ -70,8 +69,7 @@ def test_multiple_headers(tmp_file):
         encoding=ENCODING,
     )
 
-    with tmp_file.open() as fd:
-        assert importer.identify(fd)
+    assert importer.identify(tmp_file)
 
 
 def test_identify_correct(tmp_file):
@@ -94,8 +92,7 @@ def test_identify_correct(tmp_file):
         encoding=ENCODING,
     )
 
-    with tmp_file.open() as fd:
-        assert importer.identify(fd)
+    assert importer.identify(tmp_file)
 
 
 def test_identify_prefixes(tmp_file):
@@ -121,8 +118,7 @@ def test_identify_prefixes(tmp_file):
         encoding=ENCODING,
     )
 
-    with tmp_file.open() as fd:
-        assert importer.identify(fd)
+    assert importer.identify(tmp_file)
 
 
 def test_identify_invalid_iban(tmp_file):
@@ -147,8 +143,7 @@ def test_identify_invalid_iban(tmp_file):
 
     importer = CreditImporter(other_iban, "Assets:DKB:Credit")
 
-    with tmp_file.open() as fd:
-        assert not importer.identify(fd)
+    assert not importer.identify(tmp_file)
 
 
 def test_extract_no_transactions(tmp_file):
@@ -171,8 +166,7 @@ def test_extract_no_transactions(tmp_file):
         encoding=ENCODING,
     )
 
-    with tmp_file.open() as fd:
-        directives = importer.extract(fd)
+    directives = importer.extract(tmp_file)
 
     assert len(directives) == 1
     assert isinstance(directives[0], Balance)
@@ -201,8 +195,7 @@ def test_extract_transactions(tmp_file):
 
     importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
 
-    with tmp_file.open() as fd:
-        directives = importer.extract(fd)
+    directives = importer.extract(tmp_file)
 
     assert len(directives) == 2
     assert directives[0].date == datetime.date(2018, 1, 15)
@@ -238,8 +231,7 @@ def test_extract_sets_timestamps(tmp_file):
     assert not importer._date_to
     assert not importer._balance_amount
 
-    with tmp_file.open() as fd:
-        directives = importer.extract(fd)
+    directives = importer.extract(tmp_file)
 
     assert directives
     assert importer._date_from == datetime.date(2018, 1, 1)
@@ -271,8 +263,7 @@ def test_extract_with_zeitraum(tmp_file):
     assert not importer._date_to
     assert not importer._balance_amount
 
-    with tmp_file.open() as fd:
-        directives = importer.extract(fd)
+    directives = importer.extract(tmp_file)
 
     assert directives
     assert not importer._date_from
@@ -304,8 +295,7 @@ def test_file_date_with_zeitraum(tmp_file):
     assert not importer._date_to
     assert not importer._balance_amount
 
-    with tmp_file.open() as fd:
-        assert importer.file_date(fd) == datetime.date(2018, 1, 30)
+    assert importer.date(tmp_file) == datetime.date(2018, 1, 30)
 
 
 def test_emits_closing_balance_directive(tmp_file):
@@ -329,8 +319,7 @@ def test_emits_closing_balance_directive(tmp_file):
 
     importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
 
-    with tmp_file.open() as fd:
-        directives = importer.extract(fd)
+    directives = importer.extract(tmp_file)
 
     assert len(directives) == 2
     assert isinstance(directives[1], Balance)
@@ -359,8 +348,7 @@ def test_file_date_is_set_correctly(tmp_file):
 
     importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
 
-    with tmp_file.open() as fd:
-        assert importer.file_date(fd) == datetime.date(2016, 1, 31)
+    assert importer.date(tmp_file) == datetime.date(2016, 1, 31)
 
 
 def test_extract_with_description_patterns(tmp_file):
@@ -387,8 +375,7 @@ def test_extract_with_description_patterns(tmp_file):
         "Assets:DKB:Credit",
         description_patterns=[("REWE Filiale", "Expenses:Supermarket:REWE")],
     )
-    with tmp_file.open() as fd:
-        directives = importer.extract(fd)
+    directives = importer.extract(tmp_file)
 
     assert len(directives) == 2
     assert len(directives[0].postings) == 2
@@ -425,7 +412,6 @@ def test_extract_multiple_transactions(tmp_file):
 
     importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
 
-    with tmp_file.open() as fd:
-        directives = importer.extract(fd)
+    directives = importer.extract(tmp_file)
 
     assert len(directives) == 3

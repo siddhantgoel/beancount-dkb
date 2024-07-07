@@ -50,8 +50,7 @@ def test_identify_correct(tmp_file):
         encoding=ENCODING,
     )
 
-    with tmp_file.open() as fd:
-        assert importer.identify(fd)
+    assert importer.identify(tmp_file)
 
 
 def test_identify_tagesgeld(tmp_file):
@@ -73,8 +72,7 @@ def test_identify_tagesgeld(tmp_file):
         encoding=ENCODING,
     )
 
-    with tmp_file.open() as fd:
-        assert importer.identify(fd)
+    assert importer.identify(tmp_file)
 
 
 def test_identify_with_nonstandard_account_name(tmp_file):
@@ -96,8 +94,7 @@ def test_identify_with_nonstandard_account_name(tmp_file):
         encoding=ENCODING,
     )
 
-    with tmp_file.open() as fd:
-        assert importer.identify(fd)
+    assert importer.identify(tmp_file)
 
 
 def test_identify_with_exotic_account_name(tmp_file):
@@ -119,8 +116,7 @@ def test_identify_with_exotic_account_name(tmp_file):
         encoding=ENCODING,
     )
 
-    with tmp_file.open() as fd:
-        assert importer.identify(fd)
+    assert importer.identify(tmp_file)
 
 
 def test_identify_with_formatted_iban(tmp_file):
@@ -142,8 +138,7 @@ def test_identify_with_formatted_iban(tmp_file):
         encoding=ENCODING,
     )
 
-    with tmp_file.open() as fd:
-        assert importer.identify(fd)
+    assert importer.identify(tmp_file)
 
 
 def test_identify_invalid_iban(tmp_file):
@@ -166,8 +161,7 @@ def test_identify_invalid_iban(tmp_file):
 
     importer = ECImporter(other_iban, "Assets:DKB:EC")
 
-    with tmp_file.open() as fd:
-        assert not importer.identify(fd)
+    assert not importer.identify(tmp_file)
 
 
 def test_extract_no_transactions(tmp_file):
@@ -189,8 +183,7 @@ def test_extract_no_transactions(tmp_file):
         encoding=ENCODING,
     )
 
-    with tmp_file.open() as fd:
-        directives = importer.extract(fd)
+    directives = importer.extract(tmp_file)
 
     assert len(directives) == 1
     assert isinstance(directives[0], Balance)
@@ -219,8 +212,7 @@ def test_extract_transactions(tmp_file):
 
     importer = ECImporter(IBAN, "Assets:DKB:EC")
 
-    with tmp_file.open() as fd:
-        directives = importer.extract(fd)
+    directives = importer.extract(tmp_file)
 
     assert len(directives) == 3
     assert directives[0].date == datetime.date(2018, 1, 16)
@@ -263,8 +255,7 @@ def test_extract_tagesgeld(tmp_file):
 
     importer = ECImporter(IBAN, "Assets:DKB:EC")
 
-    with tmp_file.open() as fd:
-        directives = importer.extract(fd)
+    directives = importer.extract(tmp_file)
 
     assert len(directives) == 3
     assert directives[0].date == datetime.date(2018, 1, 16)
@@ -311,8 +302,7 @@ def test_extract_sets_timestamps(tmp_file):
     assert not importer._balance_amount
     assert not importer._balance_date
 
-    with tmp_file.open() as fd:
-        directives = importer.extract(fd)
+    directives = importer.extract(tmp_file)
 
     assert directives
     assert importer._date_from == datetime.date(2018, 1, 1)
@@ -341,8 +331,7 @@ def test_tagessaldo_emits_balance_directive(tmp_file):
 
     importer = ECImporter(IBAN, "Assets:DKB:EC")
 
-    with tmp_file.open() as fd:
-        directives = importer.extract(fd)
+    directives = importer.extract(tmp_file)
 
     assert len(directives) == 2
     assert isinstance(directives[0], Balance)
@@ -370,8 +359,7 @@ def test_tagessaldo_with_empty_balance_does_not_crash(tmp_file):
 
     importer = ECImporter(IBAN, "Assets:DKB:EC")
 
-    with tmp_file.open() as fd:
-        directives = importer.extract(fd)
+    directives = importer.extract(tmp_file)
 
     assert len(directives) == 1
     assert isinstance(directives[0], Balance)
@@ -399,8 +387,7 @@ def test_file_date_is_set_correctly(tmp_file):
 
     importer = ECImporter(IBAN, "Assets:DKB:EC")
 
-    with tmp_file.open() as fd:
-        assert importer.file_date(fd) == datetime.date(2018, 1, 31)
+    assert importer.date(tmp_file) == datetime.date(2018, 1, 31)
 
 
 def test_emits_closing_balance_directive(tmp_file):
@@ -423,8 +410,7 @@ def test_emits_closing_balance_directive(tmp_file):
 
     importer = ECImporter(IBAN, "Assets:DKB:EC")
 
-    with tmp_file.open() as fd:
-        directives = importer.extract(fd)
+    directives = importer.extract(tmp_file)
 
     assert len(directives) == 2
     assert isinstance(directives[1], Balance)
@@ -453,8 +439,7 @@ def test_mismatching_dates_in_meta(tmp_file):
 
     importer = ECImporter(IBAN, "Assets:DKB:EC")
 
-    with tmp_file.open() as fd:
-        directives = importer.extract(fd)
+    directives = importer.extract(tmp_file)
 
     assert len(directives) == 2
     assert isinstance(directives[1], Balance)
@@ -482,8 +467,7 @@ def test_meta_code_is_added(tmp_file):
 
     importer = ECImporter(IBAN, "Assets:DKB:EC", meta_code="code")
 
-    with tmp_file.open() as fd:
-        directives = importer.extract(fd)
+    directives = importer.extract(tmp_file)
 
     assert len(directives) == 2
     assert directives[0].date == datetime.date(2018, 1, 16)
@@ -516,8 +500,7 @@ def test_extract_with_payee_patterns(tmp_file):
         payee_patterns=[("REWE Filialen", "Expenses:Supermarket:REWE")],
     )
 
-    with tmp_file.open() as fd:
-        directives = importer.extract(fd)
+    directives = importer.extract(tmp_file)
 
     assert len(directives) == 2
     assert len(directives[0].postings) == 2
@@ -553,8 +536,7 @@ def test_extract_with_description_patterns(tmp_file):
         description_patterns=[("SAGT DANKE", "Expenses:Supermarket:REWE")],
     )
 
-    with tmp_file.open() as fd:
-        directives = importer.extract(fd)
+    directives = importer.extract(tmp_file)
 
     assert len(directives) == 2
     assert len(directives[0].postings) == 2
@@ -591,9 +573,8 @@ def test_extract_with_payee_and_description_patterns(tmp_file):
         description_patterns=[("SAGT DANKE", "Expenses:Supermarket:REWE")],
     )
 
-    with tmp_file.open() as fd:
-        with pytest.warns(UserWarning) as user_warnings:
-            directives = importer.extract(fd)
+    with pytest.warns(UserWarning) as user_warnings:
+        directives = importer.extract(tmp_file)
 
     assert len(directives) == 2
     assert len(directives[0].postings) == 2
@@ -632,7 +613,6 @@ def test_extract_multiple_transactions(tmp_file):
 
     importer = ECImporter(IBAN, "Assets:DKB:EC")
 
-    with tmp_file.open() as fd:
-        directives = importer.extract(fd)
+    directives = importer.extract(tmp_file)
 
     assert len(directives) == 2

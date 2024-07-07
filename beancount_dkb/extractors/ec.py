@@ -13,7 +13,7 @@ class BaseExtractor:
         self.iban = iban
         self.meta_code = meta_code
 
-    def identify(self, file) -> bool:
+    def identify(self, filepath: str) -> bool:
         raise NotImplementedError()
 
     def get_account_number(self, line: Dict[str, str]) -> str:
@@ -59,7 +59,7 @@ class V1Extractor(BaseExtractor):
 
     file_encoding = "ISO-8859-1"
 
-    def identify(self, file) -> bool:
+    def identify(self, filepath: str) -> bool:
         regex = re.compile(
             r'^"Kontonummer:";"'
             + re.escape(re.sub(r"\s+", "", self.iban, flags=re.UNICODE))
@@ -67,7 +67,7 @@ class V1Extractor(BaseExtractor):
             re.IGNORECASE,
         )
 
-        with open(file.name, encoding=self.file_encoding) as fd:
+        with open(filepath, encoding=self.file_encoding) as fd:
             line = fd.readline().strip()
 
             return regex.match(line)
@@ -119,9 +119,9 @@ class V2Extractor(BaseExtractor):
 
     file_encoding = "utf-8-sig"
 
-    def identify(self, file) -> bool:
+    def identify(self, filepath: str) -> bool:
         try:
-            with open(file.name, encoding=self.file_encoding) as fd:
+            with open(filepath, encoding=self.file_encoding) as fd:
                 lines = [line.strip() for line in fd.readlines()]
 
             return self.HEADER in lines

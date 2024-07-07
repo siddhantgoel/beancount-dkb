@@ -2,12 +2,12 @@ import warnings
 from collections import namedtuple
 from datetime import datetime, timedelta
 from textwrap import dedent
-from typing import Dict, Optional
+from typing import Dict, Optional, Sequence
 
-from beancount.core import data
+from beancount.core import data, flags
 from beancount.core.amount import Amount
 from beancount.core.number import Decimal
-from beancount.ingest import importer
+from beangulp.importer import Importer
 
 from .exceptions import InvalidFormatError
 from .extractors.credit import V1Extractor, V2Extractor
@@ -16,17 +16,17 @@ from .helpers import AccountMatcher, csv_dict_reader, csv_reader, fmt_number_de
 Meta = namedtuple("Meta", ["value", "line_index"])
 
 
-class CreditImporter(importer.ImporterProtocol):
+class CreditImporter(Importer):
     def __init__(
         self,
-        card_number,
-        account,
-        currency="EUR",
+        card_number: str,
+        account_name: str,
+        currency: Optional[str] = "EUR",
         file_encoding: Optional[str] = None,
-        description_patterns=None,
+        description_patterns: Optional[Sequence] = None,
     ):
         self.card_number = card_number
-        self.account = account
+        self.account_name = account_name
         self.currency = currency
         self.description_matcher = AccountMatcher(description_patterns)
 
@@ -72,11 +72,11 @@ class CreditImporter(importer.ImporterProtocol):
     def name(self):
         return "DKB {}".format(self.__class__.__name__)
 
-    def file_account(self, _):
-        return self.account
+    def account(self, filepath: str) -> data.Account:
+        return self.account_name
 
-    def file_date(self, file):
-        self.extract(file)
+    def date(self, filepath: str):
+        self.extract(filepath)
 
         # in case the file contains start/end dates, return the end date
         # if not, then the file was based on a time period (Zeitraum), so we
@@ -84,25 +84,27 @@ class CreditImporter(importer.ImporterProtocol):
 
         return self._date_to or self._file_date
 
-    def identify(self, file):
-        return self._v1_extractor.identify(file) or self._v2_extractor.identify(file)
+    def identify(self, filepath: str):
+        return self._v1_extractor.identify(filepath) or self._v2_extractor.identify(
+            filepath
+        )
 
-    def extract(self, file, existing_entries=None):
+    def extract(self, filepath: str, existing_entries: Optional[data.Entries] = None):
         extractor = None
 
-        if self._v1_extractor.identify(file):
+        if self._v1_extractor.identify(filepath):
             extractor = self._v1_extractor
-        elif self._v2_extractor.identify(file):
+        elif self._v2_extractor.identify(filepath):
             extractor = self._v2_extractor
         else:
             raise InvalidFormatError()
 
-        return self._extract(file, extractor)
+        return self._extract(filepath, extractor)
 
-    def _extract(self, file, extractor):
+    def _extract(self, filepath, extractor):
         entries = []
 
-        with open(file.name, encoding=extractor.file_encoding) as fd:
+        with open(filepath, encoding=extractor.file_encoding) as fd:
             lines = [line.strip() for line in fd.readlines()]
 
         line_index = 0
@@ -135,7 +137,7 @@ class CreditImporter(importer.ImporterProtocol):
         for line in reader:
             line_index += 1
 
-            meta = data.new_metadata(file.name, line_index)
+            meta = data.new_metadata(filepath, line_index)
 
             amount = Amount(fmt_number_de(extractor.get_amount(line)), self.currency)
 
@@ -143,7 +145,9 @@ class CreditImporter(importer.ImporterProtocol):
 
             description = extractor.get_description(line)
 
-            postings = [data.Posting(self.account, amount, None, None, None, None)]
+            postings = [
+                data.Posting(self.account(filepath), amount, None, None, None, None)
+            ]
 
             if self.description_matcher.account_matches(description):
                 postings.append(
@@ -161,7 +165,7 @@ class CreditImporter(importer.ImporterProtocol):
                 data.Transaction(
                     meta,
                     date,
-                    self.FLAG,
+                    flags.FLAG_OKAY,
                     None,
                     description,
                     data.EMPTY_SET,
@@ -171,12 +175,12 @@ class CreditImporter(importer.ImporterProtocol):
             )
 
         # Closing Balance
-        meta = data.new_metadata(file.name, self._closing_balance_index)
+        meta = data.new_metadata(filepath, self._closing_balance_index)
         entries.append(
             data.Balance(
                 meta,
                 self._balance_date,
-                self.account,
+                self.account(filepath),
                 self._balance_amount,
                 None,
                 None,
