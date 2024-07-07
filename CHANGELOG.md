@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v1.0.0
+
+- Add Beancount 3.x support (thus removing Beancount 2.x support)
+- Add `beancount-dkb-ec` and `beancount-dkb-credit` CLI commands
+- Rename `account` parameter to `account_name` (overlapping with the `account()` method
+  definition required by `beangulp.importer.Importer`)
+- Add Python 3.12 support
+
 ## v0.19.0
 
 - Allow "€" instead of "EUR" in balance amounts (thanks [@e11bits])
