@@ -39,6 +39,10 @@ black = "^24.4"
 [tool.poetry.group.dev.dependencies]
 taskipy = "^1.12.0"
 
+[tool.poetry.scripts]
+beancount-dkb-ec = "beancount_dkb.cli:ec"
+beancount-dkb-credit = "beancount_dkb.cli:credit"
+
 [tool.taskipy.tasks]
 fmt = "black beancount_dkb/ tests/"
 
@@ -51,6 +55,5 @@ test-pytest = "pytest tests/"
 test = "task test-pytest"
 
 [build-system]
-requires = ["poetry>=0.12"]
-build-backend = "poetry.masonry.api"
-
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
