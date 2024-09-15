@@ -1,3 +1,5 @@
+import csv
+from functools import partial
 import re
 from collections import namedtuple
 from datetime import date, datetime
@@ -12,6 +14,14 @@ class BaseExtractor:
     def __init__(self, iban: str, meta_code: Optional[str] = None):
         self.iban = iban
         self.meta_code = meta_code
+
+    @property
+    def csv_reader(self):
+        raise NotImplementedError()
+
+    @property
+    def csv_dict_reader(self):
+        raise NotImplementedError()
 
     def identify(self, filepath: str) -> bool:
         raise NotImplementedError()
@@ -58,6 +68,18 @@ class V1Extractor(BaseExtractor):
     HEADER = ";".join(f'"{field}"' for field in FIELDS) + ";"
 
     file_encoding = "ISO-8859-1"
+
+    @property
+    def csv_reader(self):
+        return partial(
+            csv.reader, delimiter=";", quoting=csv.QUOTE_MINIMAL, quotechar='"'
+        )
+
+    @property
+    def csv_dict_reader(self):
+        return partial(
+            csv.DictReader, delimiter=";", quoting=csv.QUOTE_MINIMAL, quotechar='"'
+        )
 
     def identify(self, filepath: str) -> bool:
         regex = re.compile(
@@ -115,16 +137,45 @@ class V2Extractor(BaseExtractor):
         "Kundenreferenz",
     )
 
-    HEADER = ";".join(f'"{field}"' for field in FIELDS)
+    HEADER = ",".join(f'"{field}"' for field in FIELDS)
 
     file_encoding = "utf-8-sig"
+
+    @property
+    def csv_reader(self):
+        return partial(
+            csv.reader, delimiter=",", quoting=csv.QUOTE_MINIMAL, quotechar='"'
+        )
+
+    @property
+    def csv_dict_reader(self):
+        return partial(
+            csv.DictReader, delimiter=",", quoting=csv.QUOTE_MINIMAL, quotechar='"'
+        )
 
     def identify(self, filepath: str) -> bool:
         try:
             with open(filepath, encoding=self.file_encoding) as fd:
                 lines = [line.strip() for line in fd.readlines()]
 
-            return self.HEADER in lines
+            if self.HEADER not in lines:
+                return False
+
+            header_index = lines.index(self.HEADER)
+            metadata_lines = lines[0: header_index]
+
+            regex = re.compile(
+                r'^"Girokonto","'
+                + re.escape(re.sub(r"\s+", "", self.iban, flags=re.UNICODE))
+                + r'"',
+                re.IGNORECASE,
+            )
+
+            for line in metadata_lines:
+                if regex.match(line):
+                    return True
+
+            return False
         except UnicodeDecodeError:
             return False
 

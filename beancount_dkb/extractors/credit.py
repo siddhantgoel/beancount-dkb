@@ -1,4 +1,5 @@
 import csv
+from functools import partial
 from collections import namedtuple
 from datetime import date, datetime
 from typing import IO, Dict
@@ -11,6 +12,17 @@ Meta = namedtuple("Meta", ["value", "line_index"])
 class BaseExtractor:
     def __init__(self, card_number: str):
         self.card_number = card_number
+
+    @property
+    def csv_reader(self):
+        raise NotImplementedError()
+
+    @property
+    def csv_dict_reader(self):
+        raise NotImplementedError()
+
+    def get_account_number(self, line: Dict[str, str]) -> str:
+        raise NotImplementedError()
 
     def identify(self, filepath: str) -> bool:
         raise NotImplementedError()
@@ -67,6 +79,18 @@ class V1Extractor(BaseExtractor):
 
     file_encoding = "ISO-8859-1"
 
+    @property
+    def csv_reader(self):
+        return partial(
+            csv.reader, delimiter=";", quoting=csv.QUOTE_MINIMAL, quotechar='"'
+        )
+
+    @property
+    def csv_dict_reader(self):
+        return partial(
+            csv.DictReader, delimiter=";", quoting=csv.QUOTE_MINIMAL, quotechar='"'
+        )
+
     def identify(self, filepath: str) -> bool:
         expected_header_prefixes = (
             f'"Kreditkarte:";"{self.card_number} Kreditkarte";',
@@ -98,27 +122,42 @@ class V2Extractor(BaseExtractor):
         "Status",
         "Beschreibung",
         "Umsatztyp",
-        "Betrag",
+        "Betrag (€)",
         "Fremdwährungsbetrag",
     )
 
-    HEADER = ";".join(f'"{field}"' for field in FIELDS)
+    HEADER = ",".join(f'"{field}"' for field in FIELDS)
 
     file_encoding = "utf-8-sig"
 
+    @property
+    def csv_reader(self):
+        return partial(
+            csv.reader, delimiter=",", quoting=csv.QUOTE_MINIMAL, quotechar='"'
+        )
+
+    @property
+    def csv_dict_reader(self):
+        return partial(
+            csv.DictReader, delimiter=",", quoting=csv.QUOTE_MINIMAL, quotechar='"'
+        )
+
     def identify(self, filepath: str) -> bool:
-        expected_header_prefix = f'"Karte";"Visa-Kreditkarte {self.card_number[:4]}'
+        expected_header_prefix = f'"Karte","Visa Kreditkarte","{self.card_number[:4]}'
 
         try:
             with open(filepath, encoding=self.file_encoding) as fd:
                 line = fd.readline().strip()
 
-                return line.startswith(expected_header_prefix)
+                return (
+                    line.startswith(expected_header_prefix)
+                    and line.endswith(f'{self.card_number[-4:]}"')
+                )
         except UnicodeDecodeError:
             return False
 
     def get_amount(self, line: Dict[str, str]) -> str:
-        return line["Betrag"].rstrip(" €")
+        return line["Betrag (€)"].rstrip(" €")
 
     def get_valuation_date(self, line: Dict[str, str]) -> date:
         return datetime.strptime(line["Wertstellung"], "%d.%m.%y").date()

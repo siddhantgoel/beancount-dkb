@@ -11,7 +11,7 @@ from beangulp.importer import Importer
 
 from .exceptions import InvalidFormatError
 from .extractors.ec import V1Extractor, V2Extractor
-from .helpers import AccountMatcher, csv_dict_reader, csv_reader, fmt_number_de
+from .helpers import AccountMatcher, fmt_number_de
 
 Meta = namedtuple("Meta", ["value", "line_index"])
 
@@ -99,7 +99,7 @@ class ECImporter(Importer):
         # Metadata
 
         metadata = {}
-        reader = csv_reader(metadata_lines)
+        reader = extractor.csv_reader(metadata_lines)
 
         for line in reader:
             line_index += 1
@@ -115,7 +115,7 @@ class ECImporter(Importer):
 
         # Transactions
 
-        reader = csv_dict_reader(transaction_lines)
+        reader = extractor.csv_dict_reader(transaction_lines)
 
         for line in reader:
             line_index += 1
