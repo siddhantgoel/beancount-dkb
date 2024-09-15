@@ -1,3 +1,5 @@
+import csv
+from functools import partial
 import re
 from collections import namedtuple
 from datetime import date, datetime
@@ -12,6 +14,14 @@ class BaseExtractor:
     def __init__(self, iban: str, meta_code: Optional[str] = None):
         self.iban = iban
         self.meta_code = meta_code
+
+    @property
+    def csv_reader(self):
+        raise NotImplementedError()
+
+    @property
+    def csv_dict_reader(self):
+        raise NotImplementedError()
 
     def identify(self, filepath: str) -> bool:
         raise NotImplementedError()
@@ -58,6 +68,18 @@ class V1Extractor(BaseExtractor):
     HEADER = ";".join(f'"{field}"' for field in FIELDS) + ";"
 
     file_encoding = "ISO-8859-1"
+
+    @property
+    def csv_reader(self):
+        return partial(
+            csv.reader, delimiter=";", quoting=csv.QUOTE_MINIMAL, quotechar='"'
+        )
+
+    @property
+    def csv_dict_reader(self):
+        return partial(
+            csv.DictReader, delimiter=";", quoting=csv.QUOTE_MINIMAL, quotechar='"'
+        )
 
     def identify(self, filepath: str) -> bool:
         regex = re.compile(
@@ -118,6 +140,18 @@ class V2Extractor(BaseExtractor):
     HEADER = ",".join(f'"{field}"' for field in FIELDS)
 
     file_encoding = "utf-8-sig"
+
+    @property
+    def csv_reader(self):
+        return partial(
+            csv.reader, delimiter=",", quoting=csv.QUOTE_MINIMAL, quotechar='"'
+        )
+
+    @property
+    def csv_dict_reader(self):
+        return partial(
+            csv.DictReader, delimiter=",", quoting=csv.QUOTE_MINIMAL, quotechar='"'
+        )
 
     def identify(self, filepath: str) -> bool:
         try:

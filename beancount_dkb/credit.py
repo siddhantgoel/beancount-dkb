@@ -6,11 +6,12 @@ from typing import Dict, Optional, Sequence
 
 from beancount.core import data, flags
 from beancount.core.amount import Amount
+from beancount.core.number import Decimal
 from beangulp.importer import Importer
 
 from .exceptions import InvalidFormatError
 from .extractors.credit import V1Extractor, V2Extractor
-from .helpers import AccountMatcher, csv_dict_reader, csv_reader, fmt_number_de
+from .helpers import AccountMatcher, fmt_number_de
 
 Meta = namedtuple("Meta", ["value", "line_index"])
 
@@ -115,7 +116,7 @@ class CreditImporter(Importer):
         # Metadata
 
         metadata = {}
-        reader = csv_reader(metadata_lines)
+        reader = extractor.csv_reader(metadata_lines)
 
         for line in reader:
             line_index += 1
@@ -131,7 +132,7 @@ class CreditImporter(Importer):
 
         # Transactions
 
-        reader = csv_dict_reader(transaction_lines)
+        reader = extractor.csv_dict_reader(transaction_lines)
 
         for line in reader:
             line_index += 1
@@ -199,9 +200,9 @@ class CreditImporter(Importer):
                 if amount.startswith("--"):
                     amount = value.value.lstrip("--")
 
-                amount = fmt_number_de(amount.rstrip(" EUR"))
-
-                self._balance_amount = Amount(amount, self.currency)
+                self._balance_amount = Amount(
+                    Decimal(amount.rstrip(" EUR")), self.currency
+                )
                 self._closing_balance_index = value.line_index
                 if key.startswith("Saldo vom"):
                     self._balance_date = datetime.strptime(

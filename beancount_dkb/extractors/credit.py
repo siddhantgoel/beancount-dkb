@@ -1,4 +1,5 @@
 import csv
+from functools import partial
 from collections import namedtuple
 from datetime import date, datetime
 from typing import IO, Dict
@@ -11,6 +12,17 @@ Meta = namedtuple("Meta", ["value", "line_index"])
 class BaseExtractor:
     def __init__(self, card_number: str):
         self.card_number = card_number
+
+    @property
+    def csv_reader(self):
+        raise NotImplementedError()
+
+    @property
+    def csv_dict_reader(self):
+        raise NotImplementedError()
+
+    def get_account_number(self, line: Dict[str, str]) -> str:
+        raise NotImplementedError()
 
     def identify(self, filepath: str) -> bool:
         raise NotImplementedError()
@@ -67,6 +79,18 @@ class V1Extractor(BaseExtractor):
 
     file_encoding = "ISO-8859-1"
 
+    @property
+    def csv_reader(self):
+        return partial(
+            csv.reader, delimiter=";", quoting=csv.QUOTE_MINIMAL, quotechar='"'
+        )
+
+    @property
+    def csv_dict_reader(self):
+        return partial(
+            csv.DictReader, delimiter=";", quoting=csv.QUOTE_MINIMAL, quotechar='"'
+        )
+
     def identify(self, filepath: str) -> bool:
         expected_header_prefixes = (
             f'"Kreditkarte:";"{self.card_number} Kreditkarte";',
@@ -105,6 +129,18 @@ class V2Extractor(BaseExtractor):
     HEADER = ",".join(f'"{field}"' for field in FIELDS)
 
     file_encoding = "utf-8-sig"
+
+    @property
+    def csv_reader(self):
+        return partial(
+            csv.reader, delimiter=",", quoting=csv.QUOTE_MINIMAL, quotechar='"'
+        )
+
+    @property
+    def csv_dict_reader(self):
+        return partial(
+            csv.DictReader, delimiter=",", quoting=csv.QUOTE_MINIMAL, quotechar='"'
+        )
 
     def identify(self, filepath: str) -> bool:
         expected_header_prefix = f'"Karte","Visa Kreditkarte","{self.card_number[:4]}'
