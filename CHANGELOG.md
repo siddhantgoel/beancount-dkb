@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.1.0
+
+- Replace `;` with `,` as the delimiter for CSV exports from the updated banking interface
+
 ## v1.0.0
 
 - Add Beancount 3.x support (thus removing Beancount 2.x support)
