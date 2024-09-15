@@ -115,7 +115,7 @@ class V2Extractor(BaseExtractor):
         "Kundenreferenz",
     )
 
-    HEADER = ";".join(f'"{field}"' for field in FIELDS)
+    HEADER = ",".join(f'"{field}"' for field in FIELDS)
 
     file_encoding = "utf-8-sig"
 
@@ -124,7 +124,24 @@ class V2Extractor(BaseExtractor):
             with open(filepath, encoding=self.file_encoding) as fd:
                 lines = [line.strip() for line in fd.readlines()]
 
-            return self.HEADER in lines
+            if self.HEADER not in lines:
+                return False
+
+            header_index = lines.index(self.HEADER)
+            metadata_lines = lines[0: header_index]
+
+            regex = re.compile(
+                r'^"Girokonto","'
+                + re.escape(re.sub(r"\s+", "", self.iban, flags=re.UNICODE))
+                + r'"',
+                re.IGNORECASE,
+            )
+
+            for line in metadata_lines:
+                if regex.match(line):
+                    return True
+
+            return False
         except UnicodeDecodeError:
             return False
 

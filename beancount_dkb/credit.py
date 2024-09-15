@@ -6,7 +6,6 @@ from typing import Dict, Optional, Sequence
 
 from beancount.core import data, flags
 from beancount.core.amount import Amount
-from beancount.core.number import Decimal
 from beangulp.importer import Importer
 
 from .exceptions import InvalidFormatError
@@ -196,9 +195,13 @@ class CreditImporter(Importer):
             elif key.startswith("Bis"):
                 self._date_to = datetime.strptime(value.value, "%d.%m.%Y").date()
             elif key.startswith("Saldo"):
-                self._balance_amount = Amount(
-                    Decimal(value.value.rstrip(" EUR")), self.currency
-                )
+                amount = value.value
+                if amount.startswith("--"):
+                    amount = value.value.lstrip("--")
+
+                amount = fmt_number_de(amount.rstrip(" EUR"))
+
+                self._balance_amount = Amount(amount, self.currency)
                 self._closing_balance_index = value.line_index
                 if key.startswith("Saldo vom"):
                     self._balance_date = datetime.strptime(

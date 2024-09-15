@@ -98,27 +98,30 @@ class V2Extractor(BaseExtractor):
         "Status",
         "Beschreibung",
         "Umsatztyp",
-        "Betrag",
+        "Betrag (€)",
         "Fremdwährungsbetrag",
     )
 
-    HEADER = ";".join(f'"{field}"' for field in FIELDS)
+    HEADER = ",".join(f'"{field}"' for field in FIELDS)
 
     file_encoding = "utf-8-sig"
 
     def identify(self, filepath: str) -> bool:
-        expected_header_prefix = f'"Karte";"Visa-Kreditkarte {self.card_number[:4]}'
+        expected_header_prefix = f'"Karte","Visa Kreditkarte","{self.card_number[:4]}'
 
         try:
             with open(filepath, encoding=self.file_encoding) as fd:
                 line = fd.readline().strip()
 
-                return line.startswith(expected_header_prefix)
+                return (
+                    line.startswith(expected_header_prefix)
+                    and line.endswith(f'{self.card_number[-4:]}"')
+                )
         except UnicodeDecodeError:
             return False
 
     def get_amount(self, line: Dict[str, str]) -> str:
-        return line["Betrag"].rstrip(" €")
+        return line["Betrag (€)"].rstrip(" €")
 
     def get_valuation_date(self, line: Dict[str, str]) -> date:
         return datetime.strptime(line["Wertstellung"], "%d.%m.%y").date()

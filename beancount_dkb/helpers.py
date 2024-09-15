@@ -7,11 +7,11 @@ from typing import Optional, Sequence
 from beancount.core.number import Decimal
 
 csv_reader = partial(
-    csv.reader, delimiter=";", quoting=csv.QUOTE_MINIMAL, quotechar='"'
+    csv.reader, delimiter=",", quoting=csv.QUOTE_MINIMAL, quotechar='"'
 )
 
 csv_dict_reader = partial(
-    csv.DictReader, delimiter=";", quoting=csv.QUOTE_MINIMAL, quotechar='"'
+    csv.DictReader, delimiter=",", quoting=csv.QUOTE_MINIMAL, quotechar='"'
 )
 
 _MatcherEntry = namedtuple("_MatcherEntry", ["pattern", "account"])
