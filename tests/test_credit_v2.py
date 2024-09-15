@@ -28,9 +28,9 @@ def test_identify_correct(tmp_file):
     tmp_file.write_text(
         _format(
             """
-            "Karte";"Visa-Kreditkarte {card_number}"
+            "Karte","Visa Kreditkarte","{card_number}"
             ""
-            "Saldo vom 31.01.2023:";"5000.01 EUR"
+            "Saldo vom 31.01.2023:","5000.01 EUR"
             ""
             {header}
             """,
@@ -50,9 +50,9 @@ def test_identify_prefixes(tmp_file):
     tmp_file.write_text(
         _format(
             """
-            "Karte";"Visa-Kreditkarte {prefix} •••• •••• {suffix}"
+            "Karte","Visa Kreditkarte","{prefix} •••• •••• {suffix}"
             ""
-            "Saldo vom 31.01.2023:";"5000.01 EUR"
+            "Saldo vom 31.01.2023:","5000.01 EUR"
             ""
             {header}
             """,
@@ -69,9 +69,9 @@ def test_identify_invalid_iban(tmp_file):
     tmp_file.write_text(
         _format(
             """
-            "Karte";"Visa-Kreditkarte {card_number}"
+            "Karte","Visa Kreditkarte","{card_number}"
             ""
-            "Saldo vom 31.01.2023:";"5000.01 EUR"
+            "Saldo vom 31.01.2023:","5000.01 EUR"
             ""
             {header}
             """,
@@ -90,9 +90,9 @@ def test_extract_no_transactions(tmp_file):
     tmp_file.write_text(
         _format(
             """
-            "Karte";"Visa-Kreditkarte {card_number}"
+            "Karte","Visa Kreditkarte","{card_number}"
             ""
-            "Saldo vom 31.01.2023:";"5000.01 EUR"
+            "Saldo vom 31.01.2023:","5000.01 EUR"
             ""
             {header}
             """,
@@ -112,12 +112,12 @@ def test_extract_transactions(tmp_file):
     tmp_file.write_text(
         _format(
             """
-            "Karte";"Visa-Kreditkarte {card_number}"
+            "Karte","Visa Kreditkarte","{card_number}"
             ""
-            "Saldo vom 31.01.2023:";"5000.01 EUR"
+            "Saldo vom 31.01.2023:","5000.01 EUR"
             ""
             {header}
-            "15.01.23";"15.01.23";"Gebucht";"REWE Filiale Muenchen";"Im Geschäft";"-10,80 €";""
+            "15.01.23","15.01.23","Gebucht","REWE Filiale Muenchen","Im Geschäft","-10,80 €",""
             """,  # NOQA
             dict(card_number=CARD_NUMBER, header=HEADER),
         )
@@ -140,12 +140,12 @@ def test_emits_closing_balance_directive(tmp_file):
     tmp_file.write_text(
         _format(
             """
-            "Karte";"Visa-Kreditkarte {card_number}"
+            "Karte","Visa Kreditkarte","{card_number}"
             ""
-            "Saldo vom 31.01.2023:";"5000.01 EUR"
+            "Saldo vom 31.01.2023:","5000.01 EUR"
             ""
             {header}
-            "15.01.23";"15.01.23";"Gebucht";"REWE Filiale Muenchen";"Im Geschäft";"-10,80 €";""
+            "15.01.23","15.01.23","Gebucht","REWE Filiale Muenchen","Im Geschäft","-10,80 €",""
             """,  # NOQA
             dict(card_number=CARD_NUMBER, header=HEADER),
         )
@@ -165,12 +165,12 @@ def test_extract_with_description_patterns(tmp_file):
     tmp_file.write_text(
         _format(
             """
-            "Karte";"Visa-Kreditkarte {card_number}";
+            "Karte","Visa Kreditkarte","{card_number}"
             ""
-            "Saldo vom 31.01.2023:";"5000.01 EUR";
+            "Saldo vom 31.01.2023:","5000.01 EUR"
             ""
             {header}
-            "15.01.23";"15.01.23";"Gebucht";"REWE Filiale Muenchen";"Im Geschäft";"-10,80 €";""
+            "15.01.23","15.01.23","Gebucht","REWE Filiale Muenchen","Im Geschäft","-10,80 €",""
             """,  # NOQA
             dict(card_number=CARD_NUMBER, header=HEADER),
         )

@@ -37,11 +37,12 @@ def test_identify_correct(tmp_file):
     tmp_file.write_text(
         _format(
             """
+            "Girokonto","{iban}"
             ""
-            "Kontostand vom 30.06.2023:";"5.000,01 EUR";
+            "Kontostand vom 30.06.2023:","5.000,01 EUR"
             ""
             {header}
-            "15.06.23";"15.06.23";"Gebucht";"ISSUER";"EDEKA//MUENCHEN/DE";"EDEKA SAGT DANKE";"Ausgang";"DE00000000000000000000";"-8,67";"DE9100112233445566";"";"00000000000000000000000000"
+            "15.06.23","15.06.23","Gebucht","ISSUER","EDEKA//MUENCHEN/DE","EDEKA SAGT DANKE","Ausgang","DE00000000000000000000","-8,67","DE9100112233445566","","00000000000000000000000000"
             """,  # NOQA
             dict(iban=IBAN, header=HEADER),
         ),
@@ -57,8 +58,9 @@ def test_extract_no_transactions(tmp_file):
     tmp_file.write_text(
         _format(
             """
+            "Girokonto","{iban}"
             ""
-            "Kontostand vom 30.06.2023:";"5.000,01 EUR";
+            "Kontostand vom 30.06.2023:","5.000,01 EUR";
             ""
             {header}
             """,
@@ -81,8 +83,9 @@ def test_extract_no_transactions_euro_character(tmp_file):
     tmp_file.write_text(
         _format(
             """
+            "Girokonto","{iban}"
             ""
-            "Kontostand vom 01.03.2024:";"1.800,00 €";
+            "Kontostand vom 01.03.2024:","1.800,00 €";
             ""
             {header}
             """,
@@ -103,12 +106,13 @@ def test_extract_transactions(tmp_file):
     tmp_file.write_text(
         _format(
             """
+            "Girokonto","{iban}"
             ""
-            "Kontostand vom 30.06.2023:";"5001,01 EUR"
+            "Kontostand vom 30.06.2023:","5001,01 EUR"
             ""
             {header}
-            "01.06.23";"01.06.23";"Gebucht";"COMPANY INC";"MAX MUSTERMANN";"Lohn und Gehalt";"Eingang";"DE00000000000000000000";"1.000,0";"";"";""
-            "15.06.23";"15.06.23";"Gebucht";"ISSUER";"EDEKA//MUENCHEN/DE";"EDEKA SAGT DANKE";"Ausgang";"DE00000000000000000000";"-8,67";"DE9100112233445566";"";"00000000000000000000000000"
+            "01.06.23","01.06.23","Gebucht","COMPANY INC","MAX MUSTERMANN","Lohn und Gehalt","Eingang","DE00000000000000000000","1.000,0","","",""
+            "15.06.23","15.06.23","Gebucht","ISSUER","EDEKA//MUENCHEN/DE","EDEKA SAGT DANKE","Ausgang","DE00000000000000000000","-8,67","DE9100112233445566","","00000000000000000000000000"
             """,  # NOQA
             dict(iban=IBAN, header=HEADER),
         ),
@@ -144,11 +148,12 @@ def test_extract_sets_internal_values(tmp_file):
     tmp_file.write_text(
         _format(
             """
+            "Girokonto","{iban}"
             ""
-            "Kontostand vom 30.06.2023:";"5001,01 EUR"
+            "Kontostand vom 30.06.2023:","5001,01 EUR"
             ""
             {header}
-            "15.06.23";"15.06.23";"Gebucht";"ISSUER";"EDEKA//MUENCHEN/DE";"EDEKA SAGT DANKE";"Ausgang";"DE00000000000000000000";"-8,67";"DE9100112233445566";"";"00000000000000000000000000"
+            "15.06.23","15.06.23","Gebucht","ISSUER","EDEKA//MUENCHEN/DE","EDEKA SAGT DANKE","Ausgang","DE00000000000000000000","-8,67","DE9100112233445566","","00000000000000000000000000"
             """,  # NOQA
             dict(iban=IBAN, header=HEADER),
         ),
@@ -173,11 +178,12 @@ def test_emits_closing_balance_directive(tmp_file):
     tmp_file.write_text(
         _format(
             """
+            "Girokonto","{iban}"
             ""
-            "Kontostand vom 30.06.2023:";"5001,01 EUR"
+            "Kontostand vom 30.06.2023:","5001,01 EUR"
             ""
             {header}
-            "15.06.23";"15.06.23";"Gebucht";"ISSUER";"EDEKA//MUENCHEN/DE";"EDEKA SAGT DANKE";"Ausgang";"DE00000000000000000000";"-8,67";"DE9100112233445566";"";"00000000000000000000000000"
+            "15.06.23","15.06.23","Gebucht","ISSUER","EDEKA//MUENCHEN/DE","EDEKA SAGT DANKE","Ausgang","DE00000000000000000000","-8,67","DE9100112233445566","","00000000000000000000000000"
             """,  # NOQA
             dict(iban=IBAN, header=HEADER),
         ),
@@ -192,18 +198,19 @@ def test_emits_closing_balance_directive(tmp_file):
     assert isinstance(directives[1], Balance)
     assert directives[1].date == datetime.date(2023, 7, 1)
     assert directives[1].amount == Amount(Decimal("5001.01"), currency="EUR")
-    assert directives[1].meta["lineno"] == 2
+    assert directives[1].meta["lineno"] == 3
 
 
 def test_meta_code_is_added(tmp_file):
     tmp_file.write_text(
         _format(
             """
+            "Girokonto","{iban}"
             ""
-            "Kontostand vom 30.06.2023:";"5001,01 EUR"
+            "Kontostand vom 30.06.2023:","5001,01 EUR"
             ""
             {header}
-            "15.06.23";"15.06.23";"Gebucht";"ISSUER";"EDEKA//MUENCHEN/DE";"EDEKA SAGT DANKE";"Ausgang";"DE00000000000000000000";"-8,67";"DE9100112233445566";"";"00000000000000000000000000"
+            "15.06.23","15.06.23","Gebucht","ISSUER","EDEKA//MUENCHEN/DE","EDEKA SAGT DANKE","Ausgang","DE00000000000000000000","-8,67","DE9100112233445566","","00000000000000000000000000"
             """,  # NOQA
             dict(iban=IBAN, header=HEADER),
         ),
@@ -225,11 +232,12 @@ def test_extract_with_payee_patterns(tmp_file):
     tmp_file.write_text(
         _format(
             """
+            "Girokonto","{iban}"
             ""
-            "Kontostand vom 30.06.2023:";"5001,01 EUR"
+            "Kontostand vom 30.06.2023:","5001,01 EUR"
             ""
             {header}
-            "15.06.23";"15.06.23";"Gebucht";"ISSUER";"EDEKA//MUENCHEN/DE";"EDEKA SAGT DANKE";"Ausgang";"DE00000000000000000000";"-8,67";"DE9100112233445566";"";"00000000000000000000000000"
+            "15.06.23","15.06.23","Gebucht","ISSUER","EDEKA//MUENCHEN/DE","EDEKA SAGT DANKE","Ausgang","DE00000000000000000000","-8,67","DE9100112233445566","","00000000000000000000000000"
             """,  # NOQA
             dict(iban=IBAN, header=HEADER),
         ),
@@ -258,11 +266,12 @@ def test_extract_with_description_patterns(tmp_file):
     tmp_file.write_text(
         _format(
             """
+            "Girokonto","{iban}"
             ""
-            "Kontostand vom 30.06.2023:";"5001,01 EUR"
+            "Kontostand vom 30.06.2023:","5001,01 EUR"
             ""
             {header}
-            "15.06.23";"15.06.23";"Gebucht";"ISSUER";"EDEKA//MUENCHEN/DE";"EDEKA SAGT DANKE";"Ausgang";"DE00000000000000000000";"-8,67";"DE9100112233445566";"";"00000000000000000000000000"
+            "15.06.23","15.06.23","Gebucht","ISSUER","EDEKA//MUENCHEN/DE","EDEKA SAGT DANKE","Ausgang","DE00000000000000000000","-8,67","DE9100112233445566","","00000000000000000000000000"
             """,  # NOQA
             dict(iban=IBAN, header=HEADER),
         ),
@@ -291,11 +300,12 @@ def test_extract_with_payee_and_description_patterns(tmp_file):
     tmp_file.write_text(
         _format(
             """
+            "Girokonto","{iban}"
             ""
-            "Kontostand vom 30.06.2023:";"5001,01 EUR"
+            "Kontostand vom 30.06.2023:","5001,01 EUR"
             ""
             {header}
-            "15.06.23";"15.06.23";"Gebucht";"ISSUER";"EDEKA//MUENCHEN/DE";"EDEKA SAGT DANKE";"Ausgang";"DE00000000000000000000";"-8,67";"DE9100112233445566";"";"00000000000000000000000000"
+            "15.06.23","15.06.23","Gebucht","ISSUER","EDEKA//MUENCHEN/DE","EDEKA SAGT DANKE","Ausgang","DE00000000000000000000","-8,67","DE9100112233445566","","00000000000000000000000000"
             """,  # NOQA
             dict(iban=IBAN, header=HEADER),
         ),
@@ -323,6 +333,6 @@ def test_extract_with_payee_and_description_patterns(tmp_file):
 
     assert len(user_warnings) == 1
     assert user_warnings[0].message.args[0] == (
-        "Line 5 matches both payee_patterns and description_patterns. "
+        "Line 6 matches both payee_patterns and description_patterns. "
         "Picking payee_pattern."
     )
