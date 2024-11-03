@@ -4,6 +4,7 @@ from collections import namedtuple
 from functools import partial
 from typing import Optional, Sequence
 
+from babel.numbers import parse_decimal
 from beancount.core.number import Decimal
 
 csv_reader = partial(
@@ -18,10 +19,23 @@ _MatcherEntry = namedtuple("_MatcherEntry", ["pattern", "account"])
 
 
 def fmt_number_de(value: str) -> Decimal:
-    thousands_sep = "."
-    decimal_sep = ","
+    """
+    Format a (possibly) German locale-formatted number like "123.456,78" to "123456.78"
+    """
 
-    return Decimal(value.replace(thousands_sep, "").replace(decimal_sep, "."))
+    if "." in value and "," in value:
+        if value.index(".") < value.index(","):
+            # if a period appears before a comma, assume de_DE
+            return parse_decimal(value, locale="de_DE")
+        else:
+            # if a comma appears before a period, assume en_US
+            return parse_decimal(value, locale="en_US")
+    elif "," in value:
+        # only commas, assume de_DE
+        return parse_decimal(value, locale="de_DE")
+    else:
+        # only periods, assume en_US
+        return parse_decimal(value, locale="en_US")
 
 
 class AccountMatcher:

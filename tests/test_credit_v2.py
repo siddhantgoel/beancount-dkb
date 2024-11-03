@@ -191,3 +191,27 @@ def test_extract_with_description_patterns(tmp_file):
 
     assert directives[0].postings[1].account == "Expenses:Supermarket:REWE"
     assert directives[0].postings[1].units is None
+
+
+def test_comma_separator_in_balance(tmp_file):
+    tmp_file.write_text(
+        _format(
+            """
+            "Karte","Visa Kreditkarte","{card_number}"
+            ""
+            "Saldo vom 12.10.2024:","-428,84 EUR"
+            ""
+            "Belegdatum","Wertstellung","Status","Beschreibung","Umsatztyp","Betrag (€)","Fremdwährungsbetrag"
+            "09.10.24","11.10.24","Gebucht","RESTAURANT Foo","Im Geschäft","-21",""
+            """,  # NOQA
+            dict(card_number=CARD_NUMBER, header=HEADER),
+        )
+    )
+
+    importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
+
+    directives = importer.extract(tmp_file)
+
+    assert len(directives) == 2
+    assert isinstance(directives[1], Balance)
+    assert directives[1].amount == Amount(Decimal("-428.84"), currency="EUR")
