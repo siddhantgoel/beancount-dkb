@@ -30,6 +30,7 @@ keywords = ["banking", "beancount", "cli-accounting", "finance"]
 python = "^3.8"
 beancount = "^3.0.0"
 beangulp = "^0.1.1"
+babel = "^2.16.0"
 
 [tool.poetry.group.dev.dependencies]
 taskipy = "^1.12.0"
