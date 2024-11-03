@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v1.2.0
+
+- Parse balance values in credit card CSV exports metadata
+- Update number parsing function to detect the current locale before parsing
+- Enable support for Python 3.13
+- Drop support for Python 3.8
+
 ## v1.1.0
 
 - Replace `;` with `,` as the delimiter for CSV exports from the updated banking interface
