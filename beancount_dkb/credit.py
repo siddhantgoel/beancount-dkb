@@ -201,7 +201,7 @@ class CreditImporter(Importer):
                     amount = value.value.lstrip("--")
 
                 self._balance_amount = Amount(
-                    Decimal(amount.rstrip(" EUR")), self.currency
+                    Decimal(fmt_number_de(amount.rstrip(" EUR"))), self.currency
                 )
                 self._closing_balance_index = value.line_index
                 if key.startswith("Saldo vom"):
