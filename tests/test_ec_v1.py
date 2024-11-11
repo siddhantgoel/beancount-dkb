@@ -12,8 +12,6 @@ FORMATTED_IBAN = "DE99 9999 9999 9999 9999 99"
 
 IBAN = FORMATTED_IBAN.replace(" ", "")
 
-HEADER = V1Extractor.HEADER
-
 ENCODING = V1Extractor.file_encoding
 
 
@@ -26,12 +24,20 @@ def tmp_file(tmp_path):
     return tmp_path / f"{IBAN}.csv"
 
 
+_extractor = V1Extractor(IBAN)
+
+
+@pytest.fixture(params=_extractor._get_possible_headers())
+def header(request):
+    yield request.param.value
+
+
 def test_file_encoding_raises_deprecation_warning():
     with pytest.deprecated_call():
         ECImporter(IBAN, "Assets:DKB:EC", file_encoding="ISO-8859-1")
 
 
-def test_identify_correct(tmp_file):
+def test_identify_correct(tmp_file, header):
     importer = ECImporter(IBAN, "Assets:DKB:EC")
 
     tmp_file.write_text(
@@ -45,7 +51,7 @@ def test_identify_correct(tmp_file):
 
             {header}
             """,
-            dict(iban=IBAN, header=HEADER),
+            dict(iban=IBAN, header=header),
         ),
         encoding=ENCODING,
     )
@@ -53,7 +59,7 @@ def test_identify_correct(tmp_file):
     assert importer.identify(tmp_file)
 
 
-def test_identify_tagesgeld(tmp_file):
+def test_identify_tagesgeld(tmp_file, header):
     importer = ECImporter(IBAN, "Assets:DKB:EC")
 
     tmp_file.write_text(
@@ -67,7 +73,7 @@ def test_identify_tagesgeld(tmp_file):
 
             {header}
             """,
-            dict(iban=IBAN, header=HEADER),
+            dict(iban=IBAN, header=header),
         ),
         encoding=ENCODING,
     )
@@ -75,7 +81,7 @@ def test_identify_tagesgeld(tmp_file):
     assert importer.identify(tmp_file)
 
 
-def test_identify_with_nonstandard_account_name(tmp_file):
+def test_identify_with_nonstandard_account_name(tmp_file, header):
     importer = ECImporter(IBAN, "Assets:DKB:EC")
 
     tmp_file.write_text(
@@ -89,7 +95,7 @@ def test_identify_with_nonstandard_account_name(tmp_file):
 
             {header}
             """,
-            dict(iban=IBAN, header=HEADER),
+            dict(iban=IBAN, header=header),
         ),
         encoding=ENCODING,
     )
@@ -97,7 +103,7 @@ def test_identify_with_nonstandard_account_name(tmp_file):
     assert importer.identify(tmp_file)
 
 
-def test_identify_with_exotic_account_name(tmp_file):
+def test_identify_with_exotic_account_name(tmp_file, header):
     importer = ECImporter(IBAN, "Assets:DKB:EC")
 
     tmp_file.write_text(
@@ -111,7 +117,7 @@ def test_identify_with_exotic_account_name(tmp_file):
 
             {header}
             """,  # NOQA
-            dict(iban=IBAN, header=HEADER),
+            dict(iban=IBAN, header=header),
         ),
         encoding=ENCODING,
     )
@@ -119,7 +125,7 @@ def test_identify_with_exotic_account_name(tmp_file):
     assert importer.identify(tmp_file)
 
 
-def test_identify_with_formatted_iban(tmp_file):
+def test_identify_with_formatted_iban(tmp_file, header):
     importer = ECImporter(FORMATTED_IBAN, "Assets:DKB:EC")
 
     tmp_file.write_text(
@@ -133,7 +139,7 @@ def test_identify_with_formatted_iban(tmp_file):
 
             {header}
             """,
-            dict(iban=IBAN, header=HEADER),
+            dict(iban=IBAN, header=header),
         ),
         encoding=ENCODING,
     )
@@ -141,7 +147,7 @@ def test_identify_with_formatted_iban(tmp_file):
     assert importer.identify(tmp_file)
 
 
-def test_identify_invalid_iban(tmp_file):
+def test_identify_invalid_iban(tmp_file, header):
     other_iban = "DE00000000000000000000"
 
     tmp_file.write_text(
@@ -155,7 +161,7 @@ def test_identify_invalid_iban(tmp_file):
 
             {header}
             """,
-            dict(iban=IBAN, header=HEADER),
+            dict(iban=IBAN, header=header),
         )
     )
 
@@ -164,7 +170,7 @@ def test_identify_invalid_iban(tmp_file):
     assert not importer.identify(tmp_file)
 
 
-def test_extract_no_transactions(tmp_file):
+def test_extract_no_transactions(tmp_file, header):
     importer = ECImporter(IBAN, "Assets:DKB:EC")
 
     tmp_file.write_text(
@@ -178,7 +184,7 @@ def test_extract_no_transactions(tmp_file):
 
             {header}
             """,
-            dict(iban=IBAN, header=HEADER),
+            dict(iban=IBAN, header=header),
         ),
         encoding=ENCODING,
     )
@@ -191,7 +197,7 @@ def test_extract_no_transactions(tmp_file):
     assert directives[0].amount == Amount(Decimal("5000.01"), currency="EUR")
 
 
-def test_extract_transactions(tmp_file):
+def test_extract_transactions(tmp_file, header):
     tmp_file.write_text(
         _format(
             """
@@ -205,7 +211,7 @@ def test_extract_transactions(tmp_file):
             "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
             "06.05.2020";"06.05.2020";"Gutschrift";"From Someone";"";"DE88700222000012345678";"FDDODEMMXXX";"1,00";"";"";"NOTPROVIDED";
             """,  # NOQA
-            dict(iban=IBAN, header=HEADER),
+            dict(iban=IBAN, header=header),
         ),
         encoding=ENCODING,
     )
@@ -234,7 +240,7 @@ def test_extract_transactions(tmp_file):
     assert directives[1].postings[0].units.number == Decimal("1.00")
 
 
-def test_extract_tagesgeld(tmp_file):
+def test_extract_tagesgeld(tmp_file, header):
     tmp_file.write_text(
         _format(
             """
@@ -248,7 +254,7 @@ def test_extract_tagesgeld(tmp_file):
             "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
             "06.05.2020";"06.05.2020";"Gutschrift";"From Someone";"";"DE88700222000012345678";"FDDODEMMXXX";"1,00";"";"";"NOTPROVIDED";
             """,  # NOQA
-            dict(iban=IBAN, header=HEADER),
+            dict(iban=IBAN, header=header),
         ),
         encoding=ENCODING,
     )
@@ -277,7 +283,7 @@ def test_extract_tagesgeld(tmp_file):
     assert directives[1].postings[0].units.number == Decimal("1.00")
 
 
-def test_extract_sets_timestamps(tmp_file):
+def test_extract_sets_timestamps(tmp_file, header):
     tmp_file.write_text(
         _format(
             """
@@ -290,7 +296,7 @@ def test_extract_sets_timestamps(tmp_file):
             {header}
             "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
             """,  # NOQA
-            dict(iban=IBAN, header=HEADER),
+            dict(iban=IBAN, header=header),
         ),
         encoding=ENCODING,
     )
@@ -311,7 +317,7 @@ def test_extract_sets_timestamps(tmp_file):
     assert importer._balance_date == datetime.date(2018, 2, 1)
 
 
-def test_tagessaldo_emits_balance_directive(tmp_file):
+def test_tagessaldo_emits_balance_directive(tmp_file, header):
     tmp_file.write_text(
         _format(
             """
@@ -324,7 +330,7 @@ def test_tagessaldo_emits_balance_directive(tmp_file):
             {header}
             "20.01.2018";"";"";"";"Tagessaldo";"";"";"2.500,01";
             """,
-            dict(iban=IBAN, header=HEADER),
+            dict(iban=IBAN, header=header),
         ),
         encoding=ENCODING,
     )
@@ -339,7 +345,7 @@ def test_tagessaldo_emits_balance_directive(tmp_file):
     assert directives[0].amount == Amount(Decimal("2500.01"), currency="EUR")
 
 
-def test_tagessaldo_with_empty_balance_does_not_crash(tmp_file):
+def test_tagessaldo_with_empty_balance_does_not_crash(tmp_file, header):
     tmp_file.write_text(
         _format(
             """
@@ -352,7 +358,7 @@ def test_tagessaldo_with_empty_balance_does_not_crash(tmp_file):
             {header}
             "20.01.2018";"";"";"";"Tagessaldo";"";"";"";
             """,
-            dict(iban=IBAN, header=HEADER),
+            dict(iban=IBAN, header=header),
         ),
         encoding=ENCODING,
     )
@@ -367,7 +373,7 @@ def test_tagessaldo_with_empty_balance_does_not_crash(tmp_file):
     assert directives[0].amount == Amount(Decimal("5000.01"), currency="EUR")
 
 
-def test_file_date_is_set_correctly(tmp_file):
+def test_file_date_is_set_correctly(tmp_file, header):
     tmp_file.write_text(
         _format(
             """
@@ -380,7 +386,7 @@ def test_file_date_is_set_correctly(tmp_file):
             {header}
             "20.01.2018";"";"";"";"Tagessaldo";"";"";"2.500,01";
             """,
-            dict(iban=IBAN, header=HEADER),
+            dict(iban=IBAN, header=header),
         ),
         encoding=ENCODING,
     )
@@ -390,7 +396,7 @@ def test_file_date_is_set_correctly(tmp_file):
     assert importer.date(tmp_file) == datetime.date(2018, 1, 31)
 
 
-def test_emits_closing_balance_directive(tmp_file):
+def test_emits_closing_balance_directive(tmp_file, header):
     tmp_file.write_text(
         _format(
             """
@@ -403,7 +409,7 @@ def test_emits_closing_balance_directive(tmp_file):
             {header}
             "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
             """,  # NOQA
-            dict(iban=IBAN, header=HEADER),
+            dict(iban=IBAN, header=header),
         ),
         encoding=ENCODING,
     )
@@ -419,7 +425,7 @@ def test_emits_closing_balance_directive(tmp_file):
     assert directives[1].meta["lineno"] == 5
 
 
-def test_mismatching_dates_in_meta(tmp_file):
+def test_mismatching_dates_in_meta(tmp_file, header):
     tmp_file.write_text(
         _format(
             """
@@ -432,7 +438,7 @@ def test_mismatching_dates_in_meta(tmp_file):
             {header}
             "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
             """,  # NOQA
-            dict(iban=IBAN, header=HEADER),
+            dict(iban=IBAN, header=header),
         ),
         encoding=ENCODING,
     )
@@ -447,7 +453,7 @@ def test_mismatching_dates_in_meta(tmp_file):
     assert directives[1].amount == Amount(Decimal("5000.01"), currency="EUR")
 
 
-def test_meta_code_is_added(tmp_file):
+def test_meta_code_is_added(tmp_file, header):
     tmp_file.write_text(
         _format(
             """
@@ -460,7 +466,7 @@ def test_meta_code_is_added(tmp_file):
             {header}
             "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
             """,  # NOQA
-            dict(iban=IBAN, header=HEADER),
+            dict(iban=IBAN, header=header),
         ),
         encoding=ENCODING,
     )
@@ -476,7 +482,7 @@ def test_meta_code_is_added(tmp_file):
     assert directives[0].meta["code"] == "Lastschrift"
 
 
-def test_extract_with_payee_patterns(tmp_file):
+def test_extract_with_payee_patterns(tmp_file, header):
     tmp_file.write_text(
         _format(
             """
@@ -489,7 +495,7 @@ def test_extract_with_payee_patterns(tmp_file):
             {header}
             "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
             """,  # NOQA
-            dict(iban=IBAN, header=HEADER),
+            dict(iban=IBAN, header=header),
         ),
         encoding=ENCODING,
     )
@@ -512,7 +518,7 @@ def test_extract_with_payee_patterns(tmp_file):
     assert directives[0].postings[1].units is None
 
 
-def test_extract_with_description_patterns(tmp_file):
+def test_extract_with_description_patterns(tmp_file, header):
     tmp_file.write_text(
         _format(
             """
@@ -525,7 +531,7 @@ def test_extract_with_description_patterns(tmp_file):
             {header}
             "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
             """,  # NOQA
-            dict(iban=IBAN, header=HEADER),
+            dict(iban=IBAN, header=header),
         ),
         encoding=ENCODING,
     )
@@ -548,7 +554,7 @@ def test_extract_with_description_patterns(tmp_file):
     assert directives[0].postings[1].units is None
 
 
-def test_extract_with_payee_and_description_patterns(tmp_file):
+def test_extract_with_payee_and_description_patterns(tmp_file, header):
     tmp_file.write_text(
         _format(
             """
@@ -561,7 +567,7 @@ def test_extract_with_payee_and_description_patterns(tmp_file):
             {header}
             "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
             """,  # NOQA
-            dict(iban=IBAN, header=HEADER),
+            dict(iban=IBAN, header=header),
         ),
         encoding=ENCODING,
     )
@@ -592,7 +598,7 @@ def test_extract_with_payee_and_description_patterns(tmp_file):
     )
 
 
-def test_extract_multiple_transactions(tmp_file):
+def test_extract_multiple_transactions(tmp_file, header):
     # https://github.com/siddhantgoel/beancount-dkb/issues/123#issuecomment-1755167563
     tmp_file.write_text(
         _format(
@@ -606,7 +612,7 @@ def test_extract_multiple_transactions(tmp_file):
             {header}
             "02.10.2023";"02.10.2023";"Kartenzahlung";"ALDI SUED";"2023-09-30      Debitk.11 VISA Debit";"11111111111111111111";"BYLADEM1001";"-16,45";"";"";"111111111111111";
             """,  # NOQA
-            dict(iban=IBAN, header=HEADER),
+            dict(iban=IBAN, header=header),
         ),
         encoding=ENCODING,
     )

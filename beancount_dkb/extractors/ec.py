@@ -1,11 +1,12 @@
+from collections import namedtuple
 import csv
 from functools import partial
 import re
-from collections import namedtuple
 from datetime import date, datetime
 from typing import Dict, Optional
 
 from ..exceptions import InvalidFormatError
+from ..helpers import Header
 
 Meta = namedtuple("Meta", ["value", "line_index"])
 
@@ -16,6 +17,7 @@ class BaseExtractor:
         self.meta_code = meta_code
 
         self.filepath = None
+        self._csv_delimiter = None
 
     def set_filepath(self, filepath: str):
         self.filepath = filepath
@@ -24,7 +26,6 @@ class BaseExtractor:
     def csv_reader(self):
         raise NotImplementedError()
 
-    @property
     def csv_dict_reader(self):
         raise NotImplementedError()
 
@@ -35,19 +36,34 @@ class BaseExtractor:
         with open(self.filepath, encoding=self.file_encoding) as fd:
             lines = [line.strip() for line in fd.readlines()]
 
-        header_index = lines.index(self.HEADER)
-        metadata_lines = lines[0:header_index]
+        for header in self._get_possible_headers():
+            if header.value not in lines:
+                continue
 
-        return metadata_lines
+            header_index = lines.index(header.value)
+            metadata_lines = lines[0:header_index]
+
+            return metadata_lines
 
     def extract_transaction_lines(self) -> list[str]:
         with open(self.filepath, encoding=self.file_encoding) as fd:
             lines = [line.strip() for line in fd.readlines()]
 
-        header_index = lines.index(self.HEADER)
-        transaction_lines = lines[header_index:]
+        for header in self._get_possible_headers():
+            if header.value not in lines:
+                continue
 
-        return transaction_lines
+            header_index = lines.index(header.value)
+            transaction_lines = lines[header_index:]
+
+            return transaction_lines
+
+    def _get_possible_headers(self) -> list[Header]:
+        """
+        Return a list of possible header lines that the file could start with
+        """
+
+        raise NotImplementedError()
 
     def get_account_number(self, line: Dict[str, str]) -> str:
         raise NotImplementedError()
@@ -88,8 +104,6 @@ class V1Extractor(BaseExtractor):
         "Kundenreferenz",
     )
 
-    HEADER = ";".join(f'"{field}"' for field in FIELDS) + ";"
-
     file_encoding = "ISO-8859-1"
 
     @property
@@ -116,6 +130,11 @@ class V1Extractor(BaseExtractor):
             line = fd.readline().strip()
 
             return regex.match(line)
+
+    def _get_possible_headers(self) -> list[Header]:
+        return [
+            Header(";".join(f'"{field}"' for field in self.FIELDS) + ";", ";"),
+        ]
 
     def get_account_number(self, line: Dict[str, str]) -> str:
         return line["Kontonummer"]
@@ -160,35 +179,70 @@ class V2Extractor(BaseExtractor):
         "Kundenreferenz",
     )
 
-    HEADER = ",".join(f'"{field}"' for field in FIELDS)
-
     file_encoding = "utf-8-sig"
 
     @property
+    def csv_delimiter(self):
+        if self._csv_delimiter is None:
+            header = self._get_applicable_header()
+
+            if header is not None:
+                self._csv_delimiter = header.delimiter
+
+        return self._csv_delimiter
+
+    @property
     def csv_reader(self):
+        assert self.csv_delimiter is not None
+
         return partial(
-            csv.reader, delimiter=",", quoting=csv.QUOTE_MINIMAL, quotechar='"'
+            csv.reader,
+            delimiter=self.csv_delimiter,
+            quoting=csv.QUOTE_MINIMAL,
+            quotechar='"',
         )
 
     @property
     def csv_dict_reader(self):
+        assert self.csv_delimiter is not None
+
         return partial(
-            csv.DictReader, delimiter=",", quoting=csv.QUOTE_MINIMAL, quotechar='"'
+            csv.DictReader,
+            delimiter=self.csv_delimiter,
+            quoting=csv.QUOTE_MINIMAL,
+            quotechar='"',
+        )
+
+    def _get_possible_headers(self) -> list[Header]:
+        return [
+            Header(",".join(f'"{field}"' for field in self.FIELDS), ","),
+            Header(";".join(f'"{field}"' for field in self.FIELDS), ";"),
+        ]
+
+    def _get_applicable_header(self) -> Header | None:
+        with open(self.filepath, encoding=self.file_encoding) as fd:
+            lines = [line.strip() for line in fd.readlines()]
+
+        return next(
+            (
+                header
+                for header in self._get_possible_headers()
+                if header.value in lines
+            ),
+            None,
         )
 
     def identify(self) -> bool:
         try:
-            with open(self.filepath, encoding=self.file_encoding) as fd:
-                lines = [line.strip() for line in fd.readlines()]
-
-            if self.HEADER not in lines:
+            if self._get_applicable_header() is None:
                 return False
 
-            header_index = lines.index(self.HEADER)
-            metadata_lines = lines[0:header_index]
+            metadata_lines = self.extract_metadata_lines()
 
             regex = re.compile(
-                r'^"Girokonto","'
+                r'^"Girokonto"'
+                + self.csv_delimiter
+                + '"'
                 + re.escape(re.sub(r"\s+", "", self.iban, flags=re.UNICODE))
                 + r'"',
                 re.IGNORECASE,

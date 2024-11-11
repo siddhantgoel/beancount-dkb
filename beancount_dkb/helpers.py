@@ -18,6 +18,9 @@ csv_dict_reader = partial(
 _MatcherEntry = namedtuple("_MatcherEntry", ["pattern", "account"])
 
 
+Header = namedtuple("Header", ["value", "delimiter"])
+
+
 def fmt_number_de(value: str) -> Decimal:
     """
     Format a (possibly) German locale-formatted number like "123.456,78" to "123456.78"

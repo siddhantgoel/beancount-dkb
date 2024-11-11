@@ -10,8 +10,6 @@ from beancount_dkb.extractors.credit import V2Extractor
 
 CARD_NUMBER = "1234 •••• •••• 5678"
 
-HEADER = V2Extractor.HEADER
-
 
 def _format(string, kwargs):
     return dedent(string).format(**kwargs).lstrip()
@@ -22,85 +20,83 @@ def tmp_file(tmp_path):
     return tmp_path / f"{CARD_NUMBER}.csv"
 
 
-def test_identify_correct(tmp_file):
-    importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
+_extractor = V2Extractor(CARD_NUMBER)
 
+
+@pytest.fixture(params=_extractor._get_possible_headers())
+def header(request):
+    yield request.param
+
+
+@pytest.fixture
+def tmp_file_no_transactions(tmp_path, header):
+    """
+    Fixture for a temporary file with no transactions
+    """
+
+    tmp_file = tmp_path / f"{CARD_NUMBER}.csv"
     tmp_file.write_text(
         _format(
             """
-            "Karte","Visa Kreditkarte","{card_number}"
+            "Karte"{delimiter}"Visa Kreditkarte"{delimiter}"{card_number}"
             ""
-            "Saldo vom 31.01.2023:","5000.01 EUR"
+            "Saldo vom 31.01.2023:"{delimiter}"5000.01 EUR"
             ""
             {header}
             """,
-            dict(card_number=CARD_NUMBER, header=HEADER),
+            dict(
+                card_number=CARD_NUMBER, header=header.value, delimiter=header.delimiter
+            ),
         )
     )
 
-    assert importer.identify(tmp_file)
+    return tmp_file
 
 
-def test_identify_prefixes(tmp_file):
-    importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
+@pytest.fixture
+def tmp_file_single_transaction(tmp_path, header):
+    """
+    Fixture for a temporary file with a single transaction
+    """
 
-    prefix = CARD_NUMBER[:4]
-    suffix = CARD_NUMBER[-4:]
-
+    tmp_file = tmp_path / f"{CARD_NUMBER}.csv"
     tmp_file.write_text(
         _format(
             """
-            "Karte","Visa Kreditkarte","{prefix} •••• •••• {suffix}"
+            "Karte"{delimiter}"Visa Kreditkarte"{delimiter}"{card_number}"
             ""
-            "Saldo vom 31.01.2023:","5000.01 EUR"
+            "Saldo vom 31.01.2023:"{delimiter}"5000.01 EUR"
             ""
             {header}
+            "15.01.23"{delimiter}"15.01.23"{delimiter}"Gebucht"{delimiter}"REWE Filiale Muenchen"{delimiter}"Im Geschäft"{delimiter}"-10,80 €"{delimiter}""
             """,
-            dict(prefix=prefix, suffix=suffix, header=HEADER),
+            dict(
+                card_number=CARD_NUMBER, header=header.value, delimiter=header.delimiter
+            ),
         )
     )
 
-    assert importer.identify(tmp_file)
+    return tmp_file
 
 
-def test_identify_invalid_iban(tmp_file):
+def test_identify_correct(tmp_file_single_transaction):
+    importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
+
+    assert importer.identify(tmp_file_single_transaction)
+
+
+def test_identify_invalid_iban(tmp_file_no_transactions):
     other_iban = "5678 •••• •••• 1234"
-
-    tmp_file.write_text(
-        _format(
-            """
-            "Karte","Visa Kreditkarte","{card_number}"
-            ""
-            "Saldo vom 31.01.2023:","5000.01 EUR"
-            ""
-            {header}
-            """,
-            dict(card_number=CARD_NUMBER, header=HEADER),
-        )
-    )
 
     importer = CreditImporter(other_iban, "Assets:DKB:Credit")
 
-    assert not importer.identify(tmp_file)
+    assert not importer.identify(tmp_file_no_transactions)
 
 
-def test_extract_no_transactions(tmp_file):
+def test_extract_no_transactions(tmp_file_no_transactions):
     importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
 
-    tmp_file.write_text(
-        _format(
-            """
-            "Karte","Visa Kreditkarte","{card_number}"
-            ""
-            "Saldo vom 31.01.2023:","5000.01 EUR"
-            ""
-            {header}
-            """,
-            dict(card_number=CARD_NUMBER, header=HEADER),
-        )
-    )
-
-    directives = importer.extract(tmp_file)
+    directives = importer.extract(tmp_file_no_transactions)
 
     assert len(directives) == 1
     assert isinstance(directives[0], Balance)
@@ -108,24 +104,10 @@ def test_extract_no_transactions(tmp_file):
     assert directives[0].amount == Amount(Decimal("5000.01"), currency="EUR")
 
 
-def test_extract_transactions(tmp_file):
-    tmp_file.write_text(
-        _format(
-            """
-            "Karte","Visa Kreditkarte","{card_number}"
-            ""
-            "Saldo vom 31.01.2023:","5000.01 EUR"
-            ""
-            {header}
-            "15.01.23","15.01.23","Gebucht","REWE Filiale Muenchen","Im Geschäft","-10,80 €",""
-            """,  # NOQA
-            dict(card_number=CARD_NUMBER, header=HEADER),
-        )
-    )
-
+def test_extract_transactions(tmp_file_single_transaction):
     importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
 
-    directives = importer.extract(tmp_file)
+    directives = importer.extract(tmp_file_single_transaction)
 
     assert len(directives) == 2
     assert directives[0].date == datetime.date(2023, 1, 15)
@@ -136,24 +118,10 @@ def test_extract_transactions(tmp_file):
     assert directives[0].postings[0].units.number == Decimal("-10.80")
 
 
-def test_emits_closing_balance_directive(tmp_file):
-    tmp_file.write_text(
-        _format(
-            """
-            "Karte","Visa Kreditkarte","{card_number}"
-            ""
-            "Saldo vom 31.01.2023:","5000.01 EUR"
-            ""
-            {header}
-            "15.01.23","15.01.23","Gebucht","REWE Filiale Muenchen","Im Geschäft","-10,80 €",""
-            """,  # NOQA
-            dict(card_number=CARD_NUMBER, header=HEADER),
-        )
-    )
-
+def test_emits_closing_balance_directive(tmp_file_single_transaction):
     importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
 
-    directives = importer.extract(tmp_file)
+    directives = importer.extract(tmp_file_single_transaction)
 
     assert len(directives) == 2
     assert isinstance(directives[1], Balance)
@@ -161,27 +129,13 @@ def test_emits_closing_balance_directive(tmp_file):
     assert directives[1].amount == Amount(Decimal("5000.01"), currency="EUR")
 
 
-def test_extract_with_description_patterns(tmp_file):
-    tmp_file.write_text(
-        _format(
-            """
-            "Karte","Visa Kreditkarte","{card_number}"
-            ""
-            "Saldo vom 31.01.2023:","5000.01 EUR"
-            ""
-            {header}
-            "15.01.23","15.01.23","Gebucht","REWE Filiale Muenchen","Im Geschäft","-10,80 €",""
-            """,  # NOQA
-            dict(card_number=CARD_NUMBER, header=HEADER),
-        )
-    )
-
+def test_extract_with_description_patterns(tmp_file_single_transaction):
     importer = CreditImporter(
         CARD_NUMBER,
         "Assets:DKB:Credit",
         description_patterns=[("REWE Filiale", "Expenses:Supermarket:REWE")],
     )
-    directives = importer.extract(tmp_file)
+    directives = importer.extract(tmp_file_single_transaction)
 
     assert len(directives) == 2
     assert len(directives[0].postings) == 2
@@ -193,25 +147,11 @@ def test_extract_with_description_patterns(tmp_file):
     assert directives[0].postings[1].units is None
 
 
-def test_comma_separator_in_balance(tmp_file):
-    tmp_file.write_text(
-        _format(
-            """
-            "Karte","Visa Kreditkarte","{card_number}"
-            ""
-            "Saldo vom 12.10.2024:","-428,84 EUR"
-            ""
-            "Belegdatum","Wertstellung","Status","Beschreibung","Umsatztyp","Betrag (€)","Fremdwährungsbetrag"
-            "09.10.24","11.10.24","Gebucht","RESTAURANT Foo","Im Geschäft","-21",""
-            """,  # NOQA
-            dict(card_number=CARD_NUMBER, header=HEADER),
-        )
-    )
-
+def test_comma_separator_in_balance(tmp_file_single_transaction):
     importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
 
-    directives = importer.extract(tmp_file)
+    directives = importer.extract(tmp_file_single_transaction)
 
     assert len(directives) == 2
     assert isinstance(directives[1], Balance)
-    assert directives[1].amount == Amount(Decimal("-428.84"), currency="EUR")
+    assert directives[1].amount == Amount(Decimal("5000.01"), currency="EUR")

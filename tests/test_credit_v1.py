@@ -10,8 +10,6 @@ from beancount_dkb.extractors.credit import V1Extractor
 
 CARD_NUMBER = "1234********5678"
 
-HEADER = V1Extractor.HEADER
-
 ENCODING = V1Extractor.file_encoding
 
 
@@ -22,6 +20,14 @@ def _format(string, kwargs):
 @pytest.fixture
 def tmp_file(tmp_path):
     return tmp_path / f"{CARD_NUMBER}.csv"
+
+
+_extractor = V1Extractor(CARD_NUMBER)
+
+
+@pytest.fixture(params=_extractor._get_possible_headers())
+def header(request):
+    yield request.param.value
 
 
 def test_file_encoding_raises_deprecation_warning():
@@ -72,7 +78,7 @@ def test_multiple_headers(tmp_file):
     assert importer.identify(tmp_file)
 
 
-def test_identify_correct(tmp_file):
+def test_identify_correct(tmp_file, header):
     importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
 
     tmp_file.write_text(
@@ -87,7 +93,7 @@ def test_identify_correct(tmp_file):
 
             {header}
             """,
-            dict(card_number=CARD_NUMBER, header=HEADER),
+            dict(card_number=CARD_NUMBER, header=header),
         ),
         encoding=ENCODING,
     )
@@ -95,7 +101,7 @@ def test_identify_correct(tmp_file):
     assert importer.identify(tmp_file)
 
 
-def test_identify_prefixes(tmp_file):
+def test_identify_prefixes(tmp_file, header):
     importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
 
     prefix = CARD_NUMBER[:4]
@@ -113,7 +119,7 @@ def test_identify_prefixes(tmp_file):
 
             {header}
             """,
-            dict(prefix=prefix, suffix=suffix, header=HEADER),
+            dict(prefix=prefix, suffix=suffix, header=header),
         ),
         encoding=ENCODING,
     )
@@ -121,7 +127,7 @@ def test_identify_prefixes(tmp_file):
     assert importer.identify(tmp_file)
 
 
-def test_identify_invalid_iban(tmp_file):
+def test_identify_invalid_iban(tmp_file, header):
     other_iban = "5678********1234"
 
     tmp_file.write_text(
@@ -136,7 +142,7 @@ def test_identify_invalid_iban(tmp_file):
 
             {header}
             """,
-            dict(card_number=CARD_NUMBER, header=HEADER),
+            dict(card_number=CARD_NUMBER, header=header),
         ),
         encoding=ENCODING,
     )
@@ -146,7 +152,7 @@ def test_identify_invalid_iban(tmp_file):
     assert not importer.identify(tmp_file)
 
 
-def test_extract_no_transactions(tmp_file):
+def test_extract_no_transactions(tmp_file, header):
     importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
 
     tmp_file.write_text(
@@ -161,7 +167,7 @@ def test_extract_no_transactions(tmp_file):
 
             {header}
             """,
-            dict(card_number=CARD_NUMBER, header=HEADER),
+            dict(card_number=CARD_NUMBER, header=header),
         ),
         encoding=ENCODING,
     )
@@ -174,7 +180,7 @@ def test_extract_no_transactions(tmp_file):
     assert directives[0].amount == Amount(Decimal("5000.01"), currency="EUR")
 
 
-def test_extract_transactions(tmp_file):
+def test_extract_transactions(tmp_file, header):
     tmp_file.write_text(
         _format(
             """
@@ -188,7 +194,7 @@ def test_extract_transactions(tmp_file):
             {header}
             "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
             """,  # NOQA
-            dict(card_number=CARD_NUMBER, header=HEADER),
+            dict(card_number=CARD_NUMBER, header=header),
         ),
         encoding=ENCODING,
     )
@@ -206,7 +212,7 @@ def test_extract_transactions(tmp_file):
     assert directives[0].postings[0].units.number == Decimal("-10.80")
 
 
-def test_extract_sets_timestamps(tmp_file):
+def test_extract_sets_timestamps(tmp_file, header):
     tmp_file.write_text(
         _format(
             """
@@ -220,7 +226,7 @@ def test_extract_sets_timestamps(tmp_file):
             {header}
             "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
             """,  # NOQA
-            dict(card_number=CARD_NUMBER, header=HEADER),
+            dict(card_number=CARD_NUMBER, header=header),
         ),
         encoding=ENCODING,
     )
@@ -239,7 +245,7 @@ def test_extract_sets_timestamps(tmp_file):
     assert importer._balance_date == datetime.date(2018, 1, 31)
 
 
-def test_extract_with_zeitraum(tmp_file):
+def test_extract_with_zeitraum(tmp_file, header):
     tmp_file.write_text(
         _format(
             """
@@ -252,7 +258,7 @@ def test_extract_with_zeitraum(tmp_file):
             {header}
             "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
             """,  # NOQA
-            dict(card_number=CARD_NUMBER, header=HEADER),
+            dict(card_number=CARD_NUMBER, header=header),
         ),
         encoding=ENCODING,
     )
@@ -271,7 +277,7 @@ def test_extract_with_zeitraum(tmp_file):
     assert importer._balance_date == datetime.date(2018, 1, 31)
 
 
-def test_file_date_with_zeitraum(tmp_file):
+def test_file_date_with_zeitraum(tmp_file, header):
     tmp_file.write_text(
         _format(
             """
@@ -284,7 +290,7 @@ def test_file_date_with_zeitraum(tmp_file):
             {header}
             "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
             """,  # NOQA
-            dict(card_number=CARD_NUMBER, header=HEADER),
+            dict(card_number=CARD_NUMBER, header=header),
         ),
         encoding=ENCODING,
     )
@@ -298,7 +304,7 @@ def test_file_date_with_zeitraum(tmp_file):
     assert importer.date(tmp_file) == datetime.date(2018, 1, 30)
 
 
-def test_emits_closing_balance_directive(tmp_file):
+def test_emits_closing_balance_directive(tmp_file, header):
     tmp_file.write_text(
         _format(
             """
@@ -312,7 +318,7 @@ def test_emits_closing_balance_directive(tmp_file):
             {header}
             "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
             """,  # NOQA
-            dict(card_number=CARD_NUMBER, header=HEADER),
+            dict(card_number=CARD_NUMBER, header=header),
         ),
         encoding=ENCODING,
     )
@@ -327,7 +333,7 @@ def test_emits_closing_balance_directive(tmp_file):
     assert directives[1].amount == Amount(Decimal("5000.01"), currency="EUR")
 
 
-def test_file_date_is_set_correctly(tmp_file):
+def test_file_date_is_set_correctly(tmp_file, header):
     tmp_file.write_text(
         _format(
             """
@@ -341,7 +347,7 @@ def test_file_date_is_set_correctly(tmp_file):
             {header}
             "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
             """,  # NOQA
-            dict(card_number=CARD_NUMBER, header=HEADER),
+            dict(card_number=CARD_NUMBER, header=header),
         ),
         encoding=ENCODING,
     )
@@ -351,7 +357,7 @@ def test_file_date_is_set_correctly(tmp_file):
     assert importer.date(tmp_file) == datetime.date(2016, 1, 31)
 
 
-def test_extract_with_description_patterns(tmp_file):
+def test_extract_with_description_patterns(tmp_file, header):
     tmp_file.write_text(
         _format(
             """
@@ -365,7 +371,7 @@ def test_extract_with_description_patterns(tmp_file):
             {header}
             "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
             """,  # NOQA
-            dict(card_number=CARD_NUMBER, header=HEADER),
+            dict(card_number=CARD_NUMBER, header=header),
         ),
         encoding=ENCODING,
     )
@@ -387,7 +393,7 @@ def test_extract_with_description_patterns(tmp_file):
     assert directives[0].postings[1].units is None
 
 
-def test_extract_multiple_transactions(tmp_file):
+def test_extract_multiple_transactions(tmp_file, header):
     # https://github.com/siddhantgoel/beancount-dkb/issues/123#issuecomment-1755167563
     prefix = CARD_NUMBER[:4]
     suffix = CARD_NUMBER[-4:]
@@ -405,7 +411,7 @@ def test_extract_multiple_transactions(tmp_file):
             "Ja";"23.09.2023";"22.09.2023";"HabenzinsenZ 000001111 T 030   0000";"1,11";"";
             "Ja";"23.08.2023";"22.08.2023";"HabenzinsenZ 000001111 T 031   0000";"1,11";"";
             """,  # NOQA
-            dict(prefix=prefix, suffix=suffix, header=HEADER),
+            dict(prefix=prefix, suffix=suffix, header=header),
         ),
         encoding=ENCODING,
     )
