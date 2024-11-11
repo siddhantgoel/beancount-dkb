@@ -219,7 +219,7 @@ class V2Extractor(BaseExtractor):
             Header(";".join(f'"{field}"' for field in self.FIELDS), ";"),
         ]
 
-    def _get_applicable_header(self) -> Header | None:
+    def _get_applicable_header(self) -> Optional[Header]:
         with open(self.filepath, encoding=self.file_encoding) as fd:
             lines = [line.strip() for line in fd.readlines()]
 
