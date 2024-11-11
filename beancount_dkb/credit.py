@@ -85,16 +85,20 @@ class CreditImporter(Importer):
         return self._date_to or self._file_date
 
     def identify(self, filepath: str):
-        return self._v1_extractor.identify(filepath) or self._v2_extractor.identify(
-            filepath
-        )
+        self._v1_extractor.set_filepath(filepath)
+        self._v2_extractor.set_filepath(filepath)
+
+        return self._v1_extractor.identify() or self._v2_extractor.identify()
 
     def extract(self, filepath: str, existing_entries: Optional[data.Entries] = None):
+        self._v1_extractor.set_filepath(filepath)
+        self._v2_extractor.set_filepath(filepath)
+
         extractor = None
 
-        if self._v1_extractor.identify(filepath):
+        if self._v1_extractor.identify():
             extractor = self._v1_extractor
-        elif self._v2_extractor.identify(filepath):
+        elif self._v2_extractor.identify():
             extractor = self._v2_extractor
         else:
             raise InvalidFormatError()
@@ -104,14 +108,10 @@ class CreditImporter(Importer):
     def _extract(self, filepath, extractor):
         entries = []
 
-        with open(filepath, encoding=extractor.file_encoding) as fd:
-            lines = [line.strip() for line in fd.readlines()]
-
         line_index = 0
-        header_index = lines.index(extractor.HEADER)
 
-        metadata_lines = lines[0:header_index]
-        transaction_lines = lines[header_index:]
+        metadata_lines = extractor.extract_metadata_lines()
+        transaction_lines = extractor.extract_transaction_lines()
 
         # Metadata
 
