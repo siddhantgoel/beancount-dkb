@@ -91,14 +91,10 @@ class ECImporter(Importer):
     def _extract(self, filepath, extractor):
         entries = []
 
-        with open(filepath, encoding=extractor.file_encoding) as fd:
-            lines = [line.strip() for line in fd.readlines()]
-
         line_index = 0
-        header_index = lines.index(extractor.HEADER)
 
-        metadata_lines = lines[0:header_index]
-        transaction_lines = lines[header_index:]
+        metadata_lines = extractor.extract_metadata_lines()
+        transaction_lines = extractor.extract_transaction_lines()
 
         # Metadata
 

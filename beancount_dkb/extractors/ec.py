@@ -31,6 +31,24 @@ class BaseExtractor:
     def identify(self) -> bool:
         raise NotImplementedError()
 
+    def extract_metadata_lines(self) -> list[str]:
+        with open(self.filepath, encoding=self.file_encoding) as fd:
+            lines = [line.strip() for line in fd.readlines()]
+
+        header_index = lines.index(self.HEADER)
+        metadata_lines = lines[0:header_index]
+
+        return metadata_lines
+
+    def extract_transaction_lines(self) -> list[str]:
+        with open(self.filepath, encoding=self.file_encoding) as fd:
+            lines = [line.strip() for line in fd.readlines()]
+
+        header_index = lines.index(self.HEADER)
+        transaction_lines = lines[header_index:]
+
+        return transaction_lines
+
     def get_account_number(self, line: Dict[str, str]) -> str:
         raise NotImplementedError()
 
