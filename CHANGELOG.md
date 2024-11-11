@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.3.0
+
+- Support both `,` and `;` as delimiters for exports from the updated banking interface
+
 ## v1.2.0
 
 - Parse balance values in credit card CSV exports metadata
