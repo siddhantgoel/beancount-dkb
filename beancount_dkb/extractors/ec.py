@@ -15,6 +15,11 @@ class BaseExtractor:
         self.iban = iban
         self.meta_code = meta_code
 
+        self.filepath = None
+
+    def set_filepath(self, filepath: str):
+        self.filepath = filepath
+
     @property
     def csv_reader(self):
         raise NotImplementedError()
@@ -23,7 +28,7 @@ class BaseExtractor:
     def csv_dict_reader(self):
         raise NotImplementedError()
 
-    def identify(self, filepath: str) -> bool:
+    def identify(self) -> bool:
         raise NotImplementedError()
 
     def get_account_number(self, line: Dict[str, str]) -> str:
@@ -81,7 +86,7 @@ class V1Extractor(BaseExtractor):
             csv.DictReader, delimiter=";", quoting=csv.QUOTE_MINIMAL, quotechar='"'
         )
 
-    def identify(self, filepath: str) -> bool:
+    def identify(self) -> bool:
         regex = re.compile(
             r'^"Kontonummer:";"'
             + re.escape(re.sub(r"\s+", "", self.iban, flags=re.UNICODE))
@@ -89,7 +94,7 @@ class V1Extractor(BaseExtractor):
             re.IGNORECASE,
         )
 
-        with open(filepath, encoding=self.file_encoding) as fd:
+        with open(self.filepath, encoding=self.file_encoding) as fd:
             line = fd.readline().strip()
 
             return regex.match(line)
@@ -153,16 +158,16 @@ class V2Extractor(BaseExtractor):
             csv.DictReader, delimiter=",", quoting=csv.QUOTE_MINIMAL, quotechar='"'
         )
 
-    def identify(self, filepath: str) -> bool:
+    def identify(self) -> bool:
         try:
-            with open(filepath, encoding=self.file_encoding) as fd:
+            with open(self.filepath, encoding=self.file_encoding) as fd:
                 lines = [line.strip() for line in fd.readlines()]
 
             if self.HEADER not in lines:
                 return False
 
             header_index = lines.index(self.HEADER)
-            metadata_lines = lines[0: header_index]
+            metadata_lines = lines[0:header_index]
 
             regex = re.compile(
                 r'^"Girokonto","'

@@ -68,16 +68,20 @@ class ECImporter(Importer):
         return self._date_to
 
     def identify(self, filepath: str):
-        return self._v1_extractor.identify(filepath) or self._v2_extractor.identify(
-            filepath
-        )
+        self._v1_extractor.set_filepath(filepath)
+        self._v2_extractor.set_filepath(filepath)
+
+        return self._v1_extractor.identify() or self._v2_extractor.identify()
 
     def extract(self, filepath: str, existing_entries: Optional[data.Entries] = None):
+        self._v1_extractor.set_filepath(filepath)
+        self._v2_extractor.set_filepath(filepath)
+
         extractor = None
 
-        if self._v1_extractor.identify(filepath):
+        if self._v1_extractor.identify():
             extractor = self._v1_extractor
-        elif self._v2_extractor.identify(filepath):
+        elif self._v2_extractor.identify():
             extractor = self._v2_extractor
         else:
             raise InvalidFormatError()
