@@ -11,7 +11,7 @@ from beangulp.importer import Importer
 
 from .exceptions import InvalidFormatError
 from .extractors.credit import V1Extractor, V2Extractor
-from .helpers import AccountMatcher, fmt_number_de
+from .helpers import AccountMatcher, fmt_number_de, fmt_number_en
 
 Meta = namedtuple("Meta", ["value", "line_index"])
 
@@ -201,7 +201,7 @@ class CreditImporter(Importer):
                     amount = value.value.lstrip("--")
 
                 self._balance_amount = Amount(
-                    Decimal(fmt_number_de(amount.rstrip(" EUR"))), self.currency
+                    Decimal(fmt_number_en(amount.rstrip(" EUR"))), self.currency
                 )
                 self._closing_balance_index = value.line_index
                 if key.startswith("Saldo vom"):

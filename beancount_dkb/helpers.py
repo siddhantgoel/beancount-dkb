@@ -23,22 +23,18 @@ Header = namedtuple("Header", ["value", "delimiter"])
 
 def fmt_number_de(value: str) -> Decimal:
     """
-    Format a (possibly) German locale-formatted number like "123.456,78" to "123456.78"
+    Format a de_DE locale formatted number
     """
 
-    if "." in value and "," in value:
-        if value.index(".") < value.index(","):
-            # if a period appears before a comma, assume de_DE
-            return parse_decimal(value, locale="de_DE")
-        else:
-            # if a comma appears before a period, assume en_US
-            return parse_decimal(value, locale="en_US")
-    elif "," in value:
-        # only commas, assume de_DE
-        return parse_decimal(value, locale="de_DE")
-    else:
-        # only periods, assume en_US
-        return parse_decimal(value, locale="en_US")
+    return parse_decimal(value, locale="de_DE")
+
+
+def fmt_number_en(value: str) -> Decimal:
+    """
+    Format an en_US locale formatted number
+    """
+
+    return parse_decimal(value, locale="en_US")
 
 
 class AccountMatcher:
