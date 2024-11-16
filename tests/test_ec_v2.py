@@ -93,6 +93,8 @@ def tmp_file_multiple_transaction(tmp_path, header):
             {header}
             "01.06.23"{delimiter}"01.06.23"{delimiter}"Gebucht"{delimiter}"COMPANY INC"{delimiter}"MAX MUSTERMANN"{delimiter}"Lohn und Gehalt"{delimiter}"Eingang"{delimiter}"DE00000000000000000000"{delimiter}"1.000,0"{delimiter}""{delimiter}""{delimiter}""
             "15.06.23"{delimiter}"15.06.23"{delimiter}"Gebucht"{delimiter}"ISSUER"{delimiter}"EDEKA//MUENCHEN/DE"{delimiter}"EDEKA SAGT DANKE"{delimiter}"Ausgang"{delimiter}"DE00000000000000000000"{delimiter}"-8,67"{delimiter}"DE9100112233445566"{delimiter}""{delimiter}"00000000000000000000000000"
+            "01.07.23"{delimiter}"01.07.23"{delimiter}"Gebucht"{delimiter}"MAX
+            MUSTERMANN"{delimiter}"ERIKA MUSTERMANN"{delimiter}"MIETE"{delimiter}"Ausgang"{delimiter}"DE11111111111111111111"{delimiter}"-1.450"{delimiter}""{delimiter}""{delimiter}""
             """,  # NOQA
             dict(iban=IBAN, header=header.value, delimiter=header.delimiter),
         ),
@@ -140,7 +142,7 @@ def test_extract_transactions(tmp_file_multiple_transaction):
 
     directives = importer.extract(tmp_file_multiple_transaction)
 
-    assert len(directives) == 3
+    assert len(directives) == 4
 
     assert directives[0].date == datetime.date(2023, 6, 1)
     assert directives[0].payee == "COMPANY INC"
@@ -155,10 +157,19 @@ def test_extract_transactions(tmp_file_multiple_transaction):
     assert directives[1].payee == "EDEKA//MUENCHEN/DE"
     assert directives[1].narration == "EDEKA SAGT DANKE"
 
-    assert len(directives[0].postings) == 1
+    assert len(directives[1].postings) == 1
     assert directives[1].postings[0].account == "Assets:DKB:EC"
     assert directives[1].postings[0].units.currency == "EUR"
     assert directives[1].postings[0].units.number == Decimal("-8.67")
+
+    assert directives[2].date == datetime.date(2023, 7, 1)
+    assert directives[2].payee == "ERIKA MUSTERMANN"
+    assert directives[2].narration == "MIETE"
+
+    assert len(directives[2].postings) == 1
+    assert directives[2].postings[0].account == "Assets:DKB:EC"
+    assert directives[2].postings[0].units.currency == "EUR"
+    assert directives[2].postings[0].units.number == Decimal("-1450")
 
 
 def test_extract_sets_internal_values(tmp_file_single_transaction):
