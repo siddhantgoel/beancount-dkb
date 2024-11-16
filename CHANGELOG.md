@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v1.4.0
+
+- Fix number parsing for CSV exports from the updated banking interface
+ - Balance values in credit exports are now assumed to have the en_US locale.
+ - Balance/transaction values in credit/EC exports are assumed to have the de_DE locale.
+
 ## v1.3.0
 
 - Support both `,` and `;` as delimiters for exports from the updated banking interface
