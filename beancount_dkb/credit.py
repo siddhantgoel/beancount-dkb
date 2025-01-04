@@ -1,3 +1,4 @@
+import sys
 import warnings
 from collections import namedtuple
 from datetime import datetime, timedelta
@@ -149,10 +150,47 @@ class CreditImporter(Importer):
                 data.Posting(self.account(filepath), amount, None, None, None, None)
             ]
 
-            if self.description_matcher.account_matches(description):
+            matches = list(set(
+                self.description_matcher.accounts_for(description)
+            ))
+
+            if len(matches)>1:
+                # As bean-gulp writes its result stdout we need to abuse stderr
+                sys.stderr.write(f"\n\nMultiple patterns match for line {line_index + 1}.\n")
+                sys.stderr.write("Please choose the account to post against.\n\n")
+                sys.stderr.write(f"{date} * \"\" \"{description}\" \n")
+                sys.stderr.write(f"   \t{self.account(filepath)} {amount} \n")
+
+                for idx, account in enumerate(matches):
+                    sys.stderr.write(
+                        f"[{idx}]\t{account}{' (<-- Default)' if idx==0 else ''}\n"
+                    )
+
+                sys.stderr.write("Choose the account to post against: ")
+                sys.stderr.flush()
+                choice = input()
+
+                try:
+                    selected_account = list(matches)[int(choice)]
+                except (ValueError, IndexError):
+                    selected_account = list(matches)[0]
+
+                sys.stderr.write(f"\nPosting against account {selected_account}\n")
+                sys.stderr.flush()
                 postings.append(
                     data.Posting(
-                        self.description_matcher.account_for(description),
+                        selected_account,
+                        None,
+                        None,
+                        None,
+                        None,
+                        None,
+                    )
+                )
+            elif matches:
+                postings.append(
+                    data.Posting(
+                        selected_account,
                         None,
                         None,
                         None,
