@@ -2,7 +2,7 @@ import csv
 import re
 from collections import namedtuple
 from functools import partial
-from typing import Optional, Sequence
+from typing import Optional, Sequence, List
 
 from babel.numbers import parse_decimal
 from beancount.core.number import Decimal
@@ -48,10 +48,9 @@ class AccountMatcher:
     def add(self, regex: str, account: str) -> None:
         self.patterns.append(_MatcherEntry(re.compile(regex), account))
 
-    def account_for(self, string: str) -> Optional[str]:
+    def accounts_for(self, string: str) -> List[str]:
+        matches = []
         for pattern, account in self.patterns:
             if re.search(pattern, string):
-                return account
-
-    def account_matches(self, string: str) -> bool:
-        return bool(self.account_for(string))
+                matches.append(account)
+        return matches

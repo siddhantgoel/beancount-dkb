@@ -1,3 +1,4 @@
+import sys
 import warnings
 from collections import namedtuple
 from datetime import datetime, timedelta
@@ -153,33 +154,44 @@ class ECImporter(Importer):
                     new_posting(account=self.account(filepath), units=amount),
                 ]
 
-                payee_match = self.payee_matcher.account_matches(payee)
-                description_match = self.description_matcher.account_matches(
-                    description
-                )
+                matches = list(set(
+                    self.payee_matcher.accounts_for(payee) +
+                    self.description_matcher.accounts_for(description)
+                ))
 
-                if payee_match and description_match:
-                    warnings.warn(
-                        f"Line {line_index + 1} matches both payee_patterns and "
-                        "description_patterns. Picking payee_pattern.",
-                    )
+                if len(matches)>1:
+                    # As bean-gulp writes its result stdout we need to abuse stderr
+                    sys.stderr.write(f"\n\nMultiple patterns match for line {line_index + 1}.\n")
+                    sys.stderr.write("Please choose the account to post against.\n\n")
+                    sys.stderr.write(f"{date} * \"{payee}\" \"{description}\" \n")
+                    sys.stderr.write(f"   \t{self.account(filepath)} {amount} \n")
+
+                    for idx, account in enumerate(matches):
+                        sys.stderr.write(
+                            f"[{idx}]\t{account}{' (<-- Default)' if idx==0 else ''}\n"
+                        )
+
+                    sys.stderr.write("Choose the correct account: ")
+                    sys.stderr.flush()
+                    choice = input()
+
+                    try:
+                        selected_account = matches[int(choice)]
+                    except (ValueError, IndexError):
+                        selected_account = matches[0]
+
+                    sys.stderr.write(f"\nPosting against account {selected_account}\n")
+                    sys.stderr.flush()
                     postings.append(
                         new_posting(
-                            account=self.payee_matcher.account_for(payee),
+                            account=selected_account,
                             units=None,
                         )
                     )
-                elif payee_match:
+                elif matches:
                     postings.append(
                         new_posting(
-                            account=self.payee_matcher.account_for(payee),
-                            units=None,
-                        )
-                    )
-                elif description_match:
-                    postings.append(
-                        new_posting(
-                            account=self.description_matcher.account_for(description),
+                            account=matches[0],
                             units=None,
                         )
                     )
