@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.5.0
+
+- Fix support for Tagesgeld accounts (thanks [M4a1x])
+
 ## v1.4.0
 
 - Fix number parsing for CSV exports from the updated banking interface
@@ -198,3 +202,4 @@
 [@niels]: https://github.com/niels
 [@nils-werner]: https://github.com/nils-werner
 [@tbm]: https://github.com/tbm
+[M4a1x]: https://github.com/M4a1x
