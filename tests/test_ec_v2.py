@@ -104,6 +104,31 @@ def tmp_file_multiple_transaction(tmp_path, header):
     return tmp_file
 
 
+@pytest.fixture
+def tmp_file_tagesgeld_no_transactions(tmp_path, header):
+    """
+    Fixture for a temporary file for a Savings account (i.e. "Tagesgeld")
+    with no transactions
+    """
+
+    tmp_file = tmp_path / f"{IBAN}.csv"
+    tmp_file.write_text(
+        _format(
+            """
+            "Tagesgeld"{delimiter}"{iban}"
+            ""
+            "Kontostand vom 30.06.2023:"{delimiter}"5.000,01 EUR"
+            ""
+            {header}
+            """,  # NOQA
+            dict(iban=IBAN, header=header.value, delimiter=header.delimiter),
+        ),
+        encoding=ENCODING,
+    )
+
+    return tmp_file
+
+
 def test_file_encoding_raises_deprecation_warning():
     with pytest.deprecated_call():
         ECImporter(IBAN, "Assets:DKB:EC", file_encoding="utf-8")
@@ -113,6 +138,12 @@ def test_identify_correct(tmp_file_single_transaction):
     importer = ECImporter(IBAN, "Assets:DKB:EC")
 
     assert importer.identify(tmp_file_single_transaction)
+
+
+def test_identify_tagesgeld(tmp_file_tagesgeld_no_transactions):
+    importer = ECImporter(IBAN, "Assets:DKB:Savings")
+
+    assert importer.identify(tmp_file_tagesgeld_no_transactions)
 
 
 def test_extract_no_transactions(tmp_file_no_transactions):
