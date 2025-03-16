@@ -64,7 +64,7 @@ class ECImporter(Importer):
         return self.account_name
 
     def date(self, filepath: str):
-        self.extract(filepath)
+        self.extract(filepath, existing=None)
 
         return self._date_to
 
@@ -74,7 +74,9 @@ class ECImporter(Importer):
 
         return self._v1_extractor.identify() or self._v2_extractor.identify()
 
-    def extract(self, filepath: str, existing_entries: Optional[data.Entries] = None):
+    def extract(self, filepath: str, existing: Optional[data.Entries] = None):
+        existing = existing or []
+
         self._v1_extractor.set_filepath(filepath)
         self._v2_extractor.set_filepath(filepath)
 
@@ -87,7 +89,7 @@ class ECImporter(Importer):
         else:
             raise InvalidFormatError()
 
-        return self._extract(filepath, extractor)
+        return self._extract(filepath, extractor) + existing
 
     def _extract(self, filepath, extractor):
         entries = []
