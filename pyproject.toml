@@ -27,7 +27,7 @@ repository = "https://github.com/siddhantgoel/beancount-dkb"
 keywords = ["banking", "beancount", "cli-accounting", "finance"]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 beancount = "^3.0.0"
 beangulp = ">=0.1.1,<0.3.0"
 babel = "^2.16.0"
