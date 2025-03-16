@@ -56,6 +56,7 @@ class ECImporter(Importer):
                 DeprecationWarning,
             )
 
+    @property
     def name(self):
         return "DKB {}".format(self.__class__.__name__)
 
