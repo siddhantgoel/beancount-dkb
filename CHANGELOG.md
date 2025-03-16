@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.5.1
+
+- Mark `name` method on importer classes as a `property`
+
 ## v1.5.0
 
 - Fix support for Tagesgeld accounts (thanks [M4a1x])
