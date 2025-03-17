@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.5.2
+
+- Set `existing` parameter to `None` when calling `extract` from `date`
+
 ## v1.5.1
 
 - Mark `name` method on importer classes as a `property`
