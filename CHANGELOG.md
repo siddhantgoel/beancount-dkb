@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## v1.6.0
+
+- Remove `beancount-dkb-*` CLI scripts in favor of a `beangulp.Ingest` based workflow
+  - Beangulp examples suggest using a Python script that instantiates `Beangulp.Ingest`
+    with a list of importers, which makes the CLI script redundant.
+- Relax Beancount version constraint
+
 ## v1.5.2
 
 - Set `existing` parameter to `None` when calling `extract` from `date`
