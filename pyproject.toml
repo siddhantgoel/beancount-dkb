@@ -37,10 +37,6 @@ taskipy = "^1.12.0"
 ruff = ">=0.5.1,<0.12.0"
 pytest = "^8.2.2"
 
-[tool.poetry.scripts]
-beancount-dkb-ec = "beancount_dkb.cli:ec"
-beancount-dkb-credit = "beancount_dkb.cli:credit"
-
 [tool.taskipy.tasks]
 lint = "ruff check beancount_dkb/ tests/"
 test = "pytest tests/"

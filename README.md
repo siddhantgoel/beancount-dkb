@@ -17,9 +17,6 @@ $ pip install beancount-dkb
 In case you prefer installing from the Github repository, please note that `main` is the
 development branch so `stable` is what you should be installing from.
 
-Note that v1.x will *only* work with Beancount 3.x, while v0.x will *only* work with
-Beancount 2.x, due to incompatibilities between Beancount 3.x and 2.x.
-
 ## Usage
 
 If you're not familiar with how to import external data into Beancount, please read
@@ -28,30 +25,36 @@ If you're not familiar with how to import external data into Beancount, please r
 ### Beancount 3.x
 
 Beancount 3.x has replaced the `config.py` file based workflow in favor of having a
-script based workflow, as per the [changes documented here]. As a result, the importer's
-initialization parameters have been shifted to `pyproject.toml`.
+script based workflow, as per the [changes documented here]. The `beangulp` examples
+suggest using a Python script based on `beangulp.Ingest`. Here's an example of how that
+might work:
 
-Add the following to your `pyproject.toml` in your project root.
+Add an `import.py` script in your project root with the following contents:
 
-```toml
-[tool.beancount-dkb.ec]
-iban = "DE99 9999 9999 9999 9999 99"
-account_name = "Assets:DKB:EC"
-currency = "EUR"
+```python
+from beancount_dkb import ECImporter, CreditImporter
+from beangulp import Ingest
 
-[tool.beancount-dkb.credit]
-card_number = "9999 9999 9999 9999"
-account_name = "Assets:DKB:Credit"
-currency = "EUR"
+importers = (
+    ECImporter(
+        "DE99 9999 9999 9999 9999 99",
+        'Assets:DKB:EC',
+        currency='EUR',
+    ),
+
+    CreditImporter(
+        "9999 9999 9999 9999",
+        'Assets:DKB:Credit',
+        currency='EUR',
+    )
+)
+
+if __name__ == "__main__":
+    ingest = Ingest(importer)
+    ingest()
 ```
 
-Run `beancount-dkb-ec` or `beancount-dkb-credit` to call the importer. The `identify`
-and `extract` subcommands would identify the file and extract transactions for you.
-
-```sh
-$ beancount-dkb-ec extract transaction.csv >> you.beancount
-$ beancount-dkb-credit extract transaction.csv >> you.beancount
-```
+... and run it directly using `python import.py extract`.
 
 ### Beancount 2.x
 
@@ -63,20 +66,16 @@ Add the following to your `config.py`.
 ```python
 from beancount_dkb import ECImporter, CreditImporter
 
-IBAN_NUMBER = 'DE99 9999 9999 9999 9999 99' # your real IBAN number
-
-CARD_NUMBER = '9999 9999 9999 9999'         # your real Credit Card number
-
 CONFIG = [
     ECImporter(
-        IBAN_NUMBER,
-        'Assets:DKB:EC',
+        "DE99 9999 9999 9999 9999 99",
+        "Assets:DKB:EC",
         currency='EUR',
     ),
 
     CreditImporter(
-        CARD_NUMBER,
-        'Assets:DKB:Credit',
+        "9999 9999 9999 9999",
+        "Assets:DKB:Credit",
         currency='EUR',
     )
 ]
@@ -96,15 +95,25 @@ transaction description. To achieve shorter descriptions and use meta tags to qu
 certain transaction codes, the importer may be configured to store the transaction code
 in a user provided meta tag.
 
-Add the `meta_code` parameter to the `ECImporter` initializer.
+Add the `meta_code` parameter when instantiating an `ECImporter`.
 
 #### Beancount 3.x
 
-```toml
-[tool.beancount-dkb.ec]
-iban = "DE99 9999 9999 9999 9999 99"
-account_name = "Assets:DKB:EC"
-meta_code = "code"
+```python
+from beancount_dkb import ECImporter
+from beangulp import Ingest
+
+importers = (
+    ECImporter(
+        "DE99 9999 9999 9999 9999 99",
+        "Assets:DKB:EC",
+        meta_code="code',
+    ),
+)
+
+if __name__ == "__main__":
+    ingest = Ingest(importer)
+    ingest()
 ```
 
 #### Beancount 2.x
@@ -119,7 +128,6 @@ CONFIG = [
         meta_code='code',
     ),
 ...
-
 ```
 
 This is how an example transaction looks without the option:
@@ -153,14 +161,24 @@ be a list of `(pattern, account)` tuples.
 
 ##### Beancount 3.x
 
-```toml
-[tool.beancount-dkb.ec]
-iban = "DE99 9999 9999 9999 9999 99"
-account_name = "Assets:DKB:EC"
-payee_patterns = [
-    ["REWE", "Expenses:Supermarket:REWE"],
-    ["NETFLIX", "Expenses:Online:Netflix"],
-]
+```python
+from beancount_dkb import ECImporter
+from beangulp import Ingest
+
+importers = (
+    ECImporter(
+        "DE99 9999 9999 9999 9999 99",
+        "Assets:DKB:EC",
+        payee_patterns=[
+            ("REWE", "Expenses:Supermarket:REWE"),
+            ("NETFLIX", "Expenses:Online:Netflix"),
+        ],
+    ),
+)
+
+if __name__ == "__main__":
+    ingest = Ingest(importer)
+    ingest()
 ```
 
 ##### Beancount 2.x
@@ -169,11 +187,11 @@ payee_patterns = [
 CONFIG = [
     ECImporter(
         IBAN_NUMBER,
-        'Assets:DKB:EC',
+        "Assets:DKB:EC",
         currency='EUR',
         payee_patterns=[
-            ('REWE', 'Expenses:Supermarket:REWE'),
-            ('NETFLIX', 'Expenses:Online:Netflix'),
+            ("REWE", "Expenses:Supermarket:REWE"),
+            ("NETFLIX", "Expenses:Online:Netflix"),
         ],
     ),
 ```
@@ -185,15 +203,25 @@ CONFIG = [
 
 ##### Beancount 3.x
 
-```toml
-[tool.beancount-dkb.credit]
-card_number = "9999 9999 9999 9999"
-account_name = "Assets:DKB:Credit"
-currency = "EUR"
-description_patterns=[
-    ['REWE', 'Expenses:Supermarket:REWE'],
-    ['NETFLIX', 'Expenses:Online:Netflix'],
-]
+```python
+from beancount_dkb import CreditImporter
+from beangulp import Ingest
+
+importers = (
+    ECImporter(
+        "9999 9999 9999 9999",
+        "Assets:DKB:EC",
+        currency="EUR",
+        payee_patterns=[
+            ("REWE", "Expenses:Supermarket:REWE"),
+            ("NETFLIX", "Expenses:Online:Netflix"),
+        ],
+    ),
+)
+
+if __name__ == "__main__":
+    ingest = Ingest(importer)
+    ingest()
 ```
 
 ##### Beancount 2.x
@@ -215,7 +243,7 @@ CONFIG = [
 
 Contributions are most welcome!
 
-Please make sure you have Python 3.8+ and [Poetry] installed.
+Please make sure you have Python 3.9+ and [Poetry] installed.
 
 1. Clone the repository: `git clone https://github.com/siddhantgoel/beancount-dkb`
 2. Install the packages required for development: `poetry install`
