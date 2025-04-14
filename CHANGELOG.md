@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.6.1
+
+- Avoid returning duplicate existing entries
+
 ## v1.6.0
 
 - Remove `beancount-dkb-*` CLI scripts in favor of a `beangulp.Ingest` based workflow
