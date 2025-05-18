@@ -1,5 +1,4 @@
 import warnings
-from collections import namedtuple
 from datetime import datetime, timedelta
 from textwrap import dedent
 from typing import Dict, Optional, Sequence
@@ -11,9 +10,7 @@ from beangulp.importer import Importer
 
 from .exceptions import InvalidFormatError
 from .extractors.credit import V1Extractor, V2Extractor
-from .helpers import AccountMatcher, fmt_number_de, fmt_number_en
-
-Meta = namedtuple("Meta", ["value", "line_index"])
+from .helpers import AccountMatcher, Meta, fmt_number_de, fmt_number_en
 
 
 class CreditImporter(Importer):

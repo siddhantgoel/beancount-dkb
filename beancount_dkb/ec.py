@@ -1,5 +1,4 @@
 import warnings
-from collections import namedtuple
 from datetime import datetime, timedelta
 from functools import partial
 from textwrap import dedent
@@ -11,9 +10,7 @@ from beangulp.importer import Importer
 
 from .exceptions import InvalidFormatError
 from .extractors.ec import V1Extractor, V2Extractor
-from .helpers import AccountMatcher, fmt_number_de
-
-Meta = namedtuple("Meta", ["value", "line_index"])
+from .helpers import AccountMatcher, Meta, fmt_number_de
 
 new_posting = partial(data.Posting, cost=None, price=None, flag=None, meta=None)
 

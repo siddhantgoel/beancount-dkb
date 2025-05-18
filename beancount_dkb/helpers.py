@@ -1,8 +1,7 @@
 import csv
 import re
-from collections import namedtuple
 from functools import partial
-from typing import Optional, Sequence
+from typing import NamedTuple, Optional, Sequence
 
 from babel.numbers import parse_decimal
 from beancount.core.number import Decimal
@@ -15,10 +14,20 @@ csv_dict_reader = partial(
     csv.DictReader, delimiter=",", quoting=csv.QUOTE_MINIMAL, quotechar='"'
 )
 
-_MatcherEntry = namedtuple("_MatcherEntry", ["pattern", "account"])
+
+class _MatcherEntry(NamedTuple):
+    pattern: re.Pattern
+    account: str
 
 
-Header = namedtuple("Header", ["value", "delimiter"])
+class Header(NamedTuple):
+    value: str
+    delimiter: str
+
+
+class Meta(NamedTuple):
+    value: str
+    line_index: int
 
 
 def fmt_number_de(value: str) -> Decimal:
