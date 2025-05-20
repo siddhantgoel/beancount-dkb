@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.6.2
+
+- Set up trusted publishing between PyPI and Github Actions
+
 ## v1.6.1
 
 - Avoid returning duplicate existing entries
