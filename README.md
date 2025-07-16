@@ -50,7 +50,7 @@ importers = (
 )
 
 if __name__ == "__main__":
-    ingest = Ingest(importer)
+    ingest = Ingest(importers)
     ingest()
 ```
 
@@ -112,7 +112,7 @@ importers = (
 )
 
 if __name__ == "__main__":
-    ingest = Ingest(importer)
+    ingest = Ingest(importers)
     ingest()
 ```
 
@@ -177,7 +177,7 @@ importers = (
 )
 
 if __name__ == "__main__":
-    ingest = Ingest(importer)
+    ingest = Ingest(importers)
     ingest()
 ```
 
@@ -220,7 +220,7 @@ importers = (
 )
 
 if __name__ == "__main__":
-    ingest = Ingest(importer)
+    ingest = Ingest(importers)
     ingest()
 ```
 
