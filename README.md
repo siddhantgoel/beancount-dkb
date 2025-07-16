@@ -46,7 +46,7 @@ importers = (
         "9999 9999 9999 9999",
         'Assets:DKB:Credit',
         currency='EUR',
-    )
+    ),
 )
 
 if __name__ == "__main__":
@@ -77,7 +77,7 @@ CONFIG = [
         "9999 9999 9999 9999",
         "Assets:DKB:Credit",
         currency='EUR',
-    )
+    ),
 ]
 ```
 
