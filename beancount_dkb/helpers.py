@@ -33,17 +33,19 @@ class Meta(NamedTuple):
 def fmt_number_de(value: str) -> Decimal:
     """
     Format a de_DE locale formatted number
+    Use always 2 decimal digits
     """
 
-    return parse_decimal(value, locale="de_DE")
+    return parse_decimal(value, locale="de_DE").quantize(Decimal('.01'))
 
 
 def fmt_number_en(value: str) -> Decimal:
     """
     Format an en_US locale formatted number
+    Use always 2 decimal digits
     """
 
-    return parse_decimal(value, locale="en_US")
+    return parse_decimal(value, locale="en_US").quantize(Decimal('.01'))
 
 
 class AccountMatcher:
