@@ -183,6 +183,8 @@ def test_extract_transactions(tmp_file_multiple_transaction):
     assert directives[0].postings[0].account == "Assets:DKB:EC"
     assert directives[0].postings[0].units.currency == "EUR"
     assert directives[0].postings[0].units.number == Decimal("1000.00")
+    # test that number contains 2 decimal places even if source contained only one:
+    assert directives[0].postings[0].units.number.compare_total(Decimal("1000.00")) == Decimal('0')
 
     assert directives[1].date == datetime.date(2023, 6, 15)
     assert directives[1].payee == "EDEKA//MUENCHEN/DE"
@@ -201,6 +203,8 @@ def test_extract_transactions(tmp_file_multiple_transaction):
     assert directives[2].postings[0].account == "Assets:DKB:EC"
     assert directives[2].postings[0].units.currency == "EUR"
     assert directives[2].postings[0].units.number == Decimal("-1450")
+    # test that number contains 2 decimal places even if source contained no decimal places:
+    assert directives[2].postings[0].units.number.compare_total(Decimal("-1450.00")) == Decimal('0')
 
 
 def test_extract_sets_internal_values(tmp_file_single_transaction):
