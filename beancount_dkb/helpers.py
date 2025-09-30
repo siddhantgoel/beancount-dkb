@@ -3,7 +3,7 @@ import re
 from functools import partial
 from typing import NamedTuple, Optional, Sequence
 
-from babel.numbers import parse_decimal
+from babel.numbers import parse_decimal, NumberFormatError
 from beancount.core.number import Decimal
 
 csv_reader = partial(
@@ -33,17 +33,25 @@ class Meta(NamedTuple):
 def fmt_number_de(value: str) -> Decimal:
     """
     Format a de_DE locale formatted number
+    Use always 2 decimal digits
     """
 
-    return parse_decimal(value, locale="de_DE")
+    if not re.match(r"[^,]+(?:,\d{1,2})?$", value):
+        raise NumberFormatError(f'{value} contains wrong number of decimal places')
+    else:
+        return parse_decimal(value, locale="de_DE").quantize(Decimal('.01'))
 
 
 def fmt_number_en(value: str) -> Decimal:
     """
     Format an en_US locale formatted number
+    Use always 2 decimal digits
     """
 
-    return parse_decimal(value, locale="en_US")
+    if not re.match(r"[^.]+(?:\.\d{1,2})?$", value):
+        raise NumberFormatError(f'{value} contains wrong number of decimal places')
+    else:
+        return parse_decimal(value, locale="en_US").quantize(Decimal('.01'))
 
 
 class AccountMatcher:
