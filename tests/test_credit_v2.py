@@ -8,6 +8,8 @@ from beancount.core.data import Amount, Balance
 from beancount_dkb import CreditImporter
 from beancount_dkb.extractors.credit import V2Extractor
 
+from babel.numbers import NumberFormatError
+
 CARD_NUMBER = "1234 •••• •••• 5678"
 
 
@@ -92,6 +94,30 @@ def tmp_file_balance_without_decimal_places(tmp_path, header):
             "Karte"{delimiter}"Visa Kreditkarte"{delimiter}"{card_number}"
             ""
             "Saldo vom 31.01.2023:"{delimiter}"5000 EUR"
+            ""
+            {header}
+            """,
+            dict(
+                card_number=CARD_NUMBER, header=header.value, delimiter=header.delimiter
+            ),
+        )
+    )
+
+    return tmp_file
+
+@pytest.fixture
+def tmp_file_balance_bad_number_of_decimal_places(tmp_path, header):
+    """
+    Fixture for a temporary file with bad number of decimal places in balance
+    """
+
+    tmp_file = tmp_path / f"{CARD_NUMBER}.csv"
+    tmp_file.write_text(
+        _format(
+            """
+            "Karte"{delimiter}"Visa Kreditkarte"{delimiter}"{card_number}"
+            ""
+            "Saldo vom 31.01.2023:"{delimiter}"5000.001 EUR"
             ""
             {header}
             """,
@@ -191,3 +217,14 @@ def test_decimal_places_in_balance(tmp_file_balance_without_decimal_places):
     assert isinstance(directives[0], Balance)
     assert directives[0].amount == Amount(Decimal("5000"), currency="EUR")
     assert directives[0].amount.number.compare_total(Decimal("5000.00")) == Decimal('0')
+
+def test_bad_number_of_decimal_places_in_balance(tmp_file_balance_bad_number_of_decimal_places):
+    importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
+
+    try:
+        importer.extract(tmp_file_balance_bad_number_of_decimal_places)
+    except NumberFormatError as err:
+        # This is the expected behavior for bad input data
+        assert str(err) == '5000.001 contains wrong number of decimal places'
+        return
+    assert False, "Bad number format not recognized"
