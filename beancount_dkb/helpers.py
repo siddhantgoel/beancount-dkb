@@ -36,10 +36,11 @@ def fmt_number_de(value: str) -> Decimal:
     Use always 2 decimal digits
     """
 
-    if not re.match(r"[^,]+(?:,\d{1,2})?$", value):
+    num = parse_decimal(value, locale="de_DE")
+    if num.as_tuple().exponent < -2:
         raise NumberFormatError(f'{value} contains wrong number of decimal places')
     else:
-        return parse_decimal(value, locale="de_DE").quantize(Decimal('.01'))
+        return num.quantize(Decimal('.01'))
 
 
 def fmt_number_en(value: str) -> Decimal:
@@ -48,10 +49,11 @@ def fmt_number_en(value: str) -> Decimal:
     Use always 2 decimal digits
     """
 
-    if not re.match(r"[^.]+(?:\.\d{1,2})?$", value):
+    num = parse_decimal(value, locale="en_US")
+    if num.as_tuple().exponent < -2:
         raise NumberFormatError(f'{value} contains wrong number of decimal places')
     else:
-        return parse_decimal(value, locale="en_US").quantize(Decimal('.01'))
+        return num.quantize(Decimal('.01'))
 
 
 class AccountMatcher:
