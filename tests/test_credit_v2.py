@@ -225,6 +225,6 @@ def test_bad_number_of_decimal_places_in_balance(tmp_file_balance_bad_number_of_
         importer.extract(tmp_file_balance_bad_number_of_decimal_places)
     except NumberFormatError as err:
         # This is the expected behavior for bad input data
-        assert str(err) == '5000.001 contains wrong number of decimal places'
+        assert str(err) == '5000.001 contains unexpected number of decimal places'
         return
     assert False, "Bad number format not recognized"
