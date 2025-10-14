@@ -38,7 +38,7 @@ def fmt_number_de(value: str) -> Decimal:
 
     num = parse_decimal(value, locale="de_DE")
     if num.as_tuple().exponent < -2:
-        raise NumberFormatError(f'{value} contains wrong number of decimal places')
+        raise NumberFormatError(f'{value} contains unexpected number of decimal places')
     else:
         return num.quantize(Decimal('.01'))
 
