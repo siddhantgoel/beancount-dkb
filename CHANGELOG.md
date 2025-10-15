@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.7.0
+
+- Default to 2 decimal places when parsing numbers (thanks [@szabootibor])
+
 ## v1.6.2
 
 - Set up trusted publishing between PyPI and Github Actions
@@ -218,11 +222,12 @@
 - Added ECImporter to import CSV exports of EC accounts
 
 
-[@Dr-Nuke]: https://github.com/Dr-Nuke
 [@bratekarate]: https://githun.com/bratekarate
 [@dmerkert]: https://github.com/dmerkert
+[@Dr-Nuke]: https://github.com/Dr-Nuke
 [@e11bits]: https://github.com/e11bits
 [@niels]: https://github.com/niels
 [@nils-werner]: https://github.com/nils-werner
+[@szabootibor]: https://github.com/szabootibor
 [@tbm]: https://github.com/tbm
 [M4a1x]: https://github.com/M4a1x
