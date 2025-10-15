@@ -3,12 +3,11 @@ from decimal import Decimal
 from textwrap import dedent
 
 import pytest
+from babel.numbers import NumberFormatError
 from beancount.core.data import Amount, Balance
 
 from beancount_dkb import CreditImporter
 from beancount_dkb.extractors.credit import V2Extractor
-
-from babel.numbers import NumberFormatError
 
 CARD_NUMBER = "1234 •••• •••• 5678"
 
@@ -104,6 +103,7 @@ def tmp_file_balance_without_decimal_places(tmp_path, header):
     )
 
     return tmp_file
+
 
 @pytest.fixture
 def tmp_file_balance_bad_number_of_decimal_places(tmp_path, header):
@@ -216,15 +216,15 @@ def test_decimal_places_in_balance(tmp_file_balance_without_decimal_places):
     assert len(directives) == 1
     assert isinstance(directives[0], Balance)
     assert directives[0].amount == Amount(Decimal("5000"), currency="EUR")
-    assert directives[0].amount.number.compare_total(Decimal("5000.00")) == Decimal('0')
+    assert directives[0].amount.number.compare_total(Decimal("5000.00")) == Decimal("0")
 
-def test_bad_number_of_decimal_places_in_balance(tmp_file_balance_bad_number_of_decimal_places):
+
+def test_bad_number_of_decimal_places_in_balance(
+    tmp_file_balance_bad_number_of_decimal_places,
+):
     importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
 
-    try:
+    with pytest.raises(
+        NumberFormatError, match="5000.001 contains unexpected number of decimal places"
+    ):
         importer.extract(tmp_file_balance_bad_number_of_decimal_places)
-    except NumberFormatError as err:
-        # This is the expected behavior for bad input data
-        assert str(err) == '5000.001 contains unexpected number of decimal places'
-        return
-    assert False, "Bad number format not recognized"

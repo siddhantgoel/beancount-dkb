@@ -3,12 +3,11 @@ from decimal import Decimal
 from textwrap import dedent
 
 import pytest
+from babel.numbers import NumberFormatError
 from beancount.core.data import Amount, Balance
 
 from beancount_dkb import ECImporter
 from beancount_dkb.ec import V2Extractor
-
-from babel.numbers import NumberFormatError
 
 FORMATTED_IBAN = "DE99 9999 9999 9999 9999 99"
 
@@ -104,6 +103,7 @@ def tmp_file_multiple_transaction(tmp_path, header):
     )
 
     return tmp_file
+
 
 @pytest.fixture
 def tmp_file_bad_number_of_decimal_places(tmp_path, header):
@@ -210,7 +210,9 @@ def test_extract_transactions(tmp_file_multiple_transaction):
     assert directives[0].postings[0].units.currency == "EUR"
     assert directives[0].postings[0].units.number == Decimal("1000.00")
     # test that number contains 2 decimal places even if source contained only one:
-    assert directives[0].postings[0].units.number.compare_total(Decimal("1000.00")) == Decimal('0')
+    assert directives[0].postings[0].units.number.compare_total(
+        Decimal("1000.00")
+    ) == Decimal("0")
 
     assert directives[1].date == datetime.date(2023, 6, 15)
     assert directives[1].payee == "EDEKA//MUENCHEN/DE"
@@ -230,18 +232,20 @@ def test_extract_transactions(tmp_file_multiple_transaction):
     assert directives[2].postings[0].units.currency == "EUR"
     assert directives[2].postings[0].units.number == Decimal("-1450")
     # test that number contains 2 decimal places even if source contained no decimal places:
-    assert directives[2].postings[0].units.number.compare_total(Decimal("-1450.00")) == Decimal('0')
+    assert directives[2].postings[0].units.number.compare_total(
+        Decimal("-1450.00")
+    ) == Decimal("0")
+
 
 def test_bad_number_of_decimal_places(tmp_file_bad_number_of_decimal_places):
     importer = ECImporter(IBAN, "Assets:DKB:EC")
 
-    try:
+    with pytest.raises(
+        NumberFormatError,
+        match="1.000,001 contains unexpected number of decimal places",
+    ):
         importer.extract(tmp_file_bad_number_of_decimal_places)
-    except NumberFormatError as err:
-        # This is the expected behavior for bad input data
-        assert str(err) == '1.000,001 contains unexpected number of decimal places'
-        return
-    assert False, "Bad number format not recognized"
+
 
 def test_extract_sets_internal_values(tmp_file_single_transaction):
     importer = ECImporter(IBAN, "Assets:DKB:EC")
