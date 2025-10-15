@@ -8,6 +8,8 @@ from beancount.core.data import Amount, Balance
 from beancount_dkb import CreditImporter
 from beancount_dkb.extractors.credit import V2Extractor
 
+from babel.numbers import NumberFormatError
+
 CARD_NUMBER = "1234 •••• •••• 5678"
 
 
@@ -69,6 +71,55 @@ def tmp_file_single_transaction(tmp_path, header):
             ""
             {header}
             "15.01.23"{delimiter}"15.01.23"{delimiter}"Gebucht"{delimiter}"REWE Filiale Muenchen"{delimiter}"Im Geschäft"{delimiter}"-10,80 €"{delimiter}""
+            """,
+            dict(
+                card_number=CARD_NUMBER, header=header.value, delimiter=header.delimiter
+            ),
+        )
+    )
+
+    return tmp_file
+
+
+@pytest.fixture
+def tmp_file_balance_without_decimal_places(tmp_path, header):
+    """
+    Fixture for a temporary file with no transactions and without decimal places in balance
+    """
+
+    tmp_file = tmp_path / f"{CARD_NUMBER}.csv"
+    tmp_file.write_text(
+        _format(
+            """
+            "Karte"{delimiter}"Visa Kreditkarte"{delimiter}"{card_number}"
+            ""
+            "Saldo vom 31.01.2023:"{delimiter}"5000 EUR"
+            ""
+            {header}
+            """,
+            dict(
+                card_number=CARD_NUMBER, header=header.value, delimiter=header.delimiter
+            ),
+        )
+    )
+
+    return tmp_file
+
+@pytest.fixture
+def tmp_file_balance_bad_number_of_decimal_places(tmp_path, header):
+    """
+    Fixture for a temporary file with bad number of decimal places in balance
+    """
+
+    tmp_file = tmp_path / f"{CARD_NUMBER}.csv"
+    tmp_file.write_text(
+        _format(
+            """
+            "Karte"{delimiter}"Visa Kreditkarte"{delimiter}"{card_number}"
+            ""
+            "Saldo vom 31.01.2023:"{delimiter}"5000.001 EUR"
+            ""
+            {header}
             """,
             dict(
                 card_number=CARD_NUMBER, header=header.value, delimiter=header.delimiter
@@ -155,3 +206,25 @@ def test_comma_separator_in_balance(tmp_file_single_transaction):
     assert len(directives) == 2
     assert isinstance(directives[1], Balance)
     assert directives[1].amount == Amount(Decimal("5000.01"), currency="EUR")
+
+
+def test_decimal_places_in_balance(tmp_file_balance_without_decimal_places):
+    importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
+
+    directives = importer.extract(tmp_file_balance_without_decimal_places)
+
+    assert len(directives) == 1
+    assert isinstance(directives[0], Balance)
+    assert directives[0].amount == Amount(Decimal("5000"), currency="EUR")
+    assert directives[0].amount.number.compare_total(Decimal("5000.00")) == Decimal('0')
+
+def test_bad_number_of_decimal_places_in_balance(tmp_file_balance_bad_number_of_decimal_places):
+    importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
+
+    try:
+        importer.extract(tmp_file_balance_bad_number_of_decimal_places)
+    except NumberFormatError as err:
+        # This is the expected behavior for bad input data
+        assert str(err) == '5000.001 contains unexpected number of decimal places'
+        return
+    assert False, "Bad number format not recognized"
