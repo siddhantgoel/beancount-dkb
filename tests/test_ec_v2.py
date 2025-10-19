@@ -286,11 +286,30 @@ def test_meta_code_is_added(tmp_file_single_transaction):
     assert directives[0].meta["code"] == "Ausgang"
 
 
-def test_extract_with_payee_patterns(tmp_file_single_transaction):
+def test_extract_with_full_payee_pattern(tmp_file_single_transaction):
     importer = ECImporter(
         IBAN,
         "Assets:DKB:EC",
         payee_patterns=[("EDEKA", "Expenses:Supermarket:EDEKA")],
+    )
+
+    directives = importer.extract(tmp_file_single_transaction)
+
+    assert len(directives) == 2
+    assert len(directives[0].postings) == 2
+    assert directives[0].postings[0].account == "Assets:DKB:EC"
+    assert directives[0].postings[0].units.currency == "EUR"
+    assert directives[0].postings[0].units.number == Decimal("-8.67")
+
+    assert directives[0].postings[1].account == "Expenses:Supermarket:EDEKA"
+    assert directives[0].postings[1].units is None
+
+
+def test_extract_with_payee_patterns_regex(tmp_file_single_transaction):
+    importer = ECImporter(
+        IBAN,
+        "Assets:DKB:EC",
+        payee_patterns=[(r"E*D*A", "Expenses:Supermarket:EDEKA")],
     )
 
     directives = importer.extract(tmp_file_single_transaction)
