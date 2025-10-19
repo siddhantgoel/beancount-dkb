@@ -157,7 +157,8 @@ automatically place a second posting in the returned lits of transactions.
 #### `ECImporter`
 
 `ECImporter` accepts `payee_patterns` and `description_patterns` arguments, which should
-be a list of `(pattern, account)` tuples.
+be a list of `(pattern, account)` tuples. The `pattern` is compiled using `re.compile`,
+so feel free to use regular expressions there.
 
 ##### Beancount 3.x
 
@@ -171,7 +172,7 @@ importers = (
         "Assets:DKB:EC",
         payee_patterns=[
             ("REWE", "Expenses:Supermarket:REWE"),
-            ("NETFLIX", "Expenses:Online:Netflix"),
+            (r"N*TFL*X", "Expenses:Online:Netflix"),
         ],
     ),
 )
