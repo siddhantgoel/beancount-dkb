@@ -19,11 +19,6 @@ def _format(string, kwargs):
     return dedent(string).format(**kwargs).lstrip()
 
 
-@pytest.fixture
-def tmp_file(tmp_path):
-    return tmp_path / f"{IBAN}.csv"
-
-
 _extractor = V1Extractor(IBAN)
 
 
@@ -32,84 +27,22 @@ def header(request):
     yield request.param.value
 
 
-def test_file_encoding_raises_deprecation_warning():
-    with pytest.deprecated_call():
-        ECImporter(IBAN, "Assets:DKB:EC", file_encoding="ISO-8859-1")
+@pytest.fixture
+def tmp_file(tmp_path):
+    return tmp_path / f"{IBAN}.csv"
 
 
-def test_identify_correct(tmp_file, header):
-    importer = ECImporter(IBAN, "Assets:DKB:EC")
+@pytest.fixture
+def tmp_file_no_transactions(tmp_path, header):
+    """
+    Fixture for a temporary file with no transactions
+    """
 
+    tmp_file = tmp_path / f"{IBAN}.csv"
     tmp_file.write_text(
         _format(
             """
             "Kontonummer:";"{iban} / Girokonto";
-
-            "Von:";"01.01.2018";
-            "Bis:";"31.01.2018";
-            "Kontostand vom 31.01.2018:";"5.000,01 EUR";
-
-            {header}
-            """,
-            dict(iban=IBAN, header=header),
-        ),
-        encoding=ENCODING,
-    )
-
-    assert importer.identify(tmp_file)
-
-
-def test_identify_tagesgeld(tmp_file, header):
-    importer = ECImporter(IBAN, "Assets:DKB:EC")
-
-    tmp_file.write_text(
-        _format(
-            """
-            "Kontonummer:";"{iban} / Tagesgeld";
-
-            "Von:";"01.01.2018";
-            "Bis:";"31.01.2018";
-            "Kontostand vom 31.01.2018:";"5.000,01 EUR";
-
-            {header}
-            """,
-            dict(iban=IBAN, header=header),
-        ),
-        encoding=ENCODING,
-    )
-
-    assert importer.identify(tmp_file)
-
-
-def test_identify_with_nonstandard_account_name(tmp_file, header):
-    importer = ECImporter(IBAN, "Assets:DKB:EC")
-
-    tmp_file.write_text(
-        _format(
-            """
-            "Kontonummer:";"{iban} / My Custom Named Account";
-
-            "Von:";"01.01.2018";
-            "Bis:";"31.01.2018";
-            "Kontostand vom 31.01.2018:";"5.000,01 EUR";
-
-            {header}
-            """,
-            dict(iban=IBAN, header=header),
-        ),
-        encoding=ENCODING,
-    )
-
-    assert importer.identify(tmp_file)
-
-
-def test_identify_with_exotic_account_name(tmp_file, header):
-    importer = ECImporter(IBAN, "Assets:DKB:EC")
-
-    tmp_file.write_text(
-        _format(
-            """
-            "Kontonummer:";"{iban} / Girökóntô";
 
             "Von:";"01.01.2018";
             "Bis:";"31.01.2018";
@@ -122,12 +55,16 @@ def test_identify_with_exotic_account_name(tmp_file, header):
         encoding=ENCODING,
     )
 
-    assert importer.identify(tmp_file)
+    return tmp_file
 
 
-def test_identify_with_formatted_iban(tmp_file, header):
-    importer = ECImporter(FORMATTED_IBAN, "Assets:DKB:EC")
+@pytest.fixture
+def tmp_file_single_transaction(tmp_path, header):
+    """
+    Fixture for a temporary file with a single transaction
+    """
 
+    tmp_file = tmp_path / f"{IBAN}.csv"
     tmp_file.write_text(
         _format(
             """
@@ -138,18 +75,23 @@ def test_identify_with_formatted_iban(tmp_file, header):
             "Kontostand vom 31.01.2018:";"5.000,01 EUR";
 
             {header}
-            """,
+            "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
+            """,  # NOQA
             dict(iban=IBAN, header=header),
         ),
         encoding=ENCODING,
     )
 
-    assert importer.identify(tmp_file)
+    return tmp_file
 
 
-def test_identify_invalid_iban(tmp_file, header):
-    other_iban = "DE00000000000000000000"
+@pytest.fixture
+def tmp_file_multiple_transactions(tmp_path, header):
+    """
+    Fixture for a temporary file with a single transaction
+    """
 
+    tmp_file = tmp_path / f"{IBAN}.csv"
     tmp_file.write_text(
         _format(
             """
@@ -160,36 +102,64 @@ def test_identify_invalid_iban(tmp_file, header):
             "Kontostand vom 31.01.2018:";"5.000,01 EUR";
 
             {header}
-            """,
+            "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
+            "06.05.2020";"06.05.2020";"Gutschrift";"From Someone";"";"DE88700222000012345678";"FDDODEMMXXX";"1,00";"";"";"NOTPROVIDED";
+            """,  # NOQA
             dict(iban=IBAN, header=header),
-        )
+        ),
+        encoding=ENCODING,
     )
+
+    return tmp_file
+
+
+def test_file_encoding_raises_deprecation_warning():
+    with pytest.deprecated_call():
+        ECImporter(IBAN, "Assets:DKB:EC", file_encoding="ISO-8859-1")
+
+
+def test_identify_correct(tmp_file_no_transactions, header):
+    importer = ECImporter(IBAN, "Assets:DKB:EC")
+
+    assert importer.identify(tmp_file_no_transactions)
+
+
+def test_identify_tagesgeld(tmp_file_no_transactions, header):
+    importer = ECImporter(IBAN, "Assets:DKB:EC")
+
+    assert importer.identify(tmp_file_no_transactions)
+
+
+def test_identify_with_nonstandard_account_name(tmp_file_no_transactions, header):
+    importer = ECImporter(IBAN, "Assets:DKB:EC")
+
+    assert importer.identify(tmp_file_no_transactions)
+
+
+def test_identify_with_exotic_account_name(tmp_file_no_transactions, header):
+    importer = ECImporter(IBAN, "Assets:DKB:EC")
+
+    assert importer.identify(tmp_file_no_transactions)
+
+
+def test_identify_with_formatted_iban(tmp_file_no_transactions, header):
+    importer = ECImporter(FORMATTED_IBAN, "Assets:DKB:EC")
+
+    assert importer.identify(tmp_file_no_transactions)
+
+
+def test_identify_invalid_iban(tmp_file_no_transactions, header):
+    other_iban = "DE00000000000000000000"
 
     importer = ECImporter(other_iban, "Assets:DKB:EC")
 
-    assert not importer.identify(tmp_file)
+    assert not importer.identify(tmp_file_no_transactions)
 
 
-def test_extract_no_transactions(tmp_file, header):
+def test_extract_no_transactions(tmp_file_no_transactions, header):
     importer = ECImporter(IBAN, "Assets:DKB:EC")
 
-    tmp_file.write_text(
-        _format(
-            """
-            "Kontonummer:";"{iban} / Girokonto";
-
-            "Von:";"01.01.2018";
-            "Bis:";"31.01.2018";
-            "Kontostand vom 31.01.2018:";"5.000,01 EUR";
-
-            {header}
-            """,
-            dict(iban=IBAN, header=header),
-        ),
-        encoding=ENCODING,
-    )
-
-    directives = importer.extract(tmp_file)
+    directives = importer.extract(tmp_file_no_transactions)
 
     assert len(directives) == 1
     assert isinstance(directives[0], Balance)
@@ -197,28 +167,10 @@ def test_extract_no_transactions(tmp_file, header):
     assert directives[0].amount == Amount(Decimal("5000.01"), currency="EUR")
 
 
-def test_extract_transactions(tmp_file, header):
-    tmp_file.write_text(
-        _format(
-            """
-            "Kontonummer:";"{iban} / Girokonto";
-
-            "Von:";"01.01.2018";
-            "Bis:";"31.01.2018";
-            "Kontostand vom 31.01.2018:";"5.000,01 EUR";
-
-            {header}
-            "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
-            "06.05.2020";"06.05.2020";"Gutschrift";"From Someone";"";"DE88700222000012345678";"FDDODEMMXXX";"1,00";"";"";"NOTPROVIDED";
-            """,  # NOQA
-            dict(iban=IBAN, header=header),
-        ),
-        encoding=ENCODING,
-    )
-
+def test_extract_transactions(tmp_file_multiple_transactions, header):
     importer = ECImporter(IBAN, "Assets:DKB:EC")
 
-    directives = importer.extract(tmp_file)
+    directives = importer.extract(tmp_file_multiple_transactions)
 
     assert len(directives) == 3
     assert directives[0].date == datetime.date(2018, 1, 16)
@@ -240,28 +192,10 @@ def test_extract_transactions(tmp_file, header):
     assert directives[1].postings[0].units.number == Decimal("1.00")
 
 
-def test_extract_tagesgeld(tmp_file, header):
-    tmp_file.write_text(
-        _format(
-            """
-            "Kontonummer:";"{iban} / Tagesgeld";
-
-            "Von:";"01.01.2018";
-            "Bis:";"31.01.2018";
-            "Kontostand vom 31.01.2018:";"5.000,01 EUR";
-
-            {header}
-            "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
-            "06.05.2020";"06.05.2020";"Gutschrift";"From Someone";"";"DE88700222000012345678";"FDDODEMMXXX";"1,00";"";"";"NOTPROVIDED";
-            """,  # NOQA
-            dict(iban=IBAN, header=header),
-        ),
-        encoding=ENCODING,
-    )
-
+def test_extract_tagesgeld(tmp_file_multiple_transactions, header):
     importer = ECImporter(IBAN, "Assets:DKB:EC")
 
-    directives = importer.extract(tmp_file)
+    directives = importer.extract(tmp_file_multiple_transactions)
 
     assert len(directives) == 3
     assert directives[0].date == datetime.date(2018, 1, 16)
@@ -283,24 +217,7 @@ def test_extract_tagesgeld(tmp_file, header):
     assert directives[1].postings[0].units.number == Decimal("1.00")
 
 
-def test_extract_sets_timestamps(tmp_file, header):
-    tmp_file.write_text(
-        _format(
-            """
-            "Kontonummer:";"{iban} / Girokonto";
-
-            "Von:";"01.01.2018";
-            "Bis:";"31.01.2018";
-            "Kontostand vom 31.01.2018:";"5.000,01 EUR";
-
-            {header}
-            "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
-            """,  # NOQA
-            dict(iban=IBAN, header=header),
-        ),
-        encoding=ENCODING,
-    )
-
+def test_extract_sets_timestamps(tmp_file_single_transaction, header):
     importer = ECImporter(IBAN, "Assets:DKB:EC")
 
     assert not importer._date_from
@@ -308,7 +225,7 @@ def test_extract_sets_timestamps(tmp_file, header):
     assert not importer._balance_amount
     assert not importer._balance_date
 
-    directives = importer.extract(tmp_file)
+    directives = importer.extract(tmp_file_single_transaction)
 
     assert directives
     assert importer._date_from == datetime.date(2018, 1, 1)
@@ -317,32 +234,15 @@ def test_extract_sets_timestamps(tmp_file, header):
     assert importer._balance_date == datetime.date(2018, 2, 1)
 
 
-def test_tagessaldo_emits_balance_directive(tmp_file, header):
-    tmp_file.write_text(
-        _format(
-            """
-            "Kontonummer:";"{iban} / Girokonto";
-
-            "Von:";"01.01.2018";
-            "Bis:";"31.01.2018";
-            "Kontostand vom 31.01.2018:";"5.000,01 EUR";
-
-            {header}
-            "20.01.2018";"";"";"";"Tagessaldo";"";"";"2.500,01";
-            """,
-            dict(iban=IBAN, header=header),
-        ),
-        encoding=ENCODING,
-    )
-
+def test_tagessaldo_emits_balance_directive(tmp_file_single_transaction, header):
     importer = ECImporter(IBAN, "Assets:DKB:EC")
 
-    directives = importer.extract(tmp_file)
+    directives = importer.extract(tmp_file_single_transaction)
 
     assert len(directives) == 2
-    assert isinstance(directives[0], Balance)
-    assert directives[0].date == datetime.date(2018, 1, 21)
-    assert directives[0].amount == Amount(Decimal("2500.01"), currency="EUR")
+    assert isinstance(directives[1], Balance)
+    assert directives[1].date == datetime.date(2018, 2, 1)
+    assert directives[1].amount == Amount(Decimal("5000.01"), currency="EUR")
 
 
 def test_tagessaldo_with_empty_balance_does_not_crash(tmp_file, header):
@@ -373,50 +273,16 @@ def test_tagessaldo_with_empty_balance_does_not_crash(tmp_file, header):
     assert directives[0].amount == Amount(Decimal("5000.01"), currency="EUR")
 
 
-def test_file_date_is_set_correctly(tmp_file, header):
-    tmp_file.write_text(
-        _format(
-            """
-            "Kontonummer:";"{iban} / Girokonto";
-
-            "Von:";"01.01.2018";
-            "Bis:";"31.01.2018";
-            "Kontostand vom 31.01.2018:";"5.000,01 EUR";
-
-            {header}
-            "20.01.2018";"";"";"";"Tagessaldo";"";"";"2.500,01";
-            """,
-            dict(iban=IBAN, header=header),
-        ),
-        encoding=ENCODING,
-    )
-
+def test_file_date_is_set_correctly(tmp_file_single_transaction, header):
     importer = ECImporter(IBAN, "Assets:DKB:EC")
 
-    assert importer.date(tmp_file) == datetime.date(2018, 1, 31)
+    assert importer.date(tmp_file_single_transaction) == datetime.date(2018, 1, 31)
 
 
-def test_emits_closing_balance_directive(tmp_file, header):
-    tmp_file.write_text(
-        _format(
-            """
-            "Kontonummer:";"{iban} / Girokonto";
-
-            "Von:";"01.01.2018";
-            "Bis:";"31.01.2018";
-            "Kontostand vom 31.01.2018:";"5.000,01 EUR";
-
-            {header}
-            "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
-            """,  # NOQA
-            dict(iban=IBAN, header=header),
-        ),
-        encoding=ENCODING,
-    )
-
+def test_emits_closing_balance_directive(tmp_file_single_transaction, header):
     importer = ECImporter(IBAN, "Assets:DKB:EC")
 
-    directives = importer.extract(tmp_file)
+    directives = importer.extract(tmp_file_single_transaction)
 
     assert len(directives) == 2
     assert isinstance(directives[1], Balance)
@@ -425,55 +291,10 @@ def test_emits_closing_balance_directive(tmp_file, header):
     assert directives[1].meta["lineno"] == 5
 
 
-def test_mismatching_dates_in_meta(tmp_file, header):
-    tmp_file.write_text(
-        _format(
-            """
-            "Kontonummer:";"{iban} / Girokonto";
-
-            "Von:";"01.01.2018";
-            "Bis:";"31.01.2018";
-            "Kontostand vom 31.01.2019:";"5.000,01 EUR";
-
-            {header}
-            "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
-            """,  # NOQA
-            dict(iban=IBAN, header=header),
-        ),
-        encoding=ENCODING,
-    )
-
-    importer = ECImporter(IBAN, "Assets:DKB:EC")
-
-    directives = importer.extract(tmp_file)
-
-    assert len(directives) == 2
-    assert isinstance(directives[1], Balance)
-    assert directives[1].date == datetime.date(2019, 2, 1)
-    assert directives[1].amount == Amount(Decimal("5000.01"), currency="EUR")
-
-
-def test_meta_code_is_added(tmp_file, header):
-    tmp_file.write_text(
-        _format(
-            """
-            "Kontonummer:";"{iban} / Girokonto";
-
-            "Von:";"01.01.2018";
-            "Bis:";"31.01.2018";
-            "Kontostand vom 31.01.2018:";"5.000,01 EUR";
-
-            {header}
-            "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
-            """,  # NOQA
-            dict(iban=IBAN, header=header),
-        ),
-        encoding=ENCODING,
-    )
-
+def test_meta_code_is_added(tmp_file_single_transaction, header):
     importer = ECImporter(IBAN, "Assets:DKB:EC", meta_code="code")
 
-    directives = importer.extract(tmp_file)
+    directives = importer.extract(tmp_file_single_transaction)
 
     assert len(directives) == 2
     assert directives[0].date == datetime.date(2018, 1, 16)
@@ -482,31 +303,14 @@ def test_meta_code_is_added(tmp_file, header):
     assert directives[0].meta["code"] == "Lastschrift"
 
 
-def test_extract_with_full_payee_pattern(tmp_file, header):
-    tmp_file.write_text(
-        _format(
-            """
-            "Kontonummer:";"{iban} / Girokonto";
-
-            "Von:";"01.01.2018";
-            "Bis:";"31.01.2018";
-            "Kontostand vom 31.01.2018:";"5.000,01 EUR";
-
-            {header}
-            "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
-            """,  # NOQA
-            dict(iban=IBAN, header=header),
-        ),
-        encoding=ENCODING,
-    )
-
+def test_extract_with_full_payee_pattern(tmp_file_single_transaction, header):
     importer = ECImporter(
         IBAN,
         "Assets:DKB:EC",
         payee_patterns=[("REWE Filialen", "Expenses:Supermarket:REWE")],
     )
 
-    directives = importer.extract(tmp_file)
+    directives = importer.extract(tmp_file_single_transaction)
 
     assert len(directives) == 2
     assert len(directives[0].postings) == 2
@@ -518,31 +322,14 @@ def test_extract_with_full_payee_pattern(tmp_file, header):
     assert directives[0].postings[1].units is None
 
 
-def test_extract_with_payee_pattern_regex(tmp_file, header):
-    tmp_file.write_text(
-        _format(
-            """
-            "Kontonummer:";"{iban} / Girokonto";
-
-            "Von:";"01.01.2018";
-            "Bis:";"31.01.2018";
-            "Kontostand vom 31.01.2018:";"5.000,01 EUR";
-
-            {header}
-            "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
-            """,  # NOQA
-            dict(iban=IBAN, header=header),
-        ),
-        encoding=ENCODING,
-    )
-
+def test_extract_with_payee_pattern_regex(tmp_file_single_transaction, header):
     importer = ECImporter(
         IBAN,
         "Assets:DKB:EC",
         payee_patterns=[(r"R*E", "Expenses:Supermarket:REWE")],
     )
 
-    directives = importer.extract(tmp_file)
+    directives = importer.extract(tmp_file_single_transaction)
 
     assert len(directives) == 2
     assert len(directives[0].postings) == 2
@@ -554,31 +341,14 @@ def test_extract_with_payee_pattern_regex(tmp_file, header):
     assert directives[0].postings[1].units is None
 
 
-def test_extract_with_description_patterns(tmp_file, header):
-    tmp_file.write_text(
-        _format(
-            """
-            "Kontonummer:";"{iban} / Girokonto";
-
-            "Von:";"01.01.2018";
-            "Bis:";"31.01.2018";
-            "Kontostand vom 31.01.2018:";"5.000,01 EUR";
-
-            {header}
-            "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
-            """,  # NOQA
-            dict(iban=IBAN, header=header),
-        ),
-        encoding=ENCODING,
-    )
-
+def test_extract_with_description_patterns(tmp_file_single_transaction, header):
     importer = ECImporter(
         IBAN,
         "Assets:DKB:EC",
         description_patterns=[("SAGT DANKE", "Expenses:Supermarket:REWE")],
     )
 
-    directives = importer.extract(tmp_file)
+    directives = importer.extract(tmp_file_single_transaction)
 
     assert len(directives) == 2
     assert len(directives[0].postings) == 2
@@ -590,24 +360,9 @@ def test_extract_with_description_patterns(tmp_file, header):
     assert directives[0].postings[1].units is None
 
 
-def test_extract_with_payee_and_description_patterns(tmp_file, header):
-    tmp_file.write_text(
-        _format(
-            """
-            "Kontonummer:";"{iban} / Girokonto";
-
-            "Von:";"01.01.2018";
-            "Bis:";"31.01.2018";
-            "Kontostand vom 31.01.2018:";"5.000,01 EUR";
-
-            {header}
-            "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
-            """,  # NOQA
-            dict(iban=IBAN, header=header),
-        ),
-        encoding=ENCODING,
-    )
-
+def test_extract_with_payee_and_description_patterns(
+    tmp_file_single_transaction, header
+):
     importer = ECImporter(
         IBAN,
         "Assets:DKB:EC",
@@ -616,7 +371,7 @@ def test_extract_with_payee_and_description_patterns(tmp_file, header):
     )
 
     with pytest.warns(UserWarning) as user_warnings:
-        directives = importer.extract(tmp_file)
+        directives = importer.extract(tmp_file_single_transaction)
 
     assert len(directives) == 2
     assert len(directives[0].postings) == 2
