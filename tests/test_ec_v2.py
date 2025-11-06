@@ -109,6 +109,39 @@ def tmp_file_multiple_transaction(tmp_path, header):
 
     return tmp_file
 
+@pytest.fixture
+def tmp_file_multiple_transaction_balance(tmp_path, header):
+    """
+    Fixture for a temporary file with multiple transactions and balance not at the end of month
+
+    DKB provides balance on 05.09.; calculate balances on 01.06. and on 01.07.
+    No transactions in August; do not calculate balance for that month.
+    No transactions in September up to the balance date; same balance for the beginning of month.
+    """
+
+    tmp_file = tmp_path / f"{IBAN}.csv"
+    tmp_file.write_text(
+        _format(
+            """
+            "Girokonto"{delimiter}"{iban}"
+            ""
+            "Kontostand vom 05.09.2023:"{delimiter}"5.215,01 EUR"
+            ""
+            {header}
+            "01.06.23"{delimiter}"01.06.23"{delimiter}"Gebucht"{delimiter}"COMPANY INC"{delimiter}"MAX MUSTERMANN"{delimiter}"Lohn und Gehalt"{delimiter}"Eingang"{delimiter}"DE00000000000000000000"{delimiter}"1.000,0"{delimiter}""{delimiter}""{delimiter}""
+            "15.06.23"{delimiter}"15.06.23"{delimiter}"Gebucht"{delimiter}"ISSUER"{delimiter}"EDEKA//MUENCHEN/DE"{delimiter}"EDEKA SAGT DANKE"{delimiter}"Ausgang"{delimiter}"DE00000000000000000000"{delimiter}"-8,67"{delimiter}"DE9100112233445566"{delimiter}""{delimiter}"00000000000000000000000000"
+            "01.07.23"{delimiter}"01.07.23"{delimiter}"Gebucht"{delimiter}"MAX
+            MUSTERMANN"{delimiter}"ERIKA MUSTERMANN"{delimiter}"MIETE"{delimiter}"Ausgang"{delimiter}"DE11111111111111111111"{delimiter}"-1.450"{delimiter}""{delimiter}""{delimiter}""
+            "15.07.23"{delimiter}"15.07.23"{delimiter}"Gebucht"{delimiter}"ISSUER"{delimiter}"LIDL/S DIGITS/DE"{delimiter}"LIDL  SAGT DANKE"{delimiter}"Ausgang"{delimiter}"DE00000000000000000000"{delimiter}"-18,99"{delimiter}"DE1900112233445555"{delimiter}""{delimiter}"00000000000000000000000000"
+            "15.09.23"{delimiter}"15.09.23"{delimiter}"Gebucht"{delimiter}"ISSUER"{delimiter}"LIDL/S DIGITS/DE"{delimiter}"LIDL  SAGT DANKE"{delimiter}"Ausgang"{delimiter}"DE00000000000000000000"{delimiter}"-28,99"{delimiter}"DE1900112233445555"{delimiter}""{delimiter}"00000000000000000000000000"
+            """,  # NOQA
+            dict(iban=IBAN, header=header.value, delimiter=header.delimiter),
+        ),
+        encoding=ENCODING,
+    )
+
+    return tmp_file
+
 
 @pytest.fixture
 def tmp_file_bad_number_of_decimal_places(tmp_path, header):
@@ -246,6 +279,36 @@ def test_extract_transactions(tmp_file_multiple_transaction):
         Decimal("-1450.00")
     ) == Decimal("0")
 
+def test_calc_month_balance(tmp_file_multiple_transaction_balance):
+    importer = ECImporter(IBAN, "Assets:DKB:EC", calculate_month_balance = True)
+
+    directives = importer.extract(tmp_file_multiple_transaction_balance)
+
+    assert len(directives) == 9
+
+    b = directives[5]
+    assert isinstance(b, Balance)
+    assert b.date == datetime.date(2023, 9, 1)
+    assert b.amount == Amount(Decimal("5215.01"), currency="EUR")
+    assert b.meta["lineno"] == 3
+
+    b = directives[6]
+    assert isinstance(b, Balance)
+    assert b.date == datetime.date(2023, 7, 1)
+    assert b.amount == Amount(Decimal("6684.00"), currency="EUR")
+    assert b.meta["lineno"] == 3
+
+    b = directives[7]
+    assert isinstance(b, Balance)
+    assert b.date == datetime.date(2023, 6, 1)
+    assert b.amount == Amount(Decimal("5692.67"), currency="EUR")
+    assert b.meta["lineno"] == 3
+
+    b = directives[8]
+    assert isinstance(b, Balance)
+    assert b.date == datetime.date(2023, 9, 6)
+    assert b.amount == Amount(Decimal("5215.01"), currency="EUR")
+    assert b.meta["lineno"] == 3
 
 def test_bad_number_of_decimal_places(tmp_file_bad_number_of_decimal_places):
     importer = ECImporter(IBAN, "Assets:DKB:EC")
