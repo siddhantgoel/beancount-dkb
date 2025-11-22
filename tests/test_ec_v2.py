@@ -51,9 +51,7 @@ def tmp_file_no_transactions(tmp_path, header):
 
     return tmp_file
 
-
-@pytest.fixture
-def tmp_file_single_transaction(tmp_path, header):
+def tmp_file_single_transaction_base(tmp_path, header, u18: bool = False):
     """
     Fixture for a temporary file with a single transaction
     """
@@ -62,20 +60,27 @@ def tmp_file_single_transaction(tmp_path, header):
     tmp_file.write_text(
         _format(
             """
-            "Girokonto"{delimiter}"{iban}"
+            "Girokonto{u18}"{delimiter}"{iban}"
             ""
             "Kontostand vom 30.06.2023:"{delimiter}"5.001,01 EUR"
             ""
             {header}
             "15.06.23"{delimiter}"15.06.23"{delimiter}"Gebucht"{delimiter}"ISSUER"{delimiter}"EDEKA//MUENCHEN/DE"{delimiter}"EDEKA SAGT DANKE"{delimiter}"Ausgang"{delimiter}"DE00000000000000000000"{delimiter}"-8,67"{delimiter}"DE9100112233445566"{delimiter}""{delimiter}"00000000000000000000000000"
             """,  # NOQA
-            dict(iban=IBAN, header=header.value, delimiter=header.delimiter),
+            dict(u18=' u18' if u18 else '', iban=IBAN, header=header.value, delimiter=header.delimiter),
         ),
         encoding=ENCODING,
     )
 
     return tmp_file
 
+@pytest.fixture
+def tmp_file_single_transaction(tmp_path, header):
+    return tmp_file_single_transaction_base(tmp_path, header, u18 = False)
+
+@pytest.fixture
+def tmp_file_single_transaction_u18(tmp_path, header):
+    return tmp_file_single_transaction_base(tmp_path, header, u18 = True)
 
 @pytest.fixture
 def tmp_file_multiple_transaction(tmp_path, header):
@@ -164,6 +169,11 @@ def test_identify_correct(tmp_file_single_transaction):
     importer = ECImporter(IBAN, "Assets:DKB:EC")
 
     assert importer.identify(tmp_file_single_transaction)
+
+def test_identify_correct_u18(tmp_file_single_transaction_u18):
+    importer = ECImporter(IBAN, "Assets:DKB:EC")
+
+    assert importer.identify(tmp_file_single_transaction_u18)
 
 
 def test_identify_tagesgeld(tmp_file_tagesgeld_no_transactions):
