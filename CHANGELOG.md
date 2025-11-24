@@ -3,6 +3,7 @@
 ## v1.8.0
 
 - Support Girokonto u18 accounts (thanks [@szabootibor])
+- Drop support for Python 3.9
 
 ## v1.7.0
 
