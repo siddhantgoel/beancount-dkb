@@ -240,7 +240,7 @@ class V2Extractor(BaseExtractor):
             metadata_lines = self.extract_metadata_lines()
 
             regex = re.compile(
-                r'^"(Girokonto|Tagesgeld)"'
+                r'^"(Girokonto(?: u18)?|Tagesgeld)"'
                 + self.csv_delimiter
                 + '"'
                 + re.escape(re.sub(r"\s+", "", self.iban, flags=re.UNICODE))
