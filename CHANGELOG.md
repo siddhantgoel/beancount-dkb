@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.8.0
+
+- Support Girokonto u18 accounts (thanks [@szabootibor])
+
 ## v1.7.0
 
 - Default to 2 decimal places when parsing numbers (thanks [@szabootibor])
