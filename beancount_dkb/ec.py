@@ -3,9 +3,11 @@ from datetime import datetime, timedelta
 from functools import partial
 from textwrap import dedent
 from typing import Dict, Optional, Sequence
+from collections import defaultdict
 
 from beancount.core import data, flags
 from beancount.core.amount import Amount
+from beancount.core.number import Decimal
 from beangulp.importer import Importer
 
 from .exceptions import InvalidFormatError
@@ -25,6 +27,7 @@ class ECImporter(Importer):
         meta_code: Optional[str] = None,
         payee_patterns: Optional[Sequence] = None,
         description_patterns: Optional[Sequence] = None,
+        calculate_month_balance: Optional[bool] = False
     ):
         self.iban = iban
         self.account_name = account_name
@@ -32,6 +35,7 @@ class ECImporter(Importer):
         self.meta_code = meta_code
         self.payee_matcher = AccountMatcher(payee_patterns)
         self.description_matcher = AccountMatcher(description_patterns)
+        self.calculate_month_balance = calculate_month_balance
 
         self._v1_extractor = V1Extractor(iban, meta_code)
         self._v2_extractor = V2Extractor(iban, meta_code)
@@ -115,6 +119,10 @@ class ECImporter(Importer):
 
         reader = extractor.csv_dict_reader(transaction_lines)
 
+        # This dictionary contains the sum of transactions indexed by the first day of month
+        # up to the date of account balance
+        sum_by_month=defaultdict(Decimal)
+
         for line in reader:
             line_index += 1
 
@@ -127,6 +135,11 @@ class ECImporter(Importer):
                 )
 
             date = extractor.get_booking_date(line)
+
+            # Sum transactions by month up to the date of account balance
+            if self._balance_date is not None and amount is not None and date <= self._balance_date:
+                month = date.replace(day=1)
+                sum_by_month[month] += amount.number
 
             if extractor.get_purpose(line) == "Tagessaldo":
                 if amount:
@@ -194,6 +207,38 @@ class ECImporter(Importer):
                         postings,
                     )
                 )
+
+        last_transactions_month=max(sum_by_month) if len(sum_by_month) > 0 else None
+        rolling=Decimal(0)
+
+        # self._balance_date is always the day after the export is generated
+        # and not necessarily at the end of the requested period. This can mess up balance assertions.
+        # Solution: by generating the CSV export the user shall request transactions from the beginning
+        # of a month up to the current date and we calculate balances at the beginning of each month back.
+        # The user might then delete irrelevant transactions and balances.
+
+        # self._balance_date shall always be greater than last_transactions_month, but this is something
+        # that is provided by DKB and we cannot control it here. Therefore we summed up transactions only
+        # up to the balance date above.
+        if self.calculate_month_balance and last_transactions_month is not None:
+            balance_month = self._balance_date.replace(day=1)
+
+            # For the case that there are no transactions in the month of balance:
+            # Insert a 0 sum to force emitting of a balance at the beginning of the month
+            sum_by_month[balance_month] += 0
+
+            for start_of_month,s in sorted(sum_by_month.items(), reverse=True):
+                rolling += s
+                entries.append(
+                    data.Balance(
+                        data.new_metadata(filepath, self._closing_balance_index),
+                        start_of_month,
+                        self.account(filepath),
+                        Amount(self._balance_amount.number - rolling, self.currency),
+                        None,
+                        None,
+                    )
+        )
 
         # Closing Balance
         entries.append(
