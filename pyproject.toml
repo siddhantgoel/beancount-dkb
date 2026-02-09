@@ -33,7 +33,7 @@ babel = "^2.16.0"
 
 [tool.poetry.group.dev.dependencies]
 taskipy = "^1.12.0"
-ruff = ">=0.5.1,<0.15.0"
+ruff = ">=0.5.1,<0.16.0"
 pytest = ">=8.2.2,<10.0.0"
 
 [tool.taskipy.tasks]
