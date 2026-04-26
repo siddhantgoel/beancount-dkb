@@ -90,6 +90,10 @@ class BaseExtractor:
         raise NotImplementedError()
 
 
+def _normalize_payee(payee: str) -> str:
+    return re.sub(r" {2,}", " ", payee).strip()
+
+
 class V1Extractor(BaseExtractor):
     """Extractor for DKB online banking interface available before 2023"""
 
@@ -161,7 +165,7 @@ class V1Extractor(BaseExtractor):
         return f"{booking_text} {purpose}" if not self.meta_code else purpose
 
     def get_payee(self, line: Dict[str, str]) -> str:
-        return line["Auftraggeber / Begünstigter"]
+        return _normalize_payee(line["Auftraggeber / Begünstigter"])
 
     def get_purpose(self, line: Dict[str, str]) -> str:
         return line["Verwendungszweck"]
@@ -287,11 +291,13 @@ class V2Extractor(BaseExtractor):
         # otherwise if money is coming in then payee should be the sender
 
         if type_ == "Ausgang":
-            return line["Zahlungsempfänger*in"]
+            payee = line["Zahlungsempfänger*in"]
         elif type_ == "Eingang":
-            return line["Zahlungspflichtige*r"]
+            payee = line["Zahlungspflichtige*r"]
+        else:
+            raise InvalidFormatError(f"Unknown Umsatztyp: {type_}")
 
-        raise InvalidFormatError(f"Unknown Umsatztyp: {type_}")
+        return _normalize_payee(payee)
 
     def get_purpose(self, line: Dict[str, str]) -> str:
         return line["Verwendungszweck"]
