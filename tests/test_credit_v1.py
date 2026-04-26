@@ -212,6 +212,39 @@ def test_extract_transactions(tmp_file, header):
     assert directives[0].postings[0].units.number == Decimal("-10.80")
 
 
+def test_ignore_credit_card_settlements_skips_positive_settlement(tmp_file, header):
+    tmp_file.write_text(
+        _format(
+            """
+            "Kreditkarte:";"{card_number} Kreditkarte";
+
+            "Von:";"01.01.2022";
+            "Bis:";"31.12.2023";
+            "Saldo:";"5000.01 EUR";
+            "Datum:";"31.12.2023";
+
+            {header}
+            "Ja";"23.11.2022";"22.11.2022";"Ausgleich Kreditkarte gem. Abrechnung v. 22.11.22";"136,52";"";
+            """,  # NOQA
+            dict(card_number=CARD_NUMBER, header=header),
+        ),
+        encoding=ENCODING,
+    )
+
+    importer = CreditImporter(
+        CARD_NUMBER,
+        "Assets:DKB:Credit",
+        ignore_credit_card_settlements=True,
+    )
+
+    directives = importer.extract(tmp_file)
+
+    assert len(directives) == 1
+    assert isinstance(directives[0], Balance)
+    assert directives[0].date == datetime.date(2024, 1, 1)
+    assert directives[0].amount == Amount(Decimal("5000.01"), currency="EUR")
+
+
 def test_extract_sets_timestamps(tmp_file, header):
     tmp_file.write_text(
         _format(
