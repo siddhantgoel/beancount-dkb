@@ -51,7 +51,12 @@ def tmp_file_no_transactions(tmp_path, header):
 
     return tmp_file
 
-def tmp_file_single_transaction_base(tmp_path, header, u18: bool = False):
+def tmp_file_single_transaction_base(
+    tmp_path,
+    header,
+    u18: bool = False,
+    counterparty_iban: str = "DE00000000000000000000",
+):
     """
     Fixture for a temporary file with a single transaction
     """
@@ -65,9 +70,15 @@ def tmp_file_single_transaction_base(tmp_path, header, u18: bool = False):
             "Kontostand vom 30.06.2023:"{delimiter}"5.001,01 EUR"
             ""
             {header}
-            "15.06.23"{delimiter}"15.06.23"{delimiter}"Gebucht"{delimiter}"ISSUER"{delimiter}"EDEKA//MUENCHEN/DE"{delimiter}"EDEKA SAGT DANKE"{delimiter}"Ausgang"{delimiter}"DE00000000000000000000"{delimiter}"-8,67"{delimiter}"DE9100112233445566"{delimiter}""{delimiter}"00000000000000000000000000"
+            "15.06.23"{delimiter}"15.06.23"{delimiter}"Gebucht"{delimiter}"ISSUER"{delimiter}"EDEKA//MUENCHEN/DE"{delimiter}"EDEKA SAGT DANKE"{delimiter}"Ausgang"{delimiter}"{counterparty_iban}"{delimiter}"-8,67"{delimiter}"DE9100112233445566"{delimiter}""{delimiter}"00000000000000000000000000"
             """,  # NOQA
-            dict(u18=' u18' if u18 else '', iban=IBAN, header=header.value, delimiter=header.delimiter),
+            dict(
+                u18=' u18' if u18 else '',
+                iban=IBAN,
+                header=header.value,
+                delimiter=header.delimiter,
+                counterparty_iban=counterparty_iban,
+            ),
         ),
         encoding=ENCODING,
     )
@@ -81,6 +92,15 @@ def tmp_file_single_transaction(tmp_path, header):
 @pytest.fixture
 def tmp_file_single_transaction_u18(tmp_path, header):
     return tmp_file_single_transaction_base(tmp_path, header, u18 = True)
+
+
+@pytest.fixture
+def tmp_file_single_transaction_without_iban(tmp_path, header):
+    return tmp_file_single_transaction_base(
+        tmp_path,
+        header,
+        counterparty_iban="",
+    )
 
 @pytest.fixture
 def tmp_file_multiple_transaction(tmp_path, header):
@@ -384,6 +404,44 @@ def test_iban_matcher_requires_exact_match(tmp_file_single_transaction):
     assert len(directives) == 2
     assert len(directives[0].postings) == 1
     assert directives[0].postings[0].account == "Assets:DKB:EC"
+
+
+def test_iban_matcher_uses_first_duplicate_iban(tmp_file_single_transaction):
+    importer = ECImporter(
+        IBAN,
+        "Assets:DKB:EC",
+        iban_matcher=[
+            ("DE00000000000000000000", "Assets:DKB:First"),
+            ("DE00000000000000000000", "Assets:DKB:Second"),
+        ],
+    )
+
+    directives = importer.extract(tmp_file_single_transaction)
+
+    assert len(directives) == 2
+    assert len(directives[0].postings) == 2
+    assert directives[0].postings[1].account == "Assets:DKB:First"
+    assert directives[0].postings[1].units is None
+
+
+def test_empty_transaction_iban_falls_back_to_payee_matcher(
+    tmp_file_single_transaction_without_iban,
+    recwarn,
+):
+    importer = ECImporter(
+        IBAN,
+        "Assets:DKB:EC",
+        payee_patterns=[("EDEKA", "Expenses:Supermarket:EDEKA")],
+        iban_matcher=[("DE00000000000000000000", "Assets:DKB:HYSA")],
+    )
+
+    directives = importer.extract(tmp_file_single_transaction_without_iban)
+
+    assert len(directives) == 2
+    assert len(directives[0].postings) == 2
+    assert directives[0].postings[1].account == "Expenses:Supermarket:EDEKA"
+    assert directives[0].postings[1].units is None
+    assert len(recwarn) == 0
 
 
 def test_iban_matcher_takes_precedence_over_other_matchers(
