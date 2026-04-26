@@ -10,7 +10,7 @@ from beangulp.importer import Importer
 
 from .exceptions import InvalidFormatError
 from .extractors.ec import V1Extractor, V2Extractor
-from .helpers import AccountMatcher, Meta, fmt_number_de
+from .helpers import AccountMatcher, IBANMatcher, Meta, fmt_number_de
 
 new_posting = partial(data.Posting, cost=None, price=None, flag=None, meta=None)
 
@@ -25,11 +25,13 @@ class ECImporter(Importer):
         meta_code: Optional[str] = None,
         payee_patterns: Optional[Sequence] = None,
         description_patterns: Optional[Sequence] = None,
+        iban_matcher: Optional[Sequence] = None,
     ):
         self.iban = iban
         self.account_name = account_name
         self.currency = currency
         self.meta_code = meta_code
+        self.iban_matcher = IBANMatcher(iban_matcher)
         self.payee_matcher = AccountMatcher(payee_patterns)
         self.description_matcher = AccountMatcher(description_patterns)
 
@@ -146,38 +148,60 @@ class ECImporter(Importer):
 
                 description = extractor.get_description(line)
                 payee = extractor.get_payee(line)
+                counterparty_iban = extractor.get_counterparty_iban(line)
 
                 postings = [
                     new_posting(account=self.account(filepath), units=amount),
                 ]
 
-                payee_match = self.payee_matcher.account_matches(payee)
-                description_match = self.description_matcher.account_matches(
-                    description
-                )
+                matcher_accounts = [
+                    (
+                        "iban_matcher",
+                        "iban_matcher",
+                        self.iban_matcher.account_for(counterparty_iban),
+                    ),
+                    (
+                        "payee_patterns",
+                        "payee_pattern",
+                        self.payee_matcher.account_for(payee),
+                    ),
+                    (
+                        "description_patterns",
+                        "description_pattern",
+                        self.description_matcher.account_for(description),
+                    ),
+                ]
+                matcher_accounts = [
+                    matcher_account
+                    for matcher_account in matcher_accounts
+                    if matcher_account[2] is not None
+                ]
 
-                if payee_match and description_match:
+                if len(matcher_accounts) > 1:
+                    matcher_names = [
+                        matcher_account[0] for matcher_account in matcher_accounts
+                    ]
+                    selected_matcher = matcher_accounts[0][1]
+
+                    if len(matcher_names) == 2:
+                        matcher_names_text = (
+                            f"both {matcher_names[0]} and {matcher_names[1]}"
+                        )
+                    else:
+                        matcher_names_text = (
+                            f"{', '.join(matcher_names[:-1])} "
+                            f"and {matcher_names[-1]}"
+                        )
+
                     warnings.warn(
-                        f"Line {line_index + 1} matches both payee_patterns and "
-                        "description_patterns. Picking payee_pattern.",
+                        f"Line {line_index + 1} matches {matcher_names_text}. "
+                        f"Picking {selected_matcher}.",
                     )
+
+                if matcher_accounts:
                     postings.append(
                         new_posting(
-                            account=self.payee_matcher.account_for(payee),
-                            units=None,
-                        )
-                    )
-                elif payee_match:
-                    postings.append(
-                        new_posting(
-                            account=self.payee_matcher.account_for(payee),
-                            units=None,
-                        )
-                    )
-                elif description_match:
-                    postings.append(
-                        new_posting(
-                            account=self.description_matcher.account_for(description),
+                            account=matcher_accounts[0][2],
                             units=None,
                         )
                     )

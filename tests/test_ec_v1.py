@@ -360,6 +360,20 @@ def test_extract_with_description_patterns(tmp_file_single_transaction, header):
     assert directives[0].postings[1].units is None
 
 
+def test_iban_matcher_ignores_v1_account_number(tmp_file_single_transaction, header):
+    importer = ECImporter(
+        IBAN,
+        "Assets:DKB:EC",
+        iban_matcher=[("DE00000000000000000000", "Assets:DKB:HYSA")],
+    )
+
+    directives = importer.extract(tmp_file_single_transaction)
+
+    assert len(directives) == 2
+    assert len(directives[0].postings) == 1
+    assert directives[0].postings[0].account == "Assets:DKB:EC"
+
+
 def test_extract_with_payee_and_description_patterns(
     tmp_file_single_transaction, header
 ):

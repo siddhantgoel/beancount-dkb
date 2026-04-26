@@ -353,6 +353,65 @@ def test_extract_with_description_patterns(tmp_file_single_transaction):
     assert directives[0].postings[1].units is None
 
 
+def test_extract_with_iban_matcher_normalizes_iban(tmp_file_single_transaction):
+    importer = ECImporter(
+        IBAN,
+        "Assets:DKB:EC",
+        iban_matcher=[("de00 0000 0000 0000 0000 00", "Assets:DKB:HYSA")],
+    )
+
+    directives = importer.extract(tmp_file_single_transaction)
+
+    assert len(directives) == 2
+    assert len(directives[0].postings) == 2
+    assert directives[0].postings[0].account == "Assets:DKB:EC"
+    assert directives[0].postings[0].units.currency == "EUR"
+    assert directives[0].postings[0].units.number == Decimal("-8.67")
+
+    assert directives[0].postings[1].account == "Assets:DKB:HYSA"
+    assert directives[0].postings[1].units is None
+
+
+def test_iban_matcher_requires_exact_match(tmp_file_single_transaction):
+    importer = ECImporter(
+        IBAN,
+        "Assets:DKB:EC",
+        iban_matcher=[("DE00", "Assets:DKB:HYSA")],
+    )
+
+    directives = importer.extract(tmp_file_single_transaction)
+
+    assert len(directives) == 2
+    assert len(directives[0].postings) == 1
+    assert directives[0].postings[0].account == "Assets:DKB:EC"
+
+
+def test_iban_matcher_takes_precedence_over_other_matchers(
+    tmp_file_single_transaction,
+):
+    importer = ECImporter(
+        IBAN,
+        "Assets:DKB:EC",
+        payee_patterns=[("EDEKA", "Expenses:Supermarket:EDEKA")],
+        description_patterns=[("SAGT DANKE", "Expenses:Supermarket:EDEKA")],
+        iban_matcher=[("DE00000000000000000000", "Assets:DKB:HYSA")],
+    )
+
+    with pytest.warns(UserWarning) as user_warnings:
+        directives = importer.extract(tmp_file_single_transaction)
+
+    assert len(directives) == 2
+    assert len(directives[0].postings) == 2
+    assert directives[0].postings[1].account == "Assets:DKB:HYSA"
+    assert directives[0].postings[1].units is None
+
+    assert len(user_warnings) == 1
+    assert user_warnings[0].message.args[0] == (
+        "Line 6 matches iban_matcher, payee_patterns and "
+        "description_patterns. Picking iban_matcher."
+    )
+
+
 def test_extract_with_payee_and_description_patterns(tmp_file_single_transaction):
     importer = ECImporter(
         IBAN,
