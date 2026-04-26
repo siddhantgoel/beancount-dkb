@@ -42,6 +42,12 @@ def credit():
     currency = config.get("currency", _default_currency)
     file_encoding = config.get("file_encoding", _default_file_encoding)
     description_patterns = config.get("description_patterns")
+    ignore_credit_card_settlements = _extract_bool_config(
+        config,
+        "tool.beancount-dkb.credit.ignore_credit_card_settlements",
+        "ignore_credit_card_settlements",
+        False,
+    )
 
     importer = CreditImporter(
         card_number,
@@ -49,6 +55,7 @@ def credit():
         currency=currency,
         file_encoding=file_encoding,
         description_patterns=description_patterns,
+        ignore_credit_card_settlements=ignore_credit_card_settlements,
     )
     bg_main(importer)
 
@@ -76,3 +83,15 @@ def _extract_config(section: str) -> dict:
         sys.exit(1)
 
     return config_section
+
+
+def _extract_bool_config(
+    config: dict, config_path: str, key: str, default: bool
+) -> bool:
+    value = config.get(key, default)
+
+    if not isinstance(value, bool):
+        print(f"{config_path} must be a boolean.")
+        sys.exit(1)
+
+    return value

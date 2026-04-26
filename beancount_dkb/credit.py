@@ -15,6 +15,8 @@ from .helpers import AccountMatcher, fmt_number_de, fmt_number_en
 
 Meta = namedtuple("Meta", ["value", "line_index"])
 
+_CREDIT_CARD_SETTLEMENT_DESCRIPTION = "ausgleich kreditkarte"
+
 
 class CreditImporter(Importer):
     def __init__(
@@ -24,11 +26,13 @@ class CreditImporter(Importer):
         currency: Optional[str] = "EUR",
         file_encoding: Optional[str] = None,
         description_patterns: Optional[Sequence] = None,
+        ignore_credit_card_settlements: bool = False,
     ):
         self.card_number = card_number
         self.account_name = account_name
         self.currency = currency
         self.description_matcher = AccountMatcher(description_patterns)
+        self.ignore_credit_card_settlements = ignore_credit_card_settlements
 
         self._v1_extractor = V1Extractor(card_number)
         self._v2_extractor = V2Extractor(card_number)
@@ -137,13 +141,16 @@ class CreditImporter(Importer):
         for line in reader:
             line_index += 1
 
-            meta = data.new_metadata(filepath, line_index)
-
             amount = Amount(fmt_number_de(extractor.get_amount(line)), self.currency)
 
-            date = extractor.get_valuation_date(line)
-
             description = extractor.get_description(line)
+
+            if self._ignore_line(description, amount):
+                continue
+
+            meta = data.new_metadata(filepath, line_index)
+
+            date = extractor.get_valuation_date(line)
 
             postings = [
                 data.Posting(self.account(filepath), amount, None, None, None, None)
@@ -188,6 +195,17 @@ class CreditImporter(Importer):
         )
 
         return entries
+
+    def _ignore_line(self, description: str, amount: Amount) -> bool:
+        if not self.ignore_credit_card_settlements:
+            return False
+
+        normalized_description = " ".join(description.casefold().split())
+
+        return (
+            _CREDIT_CARD_SETTLEMENT_DESCRIPTION in normalized_description
+            and amount.number > Decimal("0")
+        )
 
     def _update_meta(self, meta: Dict[str, str]):
         for key, value in meta.items():

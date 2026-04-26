@@ -118,6 +118,111 @@ def test_extract_transactions(tmp_file_single_transaction):
     assert directives[0].postings[0].units.number == Decimal("-10.80")
 
 
+def test_credit_card_settlements_are_imported_by_default(tmp_path, header):
+    tmp_file = tmp_path / f"{CARD_NUMBER}.csv"
+    tmp_file.write_text(
+        _format(
+            """
+            "Karte"{delimiter}"Visa Kreditkarte"{delimiter}"{card_number}"
+            ""
+            "Saldo vom 31.12.2025:"{delimiter}"5000.01 EUR"
+            ""
+            {header}
+            "22.12.25"{delimiter}"23.12.25"{delimiter}"Gebucht"{delimiter}"Ausgleich Kreditkarte gem"{delimiter}"Lastschrift"{delimiter}"1.013,47"{delimiter}""
+            """,
+            dict(
+                card_number=CARD_NUMBER, header=header.value, delimiter=header.delimiter
+            ),
+        )
+    )
+
+    importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
+
+    directives = importer.extract(tmp_file)
+
+    assert len(directives) == 2
+    assert directives[0].date == datetime.date(2025, 12, 23)
+    assert directives[0].postings[0].account == "Assets:DKB:Credit"
+    assert directives[0].postings[0].units.number == Decimal("1013.47")
+
+
+def test_ignore_credit_card_settlements_skips_positive_settlement(tmp_path, header):
+    tmp_file = tmp_path / f"{CARD_NUMBER}.csv"
+    tmp_file.write_text(
+        _format(
+            """
+            "Karte"{delimiter}"Visa Kreditkarte"{delimiter}"{card_number}"
+            ""
+            "Saldo vom 31.12.2025:"{delimiter}"5000.01 EUR"
+            ""
+            {header}
+            "22.11.24"{delimiter}"23.11.24"{delimiter}"Gebucht"{delimiter}"ausgleich kreditkarte GEM"{delimiter}"Lastschrift"{delimiter}"138,98"{delimiter}""
+            """,
+            dict(
+                card_number=CARD_NUMBER, header=header.value, delimiter=header.delimiter
+            ),
+        )
+    )
+
+    importer = CreditImporter(
+        CARD_NUMBER,
+        "Assets:DKB:Credit",
+        description_patterns=[("Ausgleich Kreditkarte", "Assets:DKB:EC")],
+        ignore_credit_card_settlements=True,
+    )
+
+    directives = importer.extract(tmp_file)
+
+    assert len(directives) == 1
+    assert isinstance(directives[0], Balance)
+    assert directives[0].date == datetime.date(2025, 12, 31)
+    assert directives[0].amount == Amount(Decimal("5000.01"), currency="EUR")
+
+
+@pytest.mark.parametrize(
+    ("amount", "expected_amount"),
+    [
+        ("0,00", Decimal("0.00")),
+        ("-10,80", Decimal("-10.80")),
+    ],
+)
+def test_ignore_credit_card_settlements_keeps_non_positive_transactions(
+    tmp_path, header, amount, expected_amount
+):
+    tmp_file = tmp_path / f"{CARD_NUMBER}.csv"
+    tmp_file.write_text(
+        _format(
+            """
+            "Karte"{delimiter}"Visa Kreditkarte"{delimiter}"{card_number}"
+            ""
+            "Saldo vom 31.01.2023:"{delimiter}"5000.01 EUR"
+            ""
+            {header}
+            "15.01.23"{delimiter}"15.01.23"{delimiter}"Gebucht"{delimiter}"Ausgleich Kreditkarte gem"{delimiter}"Lastschrift"{delimiter}"{amount}"{delimiter}""
+            """,
+            dict(
+                amount=amount,
+                card_number=CARD_NUMBER,
+                header=header.value,
+                delimiter=header.delimiter,
+            ),
+        )
+    )
+
+    importer = CreditImporter(
+        CARD_NUMBER,
+        "Assets:DKB:Credit",
+        ignore_credit_card_settlements=True,
+    )
+
+    directives = importer.extract(tmp_file)
+
+    assert len(directives) == 2
+    assert directives[0].date == datetime.date(2023, 1, 15)
+    assert directives[0].postings[0].account == "Assets:DKB:Credit"
+    assert directives[0].postings[0].units.number == expected_amount
+
+
 def test_emits_closing_balance_directive(tmp_file_single_transaction):
     importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
 
