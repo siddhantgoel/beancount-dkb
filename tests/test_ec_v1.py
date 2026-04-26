@@ -192,6 +192,34 @@ def test_extract_transactions(tmp_file_multiple_transactions, header):
     assert directives[1].postings[0].units.number == Decimal("1.00")
 
 
+def test_extract_payee_removes_address_filler_spaces(tmp_file, header):
+    tmp_file.write_text(
+        _format(
+            """
+            "Kontonummer:";"{iban} / Girokonto";
+
+            "Von:";"01.01.2018";
+            "Bis:";"31.01.2018";
+            "Kontostand vom 31.01.2018:";"5.000,01 EUR";
+
+            {header}
+            "16.01.2018";"16.01.2018";"Lastschrift";"congstar - eine Marke der Telekom Deutschland GmbH                    Landgrabenweg 149";"Mobilfunk";"DE00000000000000000000";"AAAAAAAA";"-15,37";"";"";"";
+            """,  # NOQA
+            dict(iban=IBAN, header=header),
+        ),
+        encoding=ENCODING,
+    )
+
+    importer = ECImporter(IBAN, "Assets:DKB:EC")
+
+    directives = importer.extract(tmp_file)
+
+    expected_payee = (
+        "congstar - eine Marke der Telekom Deutschland GmbH Landgrabenweg 149"
+    )
+    assert directives[0].payee == expected_payee
+
+
 def test_extract_tagesgeld(tmp_file_multiple_transactions, header):
     importer = ECImporter(IBAN, "Assets:DKB:EC")
 
