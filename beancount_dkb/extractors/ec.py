@@ -77,6 +77,9 @@ class BaseExtractor:
     def get_booking_text(self, line: Dict[str, str]) -> str:
         raise NotImplementedError()
 
+    def get_counterparty_iban(self, line: Dict[str, str]) -> Optional[str]:
+        raise NotImplementedError()
+
     def get_description(self, line: Dict[str, str]) -> str:
         raise NotImplementedError()
 
@@ -147,6 +150,9 @@ class V1Extractor(BaseExtractor):
 
     def get_booking_text(self, line: Dict[str, str]) -> str:
         return line["Buchungstext"]
+
+    def get_counterparty_iban(self, line: Dict[str, str]) -> Optional[str]:
+        return None
 
     def get_description(self, line: Dict[str, str]) -> str:
         purpose = self.get_purpose(line) or self.get_account_number(line)
@@ -267,6 +273,9 @@ class V2Extractor(BaseExtractor):
 
     def get_booking_text(self, line: Dict[str, str]) -> str:
         return line["Umsatztyp"]
+
+    def get_counterparty_iban(self, line: Dict[str, str]) -> Optional[str]:
+        return line["IBAN"]
 
     def get_description(self, line: Dict[str, str]) -> str:
         return self.get_purpose(line)

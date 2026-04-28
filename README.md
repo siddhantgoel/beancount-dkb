@@ -150,15 +150,21 @@ And this is the resulting transaction using `meta_code='code'`
 It's possible to give the importer classes hints if you'd like them to include a
 second posting based on specific characteristics of the original transaction.
 
-For instance, if the payee or the description in a transaction always matches a
-certain value, it's possible to tell the `ECImporter` or `CreditImporter` to
-automatically place a second posting in the returned lits of transactions.
+For instance, if the payee, description, or counterparty IBAN in a transaction
+always matches a certain value, it's possible to tell the `ECImporter` or
+`CreditImporter` to automatically place a second posting in the returned list of
+transactions.
 
 #### `ECImporter`
 
 `ECImporter` accepts `payee_patterns` and `description_patterns` arguments, which should
 be a list of `(pattern, account)` tuples. The `pattern` is compiled using `re.compile`,
 so feel free to use regular expressions there.
+
+`ECImporter` also accepts an `iban_matcher` argument, which should be a list of
+`(iban, account)` tuples. The IBAN is normalized by removing whitespace and
+uppercasing before being compared exactly against the counterparty IBAN field in
+current DKB EC exports. `iban_matcher` is not available for legacy exports (before 2023). So, it is ignored for those files.
 
 ##### Beancount 3.x
 
@@ -173,6 +179,9 @@ importers = (
         payee_patterns=[
             ("REWE", "Expenses:Supermarket:REWE"),
             (r"N*TFL*X", "Expenses:Online:Netflix"),
+        ],
+        iban_matcher=[
+            ("DE88 8888 8888 8888 8888 88", "Assets:Bank:HYSA"),
         ],
     ),
 )
@@ -193,6 +202,9 @@ CONFIG = [
         payee_patterns=[
             ("REWE", "Expenses:Supermarket:REWE"),
             ("NETFLIX", "Expenses:Online:Netflix"),
+        ],
+        iban_matcher=[
+            ("DE88 8888 8888 8888 8888 88", "Assets:Bank:HYSA"),
         ],
     ),
 ```
