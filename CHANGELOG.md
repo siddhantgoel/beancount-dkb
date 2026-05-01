@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v1.9.0
+
+- Add DKB Festgeld to regular expression check (thanks [@tmeidinger])
+
 ## v1.8.0
 
 - Support Girokonto u18 accounts (thanks [@szabootibor])
@@ -34,7 +38,7 @@
 
 ## v1.5.0
 
-- Fix support for Tagesgeld accounts (thanks [M4a1x])
+- Fix support for Tagesgeld accounts (thanks [@M4a1x])
 
 ## v1.4.0
 
@@ -231,8 +235,9 @@
 [@dmerkert]: https://github.com/dmerkert
 [@Dr-Nuke]: https://github.com/Dr-Nuke
 [@e11bits]: https://github.com/e11bits
+[@M4a1x]: https://github.com/M4a1x
 [@niels]: https://github.com/niels
 [@nils-werner]: https://github.com/nils-werner
 [@szabootibor]: https://github.com/szabootibor
 [@tbm]: https://github.com/tbm
-[M4a1x]: https://github.com/M4a1x
+[@tmeidinger]: [@https://github.com/tmeidinger]
