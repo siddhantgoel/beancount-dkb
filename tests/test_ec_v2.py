@@ -267,6 +267,33 @@ def test_extract_transactions(tmp_file_multiple_transaction):
     ) == Decimal("0")
 
 
+def test_extract_payee_removes_address_filler_spaces(tmp_path, header):
+    tmp_file = tmp_path / f"{IBAN}.csv"
+    tmp_file.write_text(
+        _format(
+            """
+            "Girokonto"{delimiter}"{iban}"
+            ""
+            "Kontostand vom 30.06.2023:"{delimiter}"5.000,01 EUR"
+            ""
+            {header}
+            "15.06.23"{delimiter}"15.06.23"{delimiter}"Gebucht"{delimiter}"ISSUER"{delimiter}"congstar - eine Marke der Telekom Deutschland GmbH                    Landgrabenweg 149"{delimiter}"Mobilfunk"{delimiter}"Ausgang"{delimiter}"DE00000000000000000000"{delimiter}"-15,37"{delimiter}""{delimiter}""{delimiter}""
+            """,  # NOQA
+            dict(iban=IBAN, header=header.value, delimiter=header.delimiter),
+        ),
+        encoding=ENCODING,
+    )
+
+    importer = ECImporter(IBAN, "Assets:DKB:EC")
+
+    directives = importer.extract(tmp_file)
+
+    expected_payee = (
+        "congstar - eine Marke der Telekom Deutschland GmbH Landgrabenweg 149"
+    )
+    assert directives[0].payee == expected_payee
+
+
 def test_bad_number_of_decimal_places(tmp_file_bad_number_of_decimal_places):
     importer = ECImporter(IBAN, "Assets:DKB:EC")
 
