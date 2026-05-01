@@ -2,6 +2,7 @@
 
 ## v1.9.0
 
+- Add exact IBAN matcher for EC imports (thanks [@putzwasser])
 - Add DKB Festgeld to regular expression check (thanks [@tmeidinger])
 
 ## v1.8.0
@@ -230,7 +231,6 @@
 
 - Added ECImporter to import CSV exports of EC accounts
 
-
 [@bratekarate]: https://githun.com/bratekarate
 [@dmerkert]: https://github.com/dmerkert
 [@Dr-Nuke]: https://github.com/Dr-Nuke
@@ -238,6 +238,7 @@
 [@M4a1x]: https://github.com/M4a1x
 [@niels]: https://github.com/niels
 [@nils-werner]: https://github.com/nils-werner
+[@putzwasser]: https://github.com/putzwasser
 [@szabootibor]: https://github.com/szabootibor
 [@tbm]: https://github.com/tbm
-[@tmeidinger]: [@https://github.com/tmeidinger]
+[@tmeidinger]: https://github.com/tmeidinger
