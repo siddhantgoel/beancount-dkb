@@ -198,8 +198,11 @@ class CreditImporter(Importer):
                 if amount.startswith("--"):
                     amount = value.value.lstrip("--")
 
+                formatter = (
+                    fmt_number_de if key.startswith("Saldo vom") else fmt_number_en
+                )
                 self._balance_amount = Amount(
-                    Decimal(fmt_number_en(amount.rstrip(" EUR"))), self.currency
+                    Decimal(formatter(amount.split()[0])), self.currency
                 )
                 self._closing_balance_index = value.line_index
                 if key.startswith("Saldo vom"):
