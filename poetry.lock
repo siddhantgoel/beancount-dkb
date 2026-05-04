@@ -17,52 +17,61 @@ dev = ["backports.zoneinfo ; python_version < \"3.9\"", "freezegun (>=1.0,<2.0)"
 
 [[package]]
 name = "beancount"
-version = "3.2.0"
+version = "3.2.2"
 description = "Command-line Double-Entry Accounting"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "beancount-3.2.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:936496ae0db384cb105a439b4278a202648b869d07934966c8fc6b4dfea9b289"},
-    {file = "beancount-3.2.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:3b82fd28a7891378e36f827e386d5c04c506d810016223affd5c2744e212aeaa"},
-    {file = "beancount-3.2.0-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:72bed563e35b44194e2fe59ee17a2469c7a2e110f9a9c9b058577452d2502eae"},
-    {file = "beancount-3.2.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:34c7362af4257205396f4d0e7d0c0ac8e836f835d448f035f5bf33ea29e33a09"},
-    {file = "beancount-3.2.0-cp310-cp310-win32.whl", hash = "sha256:d48c9f1b0f8d731dac0574ce1138b8da753c6f2ab85f65f8934f59b857063c83"},
-    {file = "beancount-3.2.0-cp310-cp310-win_amd64.whl", hash = "sha256:cb07e5527c0c4803b329fc5d3c4923cf466dac3314de18c2a1599426ab1c6f32"},
-    {file = "beancount-3.2.0-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:73ee8484fd022d4849683a5f5ed8dbae558a57881983a7ad795853756eb29b3f"},
-    {file = "beancount-3.2.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:49717b15321d2c22705aec4fed82055ede16e39a09b7d0d6d767230880ffce8c"},
-    {file = "beancount-3.2.0-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:d71ab251daa65eab0842570d36fce33d5eb9ac8d35c8f4ced351fa9f2b36d480"},
-    {file = "beancount-3.2.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:2b34378d1615a97c39572d4451856599310acf8ab7abbb13b31161451ec8c092"},
-    {file = "beancount-3.2.0-cp311-cp311-win32.whl", hash = "sha256:c6f4f7709864093ff6878721bcbd4e1b2037a06d93bd5b874bd2ab41e7c86d35"},
-    {file = "beancount-3.2.0-cp311-cp311-win_amd64.whl", hash = "sha256:5be26b2bd9d14fc81631b7abf998eb39779af10168f0454eb182ecc5f93df199"},
-    {file = "beancount-3.2.0-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:4e389663d88cef83fc7aaa99818d643f2ff06b2d5d14522d493c7664378d170a"},
-    {file = "beancount-3.2.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:5f03dea7d4f7988a05cd808751f43aa5ef478c04e4af18c980c8f9eafa314041"},
-    {file = "beancount-3.2.0-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:36c27bf2594badf22b1fb0542b3caa724a99e0ff1cc59b7e975e6566474242fc"},
-    {file = "beancount-3.2.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:56fa547284b9f521c2eed92537dc81a9eac3a12f889b569609c6c466c13e162f"},
-    {file = "beancount-3.2.0-cp312-cp312-win32.whl", hash = "sha256:73238ae714e74bb2284f6d751091db4e8dfaf3fba26497ce197bf2091c8b48ce"},
-    {file = "beancount-3.2.0-cp312-cp312-win_amd64.whl", hash = "sha256:ac098b7e8cf6d6aaabb32c240128f4fbdbcb4f96414c6ec0328513a7f3b2c653"},
-    {file = "beancount-3.2.0-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:ca9750ebc6650b19dcb94ef8d2856caf464419672e281ee09a78fc5d5abb4466"},
-    {file = "beancount-3.2.0-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:38f90a5b1051719747b622868455ffd51b5bd64139e2e905a5f191f78009aef4"},
-    {file = "beancount-3.2.0-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:0cd05d55902ffcca310bf437d2afe6993a23feb564bf867a8069b260265dd207"},
-    {file = "beancount-3.2.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:af64ff2aa2f6157f9fa644591e220d341a21d727cf21df79d20581427dae10ba"},
-    {file = "beancount-3.2.0-cp313-cp313-win32.whl", hash = "sha256:575e3fcc5d23ad3455f291b08f2ca4e428ec75ccd943a63b9c0c8c648dd0ab93"},
-    {file = "beancount-3.2.0-cp313-cp313-win_amd64.whl", hash = "sha256:89adb972428276b94b798a75128c8b8dd938ef6f9ce6e62c32c06649c758e859"},
-    {file = "beancount-3.2.0-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:0a10211c611afca1b05ced50c5d497f413ba0caab4d83dec2b71188ec47f338e"},
-    {file = "beancount-3.2.0-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:85887e17a975044486733c7859bd2fe88d41f127a29d43b34c9dcb097fb43961"},
-    {file = "beancount-3.2.0-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:20e9407ac391972a0740b41f0f6251205cbfedb894719c6e3579ccd7698dc715"},
-    {file = "beancount-3.2.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:3592123627dc7d79ce51cc399ea4fc8a6e4f932b1ea3f97499b7b0ebb4bfd895"},
-    {file = "beancount-3.2.0-cp39-cp39-win32.whl", hash = "sha256:564ecf4883aeb0ca813181509074f2eb6c07070422cf9da3ffb530304d7224ff"},
-    {file = "beancount-3.2.0-cp39-cp39-win_amd64.whl", hash = "sha256:7c3f8e32495c159fb31052b3e961bc7fca8891badcbb540de692c3afcd3381ef"},
-    {file = "beancount-3.2.0.tar.gz", hash = "sha256:9f374bdcbae63328d8a0cf6d539490f81caa647f2d1cc92c9fa6117a9eb092ca"},
+    {file = "beancount-3.2.2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:cb96daa43f5a34d99d8a591517ee33cd282aa1239728fa33f06d842abf9e0417"},
+    {file = "beancount-3.2.2-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:e5fb25a1deb7bf790d4665474125200142dca7085fd53af181100ee12a5acb6d"},
+    {file = "beancount-3.2.2-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:4cad646d3e982c1bcc0894d72bc5991b5dd5ee7c51240c07aab6995d987c8cb1"},
+    {file = "beancount-3.2.2-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:2dd970e9b79e9543516afd4a3575e53140bf8338e158a8e09ed9940d5d8c1754"},
+    {file = "beancount-3.2.2-cp310-cp310-win32.whl", hash = "sha256:29841a90a1d4f95ba45a9e353c6788a80af4a33311589123f0e6f2a63db767b8"},
+    {file = "beancount-3.2.2-cp310-cp310-win_amd64.whl", hash = "sha256:f79f01e8fb0482774db2a120d46c5eddb6e56aca39d1d6d14b8081048068dd7c"},
+    {file = "beancount-3.2.2-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:592df6733492cdb0f1730795164b1334e40941f4b909e28f2bbc12d84d7305ec"},
+    {file = "beancount-3.2.2-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:d2da94cab90913ea02c2939eae00c5d14e81d8151b70069b94d3445c127a8ab2"},
+    {file = "beancount-3.2.2-cp311-cp311-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:31a0cda159287cd166ec6baa8215b3c68c8f014888e0225e2227c79137646d0a"},
+    {file = "beancount-3.2.2-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:5fff0ffb3b0bfea14eb9748faed48931ef6e3cf68f94e51f034d24bcf224bc76"},
+    {file = "beancount-3.2.2-cp311-cp311-win32.whl", hash = "sha256:6ea022bf2d5a37a2a13927b261b251b1b6ce5be1617e46242ce5972f7bd22685"},
+    {file = "beancount-3.2.2-cp311-cp311-win_amd64.whl", hash = "sha256:3a57d53e41f7f67dd9c22fca8874dd2cfe554fdda0db3d8965589ee12e233355"},
+    {file = "beancount-3.2.2-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:0df4e7f7fb2751305b5d1848938547681b83750294ebeb828a28137e511db1e1"},
+    {file = "beancount-3.2.2-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:0df9db001626bfa879a938b1ac20a28c669bd8c6ee56a4ee57c989f1948baca1"},
+    {file = "beancount-3.2.2-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:fda42831269af952913835cfcc3b34c71fab89536235767b4700fe16b589f61f"},
+    {file = "beancount-3.2.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:d31899ab3d0e8dca76904e716b1e77c1a7040c32b5cab0e76b09bde292ecb0bf"},
+    {file = "beancount-3.2.2-cp312-cp312-win32.whl", hash = "sha256:d2d71fe2e7105b7ea955e257032110bfa38c337d164ba4de1ccc9567704f119a"},
+    {file = "beancount-3.2.2-cp312-cp312-win_amd64.whl", hash = "sha256:c548c6287ae9be4fbf581a1fdb21558d68100a475c42364b5007b4459ad77f74"},
+    {file = "beancount-3.2.2-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:2f07de4d9b03aed70983f4e40fe5545771cd265822b456c4f604d536f2bfbf0a"},
+    {file = "beancount-3.2.2-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:71d128e7c57bdbf45cb80ac1e36e368ff48ec95b3c156be7b8f01b4e7048cc56"},
+    {file = "beancount-3.2.2-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:96eab76f8038415a7351571f85e058f6506cb96d957d7edaaa52e84b05f18148"},
+    {file = "beancount-3.2.2-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:2bc2b54529c6ecda8d9dd6fcbf15fdd0c5fe4bf2c2698754d08eff0626e5d3b2"},
+    {file = "beancount-3.2.2-cp313-cp313-win32.whl", hash = "sha256:b14d8947af81958b596f9a2f790d26db8cf49dc90a9a0b2214ab7927ddc03280"},
+    {file = "beancount-3.2.2-cp313-cp313-win_amd64.whl", hash = "sha256:26bbbfd7e3c9d77ff5b0dbeb4a26e9ff21aacdd8fd987659cd527fffad99e474"},
+    {file = "beancount-3.2.2-cp314-cp314-macosx_10_15_x86_64.whl", hash = "sha256:c9e27149e93cca0731253ef8390dcbb60c6e600bf4b1ff48ba46387fdef3a689"},
+    {file = "beancount-3.2.2-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:780940dca3fec1f304557be6393934eb7e2a1aa910f020be135640bd00c0e6ae"},
+    {file = "beancount-3.2.2-cp314-cp314-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:eb6a072945051e28bd82389c3490a54bb2a0285be6485f983583c54a2423f56e"},
+    {file = "beancount-3.2.2-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:af269ff11adc28aef949be41851c9147c5b06f3142b7c966b8ed18a21f8d72b2"},
+    {file = "beancount-3.2.2-cp314-cp314-win32.whl", hash = "sha256:07b628e074b6159f9ab3f4ad092ae4bc89664942cf0e3106510894586c28d94d"},
+    {file = "beancount-3.2.2-cp314-cp314-win_amd64.whl", hash = "sha256:918050967453efee11ca1982e6fce514cf5f9c6282a86e4b07a9ab23ba7d6b9b"},
+    {file = "beancount-3.2.2-cp314-cp314t-macosx_10_15_x86_64.whl", hash = "sha256:c74c2ccd92c32d2349c1577be36213a87a06bdd6a1b5e61f1aa3137bb78841a0"},
+    {file = "beancount-3.2.2-cp314-cp314t-macosx_11_0_arm64.whl", hash = "sha256:e574ac9bdf729b40ea5c4a80e83f675807ef2709d8bfaeeff205113a141dbfe4"},
+    {file = "beancount-3.2.2-cp314-cp314t-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:010f1edaa1cc341345962140d7d958ada2de99da259e18103e56bc570f803519"},
+    {file = "beancount-3.2.2-cp314-cp314t-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:41e019476038acb4a39b8b68372a87ff802e7425d8873f0e633f9e75101061d6"},
+    {file = "beancount-3.2.2-cp314-cp314t-win32.whl", hash = "sha256:a100fe455125aab517c14787da159f73292f1fdc83c79deab9a924676efee967"},
+    {file = "beancount-3.2.2-cp314-cp314t-win_amd64.whl", hash = "sha256:b6ac7b08792b8f8fa6bb8d52be94ea515e099d487a21180aae35294be0ec88af"},
+    {file = "beancount-3.2.2-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:9bef470d48f4d3e326bc543041e4e7ad2c8bab0ad2913f19b9a32f9b5119f1f7"},
+    {file = "beancount-3.2.2-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:607822e90889a67db7491d09877ded2161c297b388c5912ca1145ea4112840e7"},
+    {file = "beancount-3.2.2-cp39-cp39-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:b82cf3ed3fd1190292d437f726af31bf6255c1174bb33c503e4965603f9a81ed"},
+    {file = "beancount-3.2.2-cp39-cp39-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:edcba69bed5a4a03cb1246306b0bdaada1d090ce2a66274e6e99f020486d367c"},
+    {file = "beancount-3.2.2-cp39-cp39-win32.whl", hash = "sha256:4a0e9d6f30afc65bba07dcbc4e9486fbc77d907af6004062ea4f6dfecc21437d"},
+    {file = "beancount-3.2.2-cp39-cp39-win_amd64.whl", hash = "sha256:22846aa30bb25b93e693241fea29456a9dacc1c9f25d5c5930611e23d022f349"},
+    {file = "beancount-3.2.2.tar.gz", hash = "sha256:7f9a3919152232c262c826998fb2620046b47249624c665d79fa4b0a72f78bfc"},
 ]
 
 [package.dependencies]
 click = ">=7.0"
 python-dateutil = ">=2.6.0"
 regex = ">=2022.9.13"
-
-[package.extras]
-types = ["mypy (==1.4.0)", "types-regex"]
 
 [[package]]
 name = "beangulp"
