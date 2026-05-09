@@ -26,6 +26,7 @@ class ECImporter(Importer):
         payee_patterns: Optional[Sequence] = None,
         description_patterns: Optional[Sequence] = None,
         iban_matcher: Optional[Sequence] = None,
+        normalize_payee_address_spacing: bool = False,
     ):
         self.iban = iban
         self.account_name = account_name
@@ -35,8 +36,16 @@ class ECImporter(Importer):
         self.payee_matcher = AccountMatcher(payee_patterns)
         self.description_matcher = AccountMatcher(description_patterns)
 
-        self._v1_extractor = V1Extractor(iban, meta_code)
-        self._v2_extractor = V2Extractor(iban, meta_code)
+        self._v1_extractor = V1Extractor(
+            iban,
+            meta_code,
+            normalize_payee_address_spacing,
+        )
+        self._v2_extractor = V2Extractor(
+            iban,
+            meta_code,
+            normalize_payee_address_spacing,
+        )
 
         self._date_from = None
         self._date_to = None

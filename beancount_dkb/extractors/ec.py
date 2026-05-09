@@ -12,9 +12,15 @@ Meta = namedtuple("Meta", ["value", "line_index"])
 
 
 class BaseExtractor:
-    def __init__(self, iban: str, meta_code: Optional[str] = None):
+    def __init__(
+        self,
+        iban: str,
+        meta_code: Optional[str] = None,
+        normalize_payee_address_spacing: bool = False,
+    ):
         self.iban = iban
         self.meta_code = meta_code
+        self.normalize_payee_address_spacing = normalize_payee_address_spacing
 
         self.filepath = None
         self._csv_delimiter = None
@@ -90,7 +96,10 @@ class BaseExtractor:
         raise NotImplementedError()
 
 
-def _normalize_payee(payee: str) -> str:
+def _normalize_payee(payee: str, normalize_payee_address_spacing: bool) -> str:
+    if not normalize_payee_address_spacing:
+        return payee
+
     return re.sub(r" {2,}", " ", payee).strip()
 
 
@@ -165,7 +174,10 @@ class V1Extractor(BaseExtractor):
         return f"{booking_text} {purpose}" if not self.meta_code else purpose
 
     def get_payee(self, line: Dict[str, str]) -> str:
-        return _normalize_payee(line["Auftraggeber / Begünstigter"])
+        return _normalize_payee(
+            line["Auftraggeber / Begünstigter"],
+            self.normalize_payee_address_spacing,
+        )
 
     def get_purpose(self, line: Dict[str, str]) -> str:
         return line["Verwendungszweck"]
@@ -297,7 +309,10 @@ class V2Extractor(BaseExtractor):
         else:
             raise InvalidFormatError(f"Unknown Umsatztyp: {type_}")
 
-        return _normalize_payee(payee)
+        return _normalize_payee(
+            payee,
+            self.normalize_payee_address_spacing,
+        )
 
     def get_purpose(self, line: Dict[str, str]) -> str:
         return line["Verwendungszweck"]

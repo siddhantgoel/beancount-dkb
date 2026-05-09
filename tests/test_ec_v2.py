@@ -284,8 +284,9 @@ def test_extract_payee_removes_address_filler_spaces(tmp_path, header):
         encoding=ENCODING,
     )
 
-    importer = ECImporter(IBAN, "Assets:DKB:EC")
-
+    importer = ECImporter(
+        IBAN, "Assets:DKB:EC", normalize_payee_address_spacing=True
+    )
     directives = importer.extract(tmp_file)
 
     expected_payee = (
