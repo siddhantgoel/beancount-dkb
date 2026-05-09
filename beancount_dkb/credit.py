@@ -198,6 +198,8 @@ class CreditImporter(Importer):
                 if amount.startswith("--"):
                     amount = value.value.lstrip("--")
 
+                # Newer "Saldo vom ..." exports use German decimal separators,
+                # while legacy "Saldo:" balances keep the old en_US format.
                 formatter = (
                     fmt_number_de if key.startswith("Saldo vom") else fmt_number_en
                 )
