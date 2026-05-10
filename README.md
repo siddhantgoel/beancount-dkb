@@ -88,6 +88,43 @@ line to extract the transactions and pipe all of them into your Beancount file.
 $ bean-extract /path/to/config.py transaction.csv >> you.beancount
 ```
 
+### Ignoring Credit Card Settlement Transactions
+
+DKB credit card CSV exports may contain settlement transactions such as
+`Ausgleich Kreditkarte`. If these settlements are already imported through the EC
+account, configure the `CreditImporter` to ignore and skip them during import.
+
+#### Beancount 3.x
+
+```python
+from beancount_dkb import CreditImporter
+from beangulp import Ingest
+
+importers = (
+    CreditImporter(
+        "9999 9999 9999 9999",
+        "Assets:DKB:Credit",
+        ignore_credit_card_settlements=True,
+    ),
+)
+
+if __name__ == "__main__":
+    ingest = Ingest(importers)
+    ingest()
+```
+
+#### Beancount 2.x
+
+```python
+CONFIG = [
+    CreditImporter(
+        CARD_NUMBER,
+        'Assets:DKB:Credit',
+        ignore_credit_card_settlements=True,
+    )
+]
+```
+
 ### Transaction Codes as Meta Tags
 
 By default, the ECImporter prepends the transaction code ("Buchungstext") to the
