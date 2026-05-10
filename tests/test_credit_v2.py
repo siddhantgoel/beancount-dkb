@@ -204,7 +204,7 @@ def test_ignore_credit_card_settlements_skips_positive_settlement(tmp_path, head
             """
             "Karte"{delimiter}"Visa Kreditkarte"{delimiter}"{card_number}"
             ""
-            "Saldo vom 31.12.2025:"{delimiter}"5000.01 EUR"
+            "Saldo vom 31.12.2025:"{delimiter}"5000,01 EUR"
             ""
             {header}
             "22.11.24"{delimiter}"23.11.24"{delimiter}"Gebucht"{delimiter}"ausgleich kreditkarte GEM"{delimiter}"Lastschrift"{delimiter}"138,98"{delimiter}""
@@ -246,7 +246,7 @@ def test_ignore_credit_card_settlements_keeps_non_positive_transactions(
             """
             "Karte"{delimiter}"Visa Kreditkarte"{delimiter}"{card_number}"
             ""
-            "Saldo vom 31.01.2023:"{delimiter}"5000.01 EUR"
+            "Saldo vom 31.01.2023:"{delimiter}"5000,01 EUR"
             ""
             {header}
             "15.01.23"{delimiter}"15.01.23"{delimiter}"Gebucht"{delimiter}"Ausgleich Kreditkarte gem"{delimiter}"Lastschrift"{delimiter}"{amount}"{delimiter}""
