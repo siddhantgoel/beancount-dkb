@@ -41,7 +41,7 @@ def tmp_file_no_transactions(tmp_path, header):
             """
             "Karte"{delimiter}"Visa Kreditkarte"{delimiter}"{card_number}"
             ""
-            "Saldo vom 31.01.2023:"{delimiter}"5000.01 EUR"
+            "Saldo vom 31.01.2023:"{delimiter}"5.000,01 EUR"
             ""
             {header}
             """,
@@ -66,7 +66,7 @@ def tmp_file_single_transaction(tmp_path, header):
             """
             "Karte"{delimiter}"Visa Kreditkarte"{delimiter}"{card_number}"
             ""
-            "Saldo vom 31.01.2023:"{delimiter}"5000.01 EUR"
+            "Saldo vom 31.01.2023:"{delimiter}"5.000,01 EUR"
             ""
             {header}
             "15.01.23"{delimiter}"15.01.23"{delimiter}"Gebucht"{delimiter}"REWE Filiale Muenchen"{delimiter}"Im Geschäft"{delimiter}"-10,80 €"{delimiter}""
@@ -117,7 +117,7 @@ def tmp_file_balance_bad_number_of_decimal_places(tmp_path, header):
             """
             "Karte"{delimiter}"Visa Kreditkarte"{delimiter}"{card_number}"
             ""
-            "Saldo vom 31.01.2023:"{delimiter}"5000.001 EUR"
+            "Saldo vom 31.01.2023:"{delimiter}"5000,001 EUR"
             ""
             {header}
             """,
@@ -198,14 +198,32 @@ def test_extract_with_description_patterns(tmp_file_single_transaction):
     assert directives[0].postings[1].units is None
 
 
-def test_comma_separator_in_balance(tmp_file_single_transaction):
+def test_comma_separator_in_balance(tmp_file, header):
+    tmp_file.write_text(
+        _format(
+            """
+            "Karte"{delimiter}"Visa Kreditkarte"{delimiter}"{card_number}"
+            ""
+            "Saldo vom 07.01.2026:"{delimiter}"-37,8 EUR"
+            ""
+            {header}
+            """,
+            dict(
+                card_number=CARD_NUMBER,
+                header=header.value,
+                delimiter=header.delimiter,
+            ),
+        )
+    )
+
     importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
 
-    directives = importer.extract(tmp_file_single_transaction)
+    directives = importer.extract(tmp_file)
 
-    assert len(directives) == 2
-    assert isinstance(directives[1], Balance)
-    assert directives[1].amount == Amount(Decimal("5000.01"), currency="EUR")
+    assert len(directives) == 1
+    assert isinstance(directives[0], Balance)
+    assert directives[0].date == datetime.date(2026, 1, 7)
+    assert directives[0].amount == Amount(Decimal("-37.80"), currency="EUR")
 
 
 def test_decimal_places_in_balance(tmp_file_balance_without_decimal_places):
@@ -225,6 +243,6 @@ def test_bad_number_of_decimal_places_in_balance(
     importer = CreditImporter(CARD_NUMBER, "Assets:DKB:Credit")
 
     with pytest.raises(
-        NumberFormatError, match="5000.001 contains unexpected number of decimal places"
+        NumberFormatError, match="5000,001 contains unexpected number of decimal places"
     ):
         importer.extract(tmp_file_balance_bad_number_of_decimal_places)
