@@ -182,6 +182,21 @@ And this is the resulting transaction using `meta_code='code'`
     Assets:DKB:EC                        -133.72 EUR
 ```
 
+### Payee Address Spacing
+
+Some DKB EC exports append an address to the payee with a long run of filler
+spaces. `ECImporter` keeps payees unchanged by default, but can collapse those
+space runs to a single space when configured with
+`normalize_payee_address_spacing=True`.
+
+```python
+ECImporter(
+    IBAN_NUMBER,
+    "Assets:DKB:EC",
+    normalize_payee_address_spacing=True,
+)
+```
+
 ### Pattern-matching Transactions
 
 It's possible to give the importer classes hints if you'd like them to include a
