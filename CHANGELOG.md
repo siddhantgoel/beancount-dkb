@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v1.10.0
+
+- Fix credit card Saldo vom Balance parsing (thanks [@putzwasser])
+- Allow ignoring credit card settlements (thanks [@putzwasser])
+- Allow normalizing EC payee filler spaces (thanks [@putzwasser])
+
 ## v1.9.0
 
 - Add exact IBAN matcher for EC imports (thanks [@putzwasser])
