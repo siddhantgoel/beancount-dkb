@@ -5,6 +5,7 @@
 - Fix credit card Saldo vom Balance parsing (thanks [@putzwasser])
 - Allow ignoring credit card settlements (thanks [@putzwasser])
 - Allow normalizing EC payee filler spaces (thanks [@putzwasser])
+- Enable support for Python 3.14
 
 ## v1.9.0
 
