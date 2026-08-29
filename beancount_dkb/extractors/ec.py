@@ -1,9 +1,9 @@
-from collections import namedtuple
 import csv
-from functools import partial
 import re
+from collections import namedtuple
 from datetime import date, datetime
-from typing import Dict, Optional
+from functools import partial
+from zoneinfo import ZoneInfo
 
 from ..exceptions import InvalidFormatError
 from ..helpers import Header
@@ -15,7 +15,7 @@ class BaseExtractor:
     def __init__(
         self,
         iban: str,
-        meta_code: Optional[str] = None,
+        meta_code: str | None = None,
         normalize_payee_address_spacing: bool = False,
     ):
         self.iban = iban
@@ -40,7 +40,7 @@ class BaseExtractor:
 
     def extract_metadata_lines(self) -> list[str]:
         with open(self.filepath, encoding=self.file_encoding) as fd:
-            lines = [line.strip() for line in fd.readlines()]
+            lines = [line.strip() for line in fd]
 
         for header in self._get_possible_headers():
             if header.value not in lines:
@@ -53,7 +53,7 @@ class BaseExtractor:
 
     def extract_transaction_lines(self) -> list[str]:
         with open(self.filepath, encoding=self.file_encoding) as fd:
-            lines = [line.strip() for line in fd.readlines()]
+            lines = [line.strip() for line in fd]
 
         for header in self._get_possible_headers():
             if header.value not in lines:
@@ -71,28 +71,28 @@ class BaseExtractor:
 
         raise NotImplementedError()
 
-    def get_account_number(self, line: Dict[str, str]) -> str:
+    def get_account_number(self, line: dict[str, str]) -> str:
         raise NotImplementedError()
 
-    def get_amount(self, line: Dict[str, str]) -> str:
+    def get_amount(self, line: dict[str, str]) -> str:
         raise NotImplementedError()
 
-    def get_booking_date(self, line: Dict[str, str]) -> date:
+    def get_booking_date(self, line: dict[str, str]) -> date:
         raise NotImplementedError()
 
-    def get_booking_text(self, line: Dict[str, str]) -> str:
+    def get_booking_text(self, line: dict[str, str]) -> str:
         raise NotImplementedError()
 
-    def get_counterparty_iban(self, line: Dict[str, str]) -> Optional[str]:
+    def get_counterparty_iban(self, line: dict[str, str]) -> str | None:
         raise NotImplementedError()
 
-    def get_description(self, line: Dict[str, str]) -> str:
+    def get_description(self, line: dict[str, str]) -> str:
         raise NotImplementedError()
 
-    def get_payee(self, line: Dict[str, str]) -> str:
+    def get_payee(self, line: dict[str, str]) -> str:
         raise NotImplementedError()
 
-    def get_purpose(self, line: Dict[str, str]) -> str:
+    def get_purpose(self, line: dict[str, str]) -> str:
         raise NotImplementedError()
 
 
@@ -152,34 +152,38 @@ class V1Extractor(BaseExtractor):
             Header(";".join(f'"{field}"' for field in self.FIELDS) + ";", ";"),
         ]
 
-    def get_account_number(self, line: Dict[str, str]) -> str:
+    def get_account_number(self, line: dict[str, str]) -> str:
         return line["Kontonummer"]
 
-    def get_amount(self, line: Dict[str, str]) -> str:
+    def get_amount(self, line: dict[str, str]) -> str:
         return line["Betrag (EUR)"]
 
-    def get_booking_date(self, line: Dict[str, str]) -> date:
-        return datetime.strptime(line["Buchungstag"], "%d.%m.%Y").date()
+    def get_booking_date(self, line: dict[str, str]) -> date:
+        return (
+            datetime.strptime(line["Buchungstag"], "%d.%m.%Y")
+            .astimezone(ZoneInfo("Europe/Berlin"))
+            .date()
+        )
 
-    def get_booking_text(self, line: Dict[str, str]) -> str:
+    def get_booking_text(self, line: dict[str, str]) -> str:
         return line["Buchungstext"]
 
-    def get_counterparty_iban(self, line: Dict[str, str]) -> Optional[str]:
+    def get_counterparty_iban(self, line: dict[str, str]) -> str | None:
         return None
 
-    def get_description(self, line: Dict[str, str]) -> str:
+    def get_description(self, line: dict[str, str]) -> str:
         purpose = self.get_purpose(line) or self.get_account_number(line)
         booking_text = self.get_booking_text(line)
 
         return f"{booking_text} {purpose}" if not self.meta_code else purpose
 
-    def get_payee(self, line: Dict[str, str]) -> str:
+    def get_payee(self, line: dict[str, str]) -> str:
         return _normalize_payee(
             line["Auftraggeber / Begünstigter"],
             self.normalize_payee_address_spacing,
         )
 
-    def get_purpose(self, line: Dict[str, str]) -> str:
+    def get_purpose(self, line: dict[str, str]) -> str:
         return line["Verwendungszweck"]
 
 
@@ -241,9 +245,9 @@ class V2Extractor(BaseExtractor):
             Header(";".join(f'"{field}"' for field in self.FIELDS), ";"),
         ]
 
-    def _get_applicable_header(self) -> Optional[Header]:
+    def _get_applicable_header(self) -> Header | None:
         with open(self.filepath, encoding=self.file_encoding) as fd:
-            lines = [line.strip() for line in fd.readlines()]
+            lines = [line.strip() for line in fd]
 
         return next(
             (
@@ -278,25 +282,29 @@ class V2Extractor(BaseExtractor):
         except UnicodeDecodeError:
             return False
 
-    def get_account_number(self, line: Dict[str, str]) -> str:
+    def get_account_number(self, line: dict[str, str]) -> str:
         return line["Gläubiger-ID"]
 
-    def get_amount(self, line: Dict[str, str]) -> str:
+    def get_amount(self, line: dict[str, str]) -> str:
         return line["Betrag (€)"].rstrip(" €")
 
-    def get_booking_date(self, line: Dict[str, str]) -> date:
-        return datetime.strptime(line["Buchungsdatum"], "%d.%m.%y").date()
+    def get_booking_date(self, line: dict[str, str]) -> date:
+        return (
+            datetime.strptime(line["Buchungsdatum"], "%d.%m.%y")
+            .astimezone(ZoneInfo("Europe/Berlin"))
+            .date()
+        )
 
-    def get_booking_text(self, line: Dict[str, str]) -> str:
+    def get_booking_text(self, line: dict[str, str]) -> str:
         return line["Umsatztyp"]
 
-    def get_counterparty_iban(self, line: Dict[str, str]) -> Optional[str]:
+    def get_counterparty_iban(self, line: dict[str, str]) -> str | None:
         return line["IBAN"]
 
-    def get_description(self, line: Dict[str, str]) -> str:
+    def get_description(self, line: dict[str, str]) -> str:
         return self.get_purpose(line)
 
-    def get_payee(self, line: Dict[str, str]) -> str:
+    def get_payee(self, line: dict[str, str]) -> str:
         type_ = line["Umsatztyp"]
 
         # if money is going out then payee should be the receiver
@@ -314,5 +322,5 @@ class V2Extractor(BaseExtractor):
             self.normalize_payee_address_spacing,
         )
 
-    def get_purpose(self, line: Dict[str, str]) -> str:
+    def get_purpose(self, line: dict[str, str]) -> str:
         return line["Verwendungszweck"]

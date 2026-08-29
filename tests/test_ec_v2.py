@@ -43,8 +43,8 @@ def tmp_file_no_transactions(tmp_path, header):
             "Kontostand vom 30.06.2023:"{delimiter}"5.000,01 EUR"
             ""
             {header}
-            """,  # NOQA
-            dict(iban=IBAN, header=header.value, delimiter=header.delimiter),
+            """,
+            {"iban": IBAN, "header": header.value, "delimiter": header.delimiter},
         ),
         encoding=ENCODING,
     )
@@ -71,14 +71,14 @@ def tmp_file_single_transaction_base(
             ""
             {header}
             "15.06.23"{delimiter}"15.06.23"{delimiter}"Gebucht"{delimiter}"ISSUER"{delimiter}"EDEKA//MUENCHEN/DE"{delimiter}"EDEKA SAGT DANKE"{delimiter}"Ausgang"{delimiter}"{counterparty_iban}"{delimiter}"-8,67"{delimiter}"DE9100112233445566"{delimiter}""{delimiter}"00000000000000000000000000"
-            """,  # NOQA
-            dict(
-                u18=' u18' if u18 else '',
-                iban=IBAN,
-                header=header.value,
-                delimiter=header.delimiter,
-                counterparty_iban=counterparty_iban,
-            ),
+            """,
+            {
+                "u18": " u18" if u18 else "",
+                "iban": IBAN,
+                "header": header.value,
+                "delimiter": header.delimiter,
+                "counterparty_iban": counterparty_iban,
+            },
         ),
         encoding=ENCODING,
     )
@@ -121,8 +121,8 @@ def tmp_file_multiple_transaction(tmp_path, header):
             "15.06.23"{delimiter}"15.06.23"{delimiter}"Gebucht"{delimiter}"ISSUER"{delimiter}"EDEKA//MUENCHEN/DE"{delimiter}"EDEKA SAGT DANKE"{delimiter}"Ausgang"{delimiter}"DE00000000000000000000"{delimiter}"-8,67"{delimiter}"DE9100112233445566"{delimiter}""{delimiter}"00000000000000000000000000"
             "01.07.23"{delimiter}"01.07.23"{delimiter}"Gebucht"{delimiter}"MAX
             MUSTERMANN"{delimiter}"ERIKA MUSTERMANN"{delimiter}"MIETE"{delimiter}"Ausgang"{delimiter}"DE11111111111111111111"{delimiter}"-1.450"{delimiter}""{delimiter}""{delimiter}""
-            """,  # NOQA
-            dict(iban=IBAN, header=header.value, delimiter=header.delimiter),
+            """,
+            {"iban": IBAN, "header": header.value, "delimiter": header.delimiter},
         ),
         encoding=ENCODING,
     )
@@ -146,8 +146,8 @@ def tmp_file_bad_number_of_decimal_places(tmp_path, header):
             ""
             {header}
             "01.06.23"{delimiter}"01.06.23"{delimiter}"Gebucht"{delimiter}"COMPANY INC"{delimiter}"MAX MUSTERMANN"{delimiter}"Lohn und Gehalt"{delimiter}"Eingang"{delimiter}"DE00000000000000000000"{delimiter}"1.000,001"{delimiter}""{delimiter}""{delimiter}""
-            """,  # NOQA
-            dict(iban=IBAN, header=header.value, delimiter=header.delimiter),
+            """,
+            {"iban": IBAN, "header": header.value, "delimiter": header.delimiter},
         ),
         encoding=ENCODING,
     )
@@ -171,8 +171,8 @@ def tmp_file_tagesgeld_no_transactions(tmp_path, header):
             "Kontostand vom 30.06.2023:"{delimiter}"5.000,01 EUR"
             ""
             {header}
-            """,  # NOQA
-            dict(iban=IBAN, header=header.value, delimiter=header.delimiter),
+            """,
+            {"iban": IBAN, "header": header.value, "delimiter": header.delimiter},
         ),
         encoding=ENCODING,
     )
@@ -242,7 +242,7 @@ def test_extract_transactions(tmp_file_multiple_transaction):
     # test that number contains 2 decimal places even if source contained only one:
     assert directives[0].postings[0].units.number.compare_total(
         Decimal("1000.00")
-    ) == Decimal("0")
+    ) == Decimal(0)
 
     assert directives[1].date == datetime.date(2023, 6, 15)
     assert directives[1].payee == "EDEKA//MUENCHEN/DE"
@@ -260,11 +260,11 @@ def test_extract_transactions(tmp_file_multiple_transaction):
     assert len(directives[2].postings) == 1
     assert directives[2].postings[0].account == "Assets:DKB:EC"
     assert directives[2].postings[0].units.currency == "EUR"
-    assert directives[2].postings[0].units.number == Decimal("-1450")
+    assert directives[2].postings[0].units.number == Decimal(-1450)
     # test that number contains 2 decimal places even if source contained no decimal places:
     assert directives[2].postings[0].units.number.compare_total(
         Decimal("-1450.00")
-    ) == Decimal("0")
+    ) == Decimal(0)
 
 
 def test_extract_payee_removes_address_filler_spaces(tmp_path, header):
@@ -278,8 +278,8 @@ def test_extract_payee_removes_address_filler_spaces(tmp_path, header):
             ""
             {header}
             "15.06.23"{delimiter}"15.06.23"{delimiter}"Gebucht"{delimiter}"ISSUER"{delimiter}"congstar - eine Marke der Telekom Deutschland GmbH                    Landgrabenweg 149"{delimiter}"Mobilfunk"{delimiter}"Ausgang"{delimiter}"DE00000000000000000000"{delimiter}"-15,37"{delimiter}""{delimiter}""{delimiter}""
-            """,  # NOQA
-            dict(iban=IBAN, header=header.value, delimiter=header.delimiter),
+            """,
+            {"iban": IBAN, "header": header.value, "delimiter": header.delimiter},
         ),
         encoding=ENCODING,
     )

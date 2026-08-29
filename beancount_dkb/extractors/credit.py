@@ -1,8 +1,8 @@
 import csv
-from functools import partial
 from collections import namedtuple
 from datetime import date, datetime
-from typing import Dict, Optional
+from functools import partial
+from zoneinfo import ZoneInfo
 
 from ..helpers import Header
 
@@ -27,7 +27,7 @@ class BaseExtractor:
     def csv_dict_reader(self):
         raise NotImplementedError()
 
-    def get_account_number(self, line: Dict[str, str]) -> str:
+    def get_account_number(self, line: dict[str, str]) -> str:
         raise NotImplementedError()
 
     def identify(self) -> bool:
@@ -35,7 +35,7 @@ class BaseExtractor:
 
     def extract_metadata_lines(self) -> list[str]:
         with open(self.filepath, encoding=self.file_encoding) as fd:
-            lines = [line.strip() for line in fd.readlines()]
+            lines = [line.strip() for line in fd]
 
         for header in self._get_possible_headers():
             if header.value not in lines:
@@ -48,7 +48,7 @@ class BaseExtractor:
 
     def extract_transaction_lines(self) -> list[str]:
         with open(self.filepath, encoding=self.file_encoding) as fd:
-            lines = [line.strip() for line in fd.readlines()]
+            lines = [line.strip() for line in fd]
 
         for header in self._get_possible_headers():
             if header.value not in lines:
@@ -59,13 +59,13 @@ class BaseExtractor:
 
             return transaction_lines
 
-    def get_amount(self, line: Dict[str, str]) -> str:
+    def get_amount(self, line: dict[str, str]) -> str:
         raise NotImplementedError()
 
-    def get_valuation_date(self, line: Dict[str, str]) -> date:
+    def get_valuation_date(self, line: dict[str, str]) -> date:
         raise NotImplementedError()
 
-    def get_description(self, line: Dict[str, str]) -> str:
+    def get_description(self, line: dict[str, str]) -> str:
         raise NotImplementedError()
 
 
@@ -112,13 +112,17 @@ class V1Extractor(BaseExtractor):
             Header(";".join(f'"{field}"' for field in self.FIELDS) + ";", ";"),
         ]
 
-    def get_amount(self, line: Dict[str, str]) -> str:
+    def get_amount(self, line: dict[str, str]) -> str:
         return line["Betrag (EUR)"]
 
-    def get_valuation_date(self, line: Dict[str, str]) -> date:
-        return datetime.strptime(line["Wertstellung"], "%d.%m.%Y").date()
+    def get_valuation_date(self, line: dict[str, str]) -> date:
+        return (
+            datetime.strptime(line["Wertstellung"], "%d.%m.%Y")
+            .astimezone(ZoneInfo("Europe/Berlin"))
+            .date()
+        )
 
-    def get_description(self, line: Dict[str, str]) -> str:
+    def get_description(self, line: dict[str, str]) -> str:
         return line["Beschreibung"]
 
 
@@ -169,9 +173,9 @@ class V2Extractor(BaseExtractor):
             quotechar='"',
         )
 
-    def _get_applicable_header(self) -> Optional[Header]:
+    def _get_applicable_header(self) -> Header | None:
         with open(self.filepath, encoding=self.file_encoding) as fd:
-            lines = [line.strip() for line in fd.readlines()]
+            lines = [line.strip() for line in fd]
 
         return next(
             (
@@ -210,11 +214,15 @@ class V2Extractor(BaseExtractor):
             Header(";".join(f'"{field}"' for field in self.FIELDS), ";"),
         ]
 
-    def get_amount(self, line: Dict[str, str]) -> str:
+    def get_amount(self, line: dict[str, str]) -> str:
         return line["Betrag (€)"].rstrip(" €")
 
-    def get_valuation_date(self, line: Dict[str, str]) -> date:
-        return datetime.strptime(line["Wertstellung"], "%d.%m.%y").date()
+    def get_valuation_date(self, line: dict[str, str]) -> date:
+        return (
+            datetime.strptime(line["Wertstellung"], "%d.%m.%y")
+            .astimezone(ZoneInfo("Europe/Berlin"))
+            .date()
+        )
 
-    def get_description(self, line: Dict[str, str]) -> str:
+    def get_description(self, line: dict[str, str]) -> str:
         return line["Beschreibung"]

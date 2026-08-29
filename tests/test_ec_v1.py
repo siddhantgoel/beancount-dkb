@@ -49,8 +49,8 @@ def tmp_file_no_transactions(tmp_path, header):
             "Kontostand vom 31.01.2018:";"5.000,01 EUR";
 
             {header}
-            """,  # NOQA
-            dict(iban=IBAN, header=header),
+            """,
+            {"iban": IBAN, "header": header},
         ),
         encoding=ENCODING,
     )
@@ -76,8 +76,8 @@ def tmp_file_single_transaction(tmp_path, header):
 
             {header}
             "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
-            """,  # NOQA
-            dict(iban=IBAN, header=header),
+            """,
+            {"iban": IBAN, "header": header},
         ),
         encoding=ENCODING,
     )
@@ -104,8 +104,8 @@ def tmp_file_multiple_transactions(tmp_path, header):
             {header}
             "16.01.2018";"16.01.2018";"Lastschrift";"REWE Filialen Voll";"REWE SAGT DANKE.";"DE00000000000000000000";"AAAAAAAA";"-15,37";"000000000000000000    ";"0000000000000000000000";"";
             "06.05.2020";"06.05.2020";"Gutschrift";"From Someone";"";"DE88700222000012345678";"FDDODEMMXXX";"1,00";"";"";"NOTPROVIDED";
-            """,  # NOQA
-            dict(iban=IBAN, header=header),
+            """,
+            {"iban": IBAN, "header": header},
         ),
         encoding=ENCODING,
     )
@@ -204,8 +204,8 @@ def test_extract_payee_removes_address_filler_spaces(tmp_file, header):
 
             {header}
             "16.01.2018";"16.01.2018";"Lastschrift";"congstar - eine Marke der Telekom Deutschland GmbH                    Landgrabenweg 149";"Mobilfunk";"DE00000000000000000000";"AAAAAAAA";"-15,37";"";"";"";
-            """,  # NOQA
-            dict(iban=IBAN, header=header),
+            """,
+            {"iban": IBAN, "header": header},
         ),
         encoding=ENCODING,
     )
@@ -287,7 +287,7 @@ def test_tagessaldo_with_empty_balance_does_not_crash(tmp_file, header):
             {header}
             "20.01.2018";"";"";"";"Tagessaldo";"";"";"";
             """,
-            dict(iban=IBAN, header=header),
+            {"iban": IBAN, "header": header},
         ),
         encoding=ENCODING,
     )
@@ -445,8 +445,8 @@ def test_extract_multiple_transactions(tmp_file, header):
 
             {header}
             "02.10.2023";"02.10.2023";"Kartenzahlung";"ALDI SUED";"2023-09-30      Debitk.11 VISA Debit";"11111111111111111111";"BYLADEM1001";"-16,45";"";"";"111111111111111";
-            """,  # NOQA
-            dict(iban=IBAN, header=header),
+            """,
+            {"iban": IBAN, "header": header},
         ),
         encoding=ENCODING,
     )

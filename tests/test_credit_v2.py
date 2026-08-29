@@ -45,9 +45,11 @@ def tmp_file_no_transactions(tmp_path, header):
             ""
             {header}
             """,
-            dict(
-                card_number=CARD_NUMBER, header=header.value, delimiter=header.delimiter
-            ),
+            {
+                "card_number": CARD_NUMBER,
+                "header": header.value,
+                "delimiter": header.delimiter,
+            },
         )
     )
 
@@ -71,9 +73,11 @@ def tmp_file_single_transaction(tmp_path, header):
             {header}
             "15.01.23"{delimiter}"15.01.23"{delimiter}"Gebucht"{delimiter}"REWE Filiale Muenchen"{delimiter}"Im Geschäft"{delimiter}"-10,80 €"{delimiter}""
             """,
-            dict(
-                card_number=CARD_NUMBER, header=header.value, delimiter=header.delimiter
-            ),
+            {
+                "card_number": CARD_NUMBER,
+                "header": header.value,
+                "delimiter": header.delimiter,
+            },
         )
     )
 
@@ -96,9 +100,11 @@ def tmp_file_balance_without_decimal_places(tmp_path, header):
             ""
             {header}
             """,
-            dict(
-                card_number=CARD_NUMBER, header=header.value, delimiter=header.delimiter
-            ),
+            {
+                "card_number": CARD_NUMBER,
+                "header": header.value,
+                "delimiter": header.delimiter,
+            },
         )
     )
 
@@ -121,9 +127,11 @@ def tmp_file_balance_bad_number_of_decimal_places(tmp_path, header):
             ""
             {header}
             """,
-            dict(
-                card_number=CARD_NUMBER, header=header.value, delimiter=header.delimiter
-            ),
+            {
+                "card_number": CARD_NUMBER,
+                "header": header.value,
+                "delimiter": header.delimiter,
+            },
         )
     )
 
@@ -181,9 +189,11 @@ def test_credit_card_settlements_are_imported_by_default(tmp_path, header):
             {header}
             "22.12.25"{delimiter}"23.12.25"{delimiter}"Gebucht"{delimiter}"Ausgleich Kreditkarte gem"{delimiter}"Lastschrift"{delimiter}"1.013,47"{delimiter}""
             """,
-            dict(
-                card_number=CARD_NUMBER, header=header.value, delimiter=header.delimiter
-            ),
+            {
+                "card_number": CARD_NUMBER,
+                "header": header.value,
+                "delimiter": header.delimiter,
+            },
         )
     )
 
@@ -209,9 +219,11 @@ def test_ignore_credit_card_settlements_skips_positive_settlement(tmp_path, head
             {header}
             "22.11.24"{delimiter}"23.11.24"{delimiter}"Gebucht"{delimiter}"ausgleich kreditkarte GEM"{delimiter}"Lastschrift"{delimiter}"138,98"{delimiter}""
             """,
-            dict(
-                card_number=CARD_NUMBER, header=header.value, delimiter=header.delimiter
-            ),
+            {
+                "card_number": CARD_NUMBER,
+                "header": header.value,
+                "delimiter": header.delimiter,
+            },
         )
     )
 
@@ -251,12 +263,12 @@ def test_ignore_credit_card_settlements_keeps_non_positive_transactions(
             {header}
             "15.01.23"{delimiter}"15.01.23"{delimiter}"Gebucht"{delimiter}"Ausgleich Kreditkarte gem"{delimiter}"Lastschrift"{delimiter}"{amount}"{delimiter}""
             """,
-            dict(
-                amount=amount,
-                card_number=CARD_NUMBER,
-                header=header.value,
-                delimiter=header.delimiter,
-            ),
+            {
+                "amount": amount,
+                "card_number": CARD_NUMBER,
+                "header": header.value,
+                "delimiter": header.delimiter,
+            },
         )
     )
 
@@ -313,11 +325,11 @@ def test_comma_separator_in_balance(tmp_file, header):
             ""
             {header}
             """,
-            dict(
-                card_number=CARD_NUMBER,
-                header=header.value,
-                delimiter=header.delimiter,
-            ),
+            {
+                "card_number": CARD_NUMBER,
+                "header": header.value,
+                "delimiter": header.delimiter,
+            },
         )
     )
 
@@ -338,8 +350,8 @@ def test_decimal_places_in_balance(tmp_file_balance_without_decimal_places):
 
     assert len(directives) == 1
     assert isinstance(directives[0], Balance)
-    assert directives[0].amount == Amount(Decimal("5000"), currency="EUR")
-    assert directives[0].amount.number.compare_total(Decimal("5000.00")) == Decimal("0")
+    assert directives[0].amount == Amount(Decimal(5000), currency="EUR")
+    assert directives[0].amount.number.compare_total(Decimal("5000.00")) == Decimal(0)
 
 
 def test_bad_number_of_decimal_places_in_balance(
