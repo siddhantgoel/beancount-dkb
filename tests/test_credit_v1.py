@@ -54,7 +54,7 @@ def test_multiple_headers(tmp_file):
             {common}
 
             """,
-            dict(card_number=CARD_NUMBER, common=common),
+            {"card_number": CARD_NUMBER, "common": common},
         ),
         encoding=ENCODING,
     )
@@ -70,7 +70,7 @@ def test_multiple_headers(tmp_file):
             {common}
 
             """,
-            dict(card_number=CARD_NUMBER, common=common),
+            {"card_number": CARD_NUMBER, "common": common},
         ),
         encoding=ENCODING,
     )
@@ -93,7 +93,7 @@ def test_identify_correct(tmp_file, header):
 
             {header}
             """,
-            dict(card_number=CARD_NUMBER, header=header),
+            {"card_number": CARD_NUMBER, "header": header},
         ),
         encoding=ENCODING,
     )
@@ -119,7 +119,7 @@ def test_identify_prefixes(tmp_file, header):
 
             {header}
             """,
-            dict(prefix=prefix, suffix=suffix, header=header),
+            {"prefix": prefix, "suffix": suffix, "header": header},
         ),
         encoding=ENCODING,
     )
@@ -142,7 +142,7 @@ def test_identify_invalid_iban(tmp_file, header):
 
             {header}
             """,
-            dict(card_number=CARD_NUMBER, header=header),
+            {"card_number": CARD_NUMBER, "header": header},
         ),
         encoding=ENCODING,
     )
@@ -167,7 +167,7 @@ def test_extract_no_transactions(tmp_file, header):
 
             {header}
             """,
-            dict(card_number=CARD_NUMBER, header=header),
+            {"card_number": CARD_NUMBER, "header": header},
         ),
         encoding=ENCODING,
     )
@@ -193,8 +193,8 @@ def test_extract_transactions(tmp_file, header):
 
             {header}
             "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
-            """,  # NOQA
-            dict(card_number=CARD_NUMBER, header=header),
+            """,
+            {"card_number": CARD_NUMBER, "header": header},
         ),
         encoding=ENCODING,
     )
@@ -225,8 +225,8 @@ def test_ignore_credit_card_settlements_skips_positive_settlement(tmp_file, head
 
             {header}
             "Ja";"23.11.2022";"22.11.2022";"Ausgleich Kreditkarte gem. Abrechnung v. 22.11.22";"136,52";"";
-            """,  # NOQA
-            dict(card_number=CARD_NUMBER, header=header),
+            """,
+            {"card_number": CARD_NUMBER, "header": header},
         ),
         encoding=ENCODING,
     )
@@ -258,8 +258,8 @@ def test_extract_sets_timestamps(tmp_file, header):
 
             {header}
             "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
-            """,  # NOQA
-            dict(card_number=CARD_NUMBER, header=header),
+            """,
+            {"card_number": CARD_NUMBER, "header": header},
         ),
         encoding=ENCODING,
     )
@@ -290,8 +290,8 @@ def test_extract_with_zeitraum(tmp_file, header):
 
             {header}
             "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
-            """,  # NOQA
-            dict(card_number=CARD_NUMBER, header=header),
+            """,
+            {"card_number": CARD_NUMBER, "header": header},
         ),
         encoding=ENCODING,
     )
@@ -322,8 +322,8 @@ def test_file_date_with_zeitraum(tmp_file, header):
 
             {header}
             "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
-            """,  # NOQA
-            dict(card_number=CARD_NUMBER, header=header),
+            """,
+            {"card_number": CARD_NUMBER, "header": header},
         ),
         encoding=ENCODING,
     )
@@ -350,8 +350,8 @@ def test_emits_closing_balance_directive(tmp_file, header):
 
             {header}
             "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
-            """,  # NOQA
-            dict(card_number=CARD_NUMBER, header=header),
+            """,
+            {"card_number": CARD_NUMBER, "header": header},
         ),
         encoding=ENCODING,
     )
@@ -379,8 +379,8 @@ def test_file_date_is_set_correctly(tmp_file, header):
 
             {header}
             "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
-            """,  # NOQA
-            dict(card_number=CARD_NUMBER, header=header),
+            """,
+            {"card_number": CARD_NUMBER, "header": header},
         ),
         encoding=ENCODING,
     )
@@ -403,8 +403,8 @@ def test_extract_with_description_patterns(tmp_file, header):
 
             {header}
             "Ja";"15.01.2018";"15.01.2018";"REWE Filiale Muenchen";"-10,80";"";
-            """,  # NOQA
-            dict(card_number=CARD_NUMBER, header=header),
+            """,
+            {"card_number": CARD_NUMBER, "header": header},
         ),
         encoding=ENCODING,
     )
@@ -443,8 +443,8 @@ def test_extract_multiple_transactions(tmp_file, header):
             {header}
             "Ja";"23.09.2023";"22.09.2023";"HabenzinsenZ 000001111 T 030   0000";"1,11";"";
             "Ja";"23.08.2023";"22.08.2023";"HabenzinsenZ 000001111 T 031   0000";"1,11";"";
-            """,  # NOQA
-            dict(prefix=prefix, suffix=suffix, header=header),
+            """,
+            {"prefix": prefix, "suffix": suffix, "header": header},
         ),
         encoding=ENCODING,
     )

@@ -1,8 +1,9 @@
 import warnings
+from collections.abc import Sequence
 from datetime import datetime, timedelta
 from functools import partial
 from textwrap import dedent
-from typing import Dict, Optional, Sequence
+from zoneinfo import ZoneInfo
 
 from beancount.core import data, flags
 from beancount.core.amount import Amount
@@ -21,11 +22,11 @@ class ECImporter(Importer):
         iban: str,
         account_name: str,
         currency: str = "EUR",
-        file_encoding: Optional[str] = None,
-        meta_code: Optional[str] = None,
-        payee_patterns: Optional[Sequence] = None,
-        description_patterns: Optional[Sequence] = None,
-        iban_matcher: Optional[Sequence] = None,
+        file_encoding: str | None = None,
+        meta_code: str | None = None,
+        payee_patterns: Sequence | None = None,
+        description_patterns: Sequence | None = None,
+        iban_matcher: Sequence | None = None,
         normalize_payee_address_spacing: bool = False,
     ):
         self.iban = iban
@@ -66,7 +67,7 @@ class ECImporter(Importer):
 
     @property
     def name(self):
-        return "DKB {}".format(self.__class__.__name__)
+        return f"DKB {self.__class__.__name__}"
 
     def account(self, filepath: str) -> data.Account:
         return self.account_name
@@ -82,7 +83,7 @@ class ECImporter(Importer):
 
         return self._v1_extractor.identify() or self._v2_extractor.identify()
 
-    def extract(self, filepath: str, existing: Optional[data.Entries] = None):
+    def extract(self, filepath: str, existing: data.Entries | None = None):
         self._v1_extractor.set_filepath(filepath)
         self._v2_extractor.set_filepath(filepath)
 
@@ -198,8 +199,7 @@ class ECImporter(Importer):
                         )
                     else:
                         matcher_names_text = (
-                            f"{', '.join(matcher_names[:-1])} "
-                            f"and {matcher_names[-1]}"
+                            f"{', '.join(matcher_names[:-1])} and {matcher_names[-1]}"
                         )
 
                     warnings.warn(
@@ -242,12 +242,20 @@ class ECImporter(Importer):
 
         return entries
 
-    def _update_meta(self, meta: Dict[str, str]):
+    def _update_meta(self, meta: dict[str, str]):
         for key, value in meta.items():
             if key.startswith("Von"):
-                self._date_from = datetime.strptime(value.value, "%d.%m.%Y").date()
+                self._date_from = (
+                    datetime.strptime(value.value, "%d.%m.%Y")
+                    .astimezone(ZoneInfo("Europe/Berlin"))
+                    .date()
+                )
             elif key.startswith("Bis"):
-                self._date_to = datetime.strptime(value.value, "%d.%m.%Y").date()
+                self._date_to = (
+                    datetime.strptime(value.value, "%d.%m.%Y")
+                    .astimezone(ZoneInfo("Europe/Berlin"))
+                    .date()
+                )
             elif key.startswith("Kontostand vom"):
                 # Beancount expects the balance amount to be from the
                 # beginning of the day, while the Tagessaldo entries in
@@ -260,6 +268,6 @@ class ECImporter(Importer):
                     fmt_number_de(value.value.split()[0]), self.currency
                 )
                 self._balance_date = datetime.strptime(
-                    key.lstrip("Kontostand vom ").rstrip(":"), "%d.%m.%Y"
-                ).date() + timedelta(days=1)
+                    key.removeprefix("Kontostand vom ").removesuffix(":"), "%d.%m.%Y"
+                ).astimezone(ZoneInfo("Europe/Berlin")).date() + timedelta(days=1)
                 self._closing_balance_index = value.line_index

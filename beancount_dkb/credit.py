@@ -1,7 +1,8 @@
 import warnings
+from collections.abc import Sequence
 from datetime import datetime, timedelta
 from textwrap import dedent
-from typing import Dict, Optional, Sequence
+from zoneinfo import ZoneInfo
 
 from beancount.core import data, flags
 from beancount.core.amount import Amount
@@ -20,9 +21,9 @@ class CreditImporter(Importer):
         self,
         card_number: str,
         account_name: str,
-        currency: Optional[str] = "EUR",
-        file_encoding: Optional[str] = None,
-        description_patterns: Optional[Sequence] = None,
+        currency: str | None = "EUR",
+        file_encoding: str | None = None,
+        description_patterns: Sequence | None = None,
         ignore_credit_card_settlements: bool = False,
     ):
         self.card_number = card_number
@@ -72,7 +73,7 @@ class CreditImporter(Importer):
 
     @property
     def name(self):
-        return "DKB {}".format(self.__class__.__name__)
+        return f"DKB {self.__class__.__name__}"
 
     def account(self, filepath: str) -> data.Account:
         return self.account_name
@@ -92,7 +93,7 @@ class CreditImporter(Importer):
 
         return self._v1_extractor.identify() or self._v2_extractor.identify()
 
-    def extract(self, filepath: str, existing: Optional[data.Entries] = None):
+    def extract(self, filepath: str, existing: data.Entries | None = None):
         self._v1_extractor.set_filepath(filepath)
         self._v2_extractor.set_filepath(filepath)
 
@@ -205,16 +206,24 @@ class CreditImporter(Importer):
             and amount.number > Decimal("0")
         )
 
-    def _update_meta(self, meta: Dict[str, str]):
+    def _update_meta(self, meta: dict[str, str]):
         for key, value in meta.items():
             if key.startswith("Von"):
-                self._date_from = datetime.strptime(value.value, "%d.%m.%Y").date()
+                self._date_from = (
+                    datetime.strptime(value.value, "%d.%m.%Y")
+                    .astimezone(ZoneInfo("Europe/Berlin"))
+                    .date()
+                )
             elif key.startswith("Bis"):
-                self._date_to = datetime.strptime(value.value, "%d.%m.%Y").date()
+                self._date_to = (
+                    datetime.strptime(value.value, "%d.%m.%Y")
+                    .astimezone(ZoneInfo("Europe/Berlin"))
+                    .date()
+                )
             elif key.startswith("Saldo"):
                 amount = value.value
                 if amount.startswith("--"):
-                    amount = value.value.lstrip("--")
+                    amount = value.value.removeprefix("--")
 
                 # Newer "Saldo vom ..." exports use German decimal separators,
                 # while legacy "Saldo:" balances keep the old en_US format.
@@ -226,10 +235,18 @@ class CreditImporter(Importer):
                 )
                 self._closing_balance_index = value.line_index
                 if key.startswith("Saldo vom"):
-                    self._balance_date = datetime.strptime(
-                        key.replace("Saldo vom ", "").replace(":", ""),
-                        "%d.%m.%Y",
-                    ).date()
+                    self._balance_date = (
+                        datetime.strptime(
+                            key.replace("Saldo vom ", "").replace(":", ""),
+                            "%d.%m.%Y",
+                        )
+                        .astimezone(ZoneInfo("Europe/Berlin"))
+                        .date()
+                    )
             elif key.startswith("Datum"):
-                self._file_date = datetime.strptime(value.value, "%d.%m.%Y").date()
+                self._file_date = (
+                    datetime.strptime(value.value, "%d.%m.%Y")
+                    .astimezone(ZoneInfo("Europe/Berlin"))
+                    .date()
+                )
                 self._balance_date = self._file_date + timedelta(days=1)

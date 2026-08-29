@@ -1,10 +1,11 @@
 import csv
 import re
 import warnings
+from collections.abc import Sequence
 from functools import partial
-from typing import NamedTuple, Optional, Sequence
+from typing import NamedTuple
 
-from babel.numbers import parse_decimal, NumberFormatError
+from babel.numbers import NumberFormatError, parse_decimal
 from beancount.core.number import Decimal
 
 csv_reader = partial(
@@ -63,7 +64,7 @@ def fmt_number_en(value: str) -> Decimal:
 
 
 class AccountMatcher:
-    def __init__(self, patterns: Optional[Sequence] = None):
+    def __init__(self, patterns: Sequence | None = None):
         self.patterns = []
 
         if patterns is not None:
@@ -73,7 +74,7 @@ class AccountMatcher:
     def add(self, regex: str, account: str) -> None:
         self.patterns.append(_MatcherEntry(re.compile(regex), account))
 
-    def account_for(self, string: str) -> Optional[str]:
+    def account_for(self, string: str) -> str | None:
         for pattern, account in self.patterns:
             if re.search(pattern, string):
                 return account
@@ -82,7 +83,7 @@ class AccountMatcher:
         return bool(self.account_for(string))
 
 
-def _normalize_iban(value: Optional[str]) -> str:
+def _normalize_iban(value: str | None) -> str:
     if value is None:
         return ""
 
@@ -90,14 +91,14 @@ def _normalize_iban(value: Optional[str]) -> str:
 
 
 class IBANMatcher:
-    def __init__(self, entries: Optional[Sequence] = None):
+    def __init__(self, entries: Sequence | None = None):
         self.entries = []
 
         if entries is not None:
             for iban, account in entries:
                 self.add(iban, account)
 
-    def add(self, iban: Optional[str], account: str) -> None:
+    def add(self, iban: str | None, account: str) -> None:
         normalized_iban = _normalize_iban(iban)
 
         if not normalized_iban:
@@ -108,7 +109,7 @@ class IBANMatcher:
 
         self.entries.append(_IBANMatcherEntry(normalized_iban, account))
 
-    def account_for(self, value: Optional[str]) -> Optional[str]:
+    def account_for(self, value: str | None) -> str | None:
         normalized_iban = _normalize_iban(value)
 
         if not normalized_iban:
@@ -118,5 +119,5 @@ class IBANMatcher:
             if iban == normalized_iban:
                 return account
 
-    def account_matches(self, value: Optional[str]) -> bool:
+    def account_matches(self, value: str | None) -> bool:
         return bool(self.account_for(value))
